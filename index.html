@@ -13,136 +13,207 @@
 </head>
 <body>
 
-  <header class="header">
-    <div class="header-inner">
-      <p class="eyebrow">Capitalitat Mundial de l'Arquitectura 2026</p>
-      <h1>Visor d'inscripcions</h1>
-      <p class="intro">
-        Seguiment dels passis i activitats gestionades des del full d'INSCRIPCIONS.
-        El visor llegeix les dades del Google Sheets i mostra els indicadors principals.
-      </p>
-      <p id="status" class="status-line">Carregant dades...</p>
+  <div class="app-shell">
+
+    <aside class="sidebar">
+      <div class="sidebar-inner">
+        <p class="sidebar-label">Menú</p>
+
+        <button class="nav-pill nav-pill-total active" data-view="view-total">
+          <span class="pill-dot"></span>
+          <span>Total passis</span>
+        </button>
+
+        <button class="nav-pill nav-pill-auto" data-view="view-autogestionades">
+          <span class="pill-dot"></span>
+          <span>Activitats autogestionades</span>
+        </button>
+
+        <button class="nav-pill nav-pill-mapa" data-view="view-mapa">
+          <span class="pill-dot"></span>
+          <span>Mapa</span>
+        </button>
+      </div>
+    </aside>
+
+    <div class="page">
+
+      <header class="header">
+        <div class="header-inner">
+          <p class="eyebrow">Capitalitat Mundial de l'Arquitectura 2026</p>
+          <h1>Visor d'inscripcions</h1>
+          <p class="intro">
+            Seguiment dels passis i activitats gestionades des del full d'INSCRIPCIONS.
+          </p>
+          <p id="status" class="status-line">Carregant dades...</p>
+        </div>
+      </header>
+
+      <main class="container">
+
+        <section id="view-total" class="view active">
+
+          <section class="kpi-grid">
+            <article class="card kpi-card">
+              <span class="label">Total de passis</span>
+              <strong id="kpi-total-passis">—</strong>
+            </article>
+
+            <article class="card kpi-card">
+              <span class="label">Passis gestionats per nosaltres</span>
+              <strong id="kpi-passis-importants">—</strong>
+            </article>
+          </section>
+
+          <section class="chart-stack">
+            <section class="panel chart-panel">
+              <div class="panel-header">
+                <span class="panel-number">01</span>
+                <div>
+                  <h2>Activitats al llarg de l’any</h2>
+                  <p>Distribució mensual segons la data d’inici.</p>
+                </div>
+              </div>
+
+              <div id="chart-any-complet" class="mountain-chart-wrap">
+                <p>Carregant...</p>
+              </div>
+            </section>
+
+            <section class="panel chart-panel">
+              <div class="panel-header">
+                <span class="panel-number">02</span>
+                <div>
+                  <h2>Activitats gestionades per nosaltres</h2>
+                  <p>Distribució mensual només de les activitats marcades com a pròpies.</p>
+                </div>
+              </div>
+
+              <div id="chart-any-gestio" class="mountain-chart-wrap">
+                <p>Carregant...</p>
+              </div>
+            </section>
+          </section>
+
+          <section class="dashboard-grid">
+            <section class="panel">
+              <div class="panel-header">
+                <span class="panel-number">03</span>
+                <div>
+                  <h2>Tipus d'entrada</h2>
+                  <p>Gratuïta, inscripció prèvia i pagament.</p>
+                </div>
+              </div>
+
+              <div id="chart-tipus-entrada" class="bar-chart">
+                <p>Carregant...</p>
+              </div>
+            </section>
+
+            <section class="panel">
+              <div class="panel-header">
+                <span class="panel-number">04</span>
+                <div>
+                  <h2>Modalitat</h2>
+                  <p>Modalitats A, B i C.</p>
+                </div>
+              </div>
+
+              <div id="chart-modalitat" class="bar-chart">
+                <p>Carregant...</p>
+              </div>
+            </section>
+
+            <section class="panel">
+              <div class="panel-header">
+                <span class="panel-number">05</span>
+                <div>
+                  <h2>Encarregada</h2>
+                  <p>Distribució per persona o equip responsable.</p>
+                </div>
+              </div>
+
+              <div id="chart-responsable" class="bar-chart">
+                <p>Carregant...</p>
+              </div>
+            </section>
+          </section>
+
+        </section>
+
+        <section id="view-autogestionades" class="view">
+
+          <section class="panel full-panel">
+            <div class="panel-header table-header">
+              <span class="panel-number">01</span>
+              <div>
+                <h2>Activitats autogestionades</h2>
+                <p>
+                  Llistat de les activitats marcades com a pròpies. Si falta l’enllaç
+                  d’inscripció, apareix un avís.
+                </p>
+              </div>
+            </div>
+
+            <div class="table-actions">
+              <input id="search-autogestionades" class="table-search" type="search" placeholder="Buscar per títol, espai, encarregada o categoria..." />
+              <span id="autogestionades-count" class="table-count">—</span>
+            </div>
+
+            <div class="table-wrapper">
+              <table>
+                <thead>
+                  <tr>
+                    <th>ID intern</th>
+                    <th>Encarregada</th>
+                    <th>Títol activitat CAT</th>
+                    <th>Data inici</th>
+                    <th>Categoria</th>
+                    <th>Espai</th>
+                    <th>Enllaç inscripcions</th>
+                  </tr>
+                </thead>
+                <tbody id="taula-autogestionades-body">
+                  <tr>
+                    <td colspan="7">Carregant...</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+        </section>
+
+        <section id="view-mapa" class="view">
+
+          <section class="panel map-panel">
+            <div class="panel-header">
+              <span class="panel-number">01</span>
+              <div>
+                <h2>Mapa</h2>
+                <p>
+                  Vista pendent de configurar. Aquí podrem mostrar les activitats per espai,
+                  districte o coordenades quan preparem la informació geogràfica.
+                </p>
+              </div>
+            </div>
+
+            <div class="map-placeholder">
+              <div class="map-grid"></div>
+              <div class="map-message">
+                <span>Mapa en preparació</span>
+                <strong>Proper pas</strong>
+                <p>Afegirem punts per districte o per espai quan tinguem les coordenades.</p>
+              </div>
+            </div>
+          </section>
+
+        </section>
+
+      </main>
+
     </div>
-  </header>
-
-  <main class="container">
-
-    <section class="kpi-grid">
-      <article class="card kpi-card">
-        <span class="label">Total de passis</span>
-        <strong id="kpi-total-passis">—</strong>
-      </article>
-
-      <article class="card kpi-card">
-        <span class="label">Passis gestionats per nosaltres</span>
-        <strong id="kpi-passis-importants">—</strong>
-      </article>
-    </section>
-
-    <section class="chart-stack">
-      <section class="panel chart-panel">
-        <div class="panel-header">
-          <span class="panel-number">01</span>
-          <div>
-            <h2>Activitats al llarg de l’any</h2>
-            <p>Columna N · data inici de totes les activitats.</p>
-          </div>
-        </div>
-
-        <div id="chart-any-complet" class="mountain-chart-wrap">
-          <p>Carregant...</p>
-        </div>
-      </section>
-
-      <section class="panel chart-panel">
-        <div class="panel-header">
-          <span class="panel-number">02</span>
-          <div>
-            <h2>Activitats gestionades per nosaltres</h2>
-            <p>Columna N · només files amb TRUE a la columna E.</p>
-          </div>
-        </div>
-
-        <div id="chart-any-gestio" class="mountain-chart-wrap">
-          <p>Carregant...</p>
-        </div>
-      </section>
-    </section>
-
-    <section class="dashboard-grid">
-      <section class="panel">
-        <div class="panel-header">
-          <span class="panel-number">03</span>
-          <div>
-            <h2>Tipus d'entrada</h2>
-            <p>Columna Y · gratuïta, inscripció prèvia i pagament.</p>
-          </div>
-        </div>
-
-        <div id="chart-tipus-entrada" class="bar-chart">
-          <p>Carregant...</p>
-        </div>
-      </section>
-
-      <section class="panel">
-        <div class="panel-header">
-          <span class="panel-number">04</span>
-          <div>
-            <h2>Modalitat</h2>
-            <p>Columna M · modalitats A, B i C.</p>
-          </div>
-        </div>
-
-        <div id="chart-modalitat" class="bar-chart">
-          <p>Carregant...</p>
-        </div>
-      </section>
-
-      <section class="panel">
-        <div class="panel-header">
-          <span class="panel-number">05</span>
-          <div>
-            <h2>Gestió</h2>
-            <p>Columna D · Marc, Hotaru, Laida, Roger, Cristian i Neda.</p>
-          </div>
-        </div>
-
-        <div id="chart-responsable" class="bar-chart">
-          <p>Carregant...</p>
-        </div>
-      </section>
-    </section>
-
-    <section class="panel full-panel">
-      <div class="panel-header table-header">
-        <span class="panel-number">06</span>
-        <div>
-          <h2>Passis gestionats</h2>
-          <p>Files amb ID intern a la columna B i TRUE a la columna E.</p>
-        </div>
-      </div>
-
-      <div class="table-wrapper">
-        <table>
-          <thead>
-            <tr>
-              <th>ID intern</th>
-              <th>Gestió</th>
-              <th>Tipus d'entrada</th>
-              <th>Modalitat</th>
-              <th>Fila</th>
-            </tr>
-          </thead>
-          <tbody id="taula-passis-body">
-            <tr>
-              <td colspan="5">Carregant...</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </section>
-
-  </main>
+  </div>
 
   <script src="app.js"></script>
 </body>

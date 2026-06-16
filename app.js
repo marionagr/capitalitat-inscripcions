@@ -1,36 +1,40 @@
 const DATA_URL = "data/inscripcions.json";
 
 const MESOS_KEYS = [
-  "gener",
-  "febrer",
-  "marc",
-  "abril",
-  "maig",
-  "juny",
-  "juliol",
-  "agost",
-  "setembre",
-  "octubre",
-  "novembre",
-  "desembre"
+  "gener", "febrer", "marc", "abril", "maig", "juny",
+  "juliol", "agost", "setembre", "octubre", "novembre", "desembre"
 ];
 
 const MESOS_LABELS = [
-  "Gen",
-  "Feb",
-  "Mar",
-  "Abr",
-  "Mai",
-  "Jun",
-  "Jul",
-  "Ago",
-  "Set",
-  "Oct",
-  "Nov",
-  "Des"
+  "Gen", "Feb", "Mar", "Abr", "Mai", "Jun",
+  "Jul", "Ago", "Set", "Oct", "Nov", "Des"
 ];
 
-document.addEventListener("DOMContentLoaded", carregarDades);
+let APP_DATA = null;
+let AUTOGESTIONADES = [];
+let COLUMN_KEYS = {};
+
+document.addEventListener("DOMContentLoaded", () => {
+  activarNavegacio();
+  carregarDades();
+});
+
+function activarNavegacio() {
+  const buttons = document.querySelectorAll(".nav-pill");
+  const views = document.querySelectorAll(".view");
+
+  buttons.forEach(button => {
+    button.addEventListener("click", () => {
+      const viewId = button.dataset.view;
+
+      buttons.forEach(btn => btn.classList.remove("active"));
+      views.forEach(view => view.classList.remove("active"));
+
+      button.classList.add("active");
+      document.getElementById(viewId)?.classList.add("active");
+    });
+  });
+}
 
 async function carregarDades() {
   const status = document.getElementById("status");
@@ -44,14 +48,14 @@ async function carregarDades() {
       throw new Error("No s'ha pogut carregar data/inscripcions.json");
     }
 
-    const data = await response.json();
+    APP_DATA = await response.json();
 
-    renderitzarDades(data);
+    renderitzarDades(APP_DATA);
 
     status.textContent =
-      `Dades carregades correctament · JSON actualitzat: ${data.meta?.updatedAt || "sense data"} · ` +
-      `passis: ${data.summary?.totalPassis || 0} · ` +
-      `gestió: ${data.summary?.passisGestio || 0}`;
+      `Dades carregades correctament · JSON actualitzat: ${APP_DATA.meta?.updatedAt || "sense data"} · ` +
+      `passis: ${APP_DATA.summary?.totalPassis || 0} · ` +
+      `autogestionades: ${APP_DATA.summary?.passisGestio || 0}`;
 
   } catch (error) {
     console.error(error);
@@ -61,7 +65,7 @@ async function carregarDades() {
 
 function renderitzarDades(data) {
   const summary = data.summary || {};
-  const columnKeys = data.columnKeys || summary.columnesExportades || {};
+  COLUMN_KEYS = data.columnKeys || summary.columnesExportades || {};
   const rows = data.rows || [];
 
   posarText("kpi-total-passis", summary.totalPassis || rows.length || 0);
@@ -83,12 +87,72 @@ function renderitzarDades(data) {
   renderitzarBarChart("chart-modalitat", summary.modalitat || {});
   renderitzarBarChart("chart-responsable", summary.responsable || {});
 
-  renderitzarTaula(rows, columnKeys);
+  AUTOGESTIONADES = rows.filter(row => valorEsTrue(row[COLUMN_KEYS.gestio]));
+  renderitzarTaulaAutogestionades(AUTOGESTIONADES);
+  activarCercadorAutogestionades();
+}
+
+function activarCercadorAutogestionades() {
+  const input = document.getElementById("search-autogestionades");
+  if (!input) return;
+
+  input.addEventListener("input", () => {
+    const query = normalitzarText(input.value);
+
+    const filtrades = AUTOGESTIONADES.filter(row => {
+      const text = [
+        row[COLUMN_KEYS.idIntern],
+        row[COLUMN_KEYS.responsable],
+        row[COLUMN_KEYS.titol],
+        row[COLUMN_KEYS.dataInici],
+        row[COLUMN_KEYS.categoria],
+        row[COLUMN_KEYS.espai]
+      ].map(normalitzarText).join(" ");
+
+      return text.includes(query);
+    });
+
+    renderitzarTaulaAutogestionades(filtrades);
+  });
+}
+
+function renderitzarTaulaAutogestionades(rows) {
+  const tbody = document.getElementById("taula-autogestionades-body");
+  const counter = document.getElementById("autogestionades-count");
+
+  if (!tbody) return;
+
+  if (counter) {
+    counter.textContent = `${rows.length} activitats`;
+  }
+
+  if (!rows.length) {
+    tbody.innerHTML = `<tr><td colspan="7">No s'han trobat activitats autogestionades.</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = rows.map(row => {
+    const enllac = String(row[COLUMN_KEYS.enllacInscripcions] || "").trim();
+    const linkCell = enllac
+      ? `<a class="link-pill" href="${escaparAtribut(enllac)}" target="_blank" rel="noopener noreferrer">Obrir enllaç</a>`
+      : `<span class="warning-pill">Falta enllaç</span>`;
+
+    return `
+      <tr>
+        <td>${escaparHTML(row[COLUMN_KEYS.idIntern])}</td>
+        <td>${escaparHTML(row[COLUMN_KEYS.responsable])}</td>
+        <td class="title-cell">${escaparHTML(row[COLUMN_KEYS.titol])}</td>
+        <td>${escaparHTML(row[COLUMN_KEYS.dataInici])}</td>
+        <td>${escaparHTML(row[COLUMN_KEYS.categoria])}</td>
+        <td>${escaparHTML(row[COLUMN_KEYS.espai])}</td>
+        <td>${linkCell}</td>
+      </tr>
+    `;
+  }).join("");
 }
 
 function objecteMesosAArray(objecte) {
   if (!objecte) return new Array(12).fill(0);
-
   return MESOS_KEYS.map(key => Number(objecte[key] || 0));
 }
 
@@ -120,7 +184,6 @@ function renderitzarAreaChartMesos(containerId, valors, subtitol) {
 
   const horizontalGrid = ticks.map(valorTick => {
     const y = baseY - (valorTick / maxValor) * plotHeight;
-
     return `
       <line x1="${margin.left}" y1="${y}" x2="${margin.left + plotWidth}" y2="${y}" class="chart-grid-horizontal" />
       <text x="${margin.left - 12}" y="${y + 4}" text-anchor="end" class="chart-axis-label">${valorTick}</text>
@@ -197,7 +260,6 @@ function renderitzarBarChart(containerId, objecte) {
 
   container.innerHTML = entries.map(([label, valor]) => {
     valor = Number(valor || 0);
-
     const width = valor > 0 ? Math.max((valor / max) * 100, 3) : 0;
     const percent = total > 0 ? Math.round((valor / total) * 100) : 0;
 
@@ -216,45 +278,9 @@ function renderitzarBarChart(containerId, objecte) {
   }).join("");
 }
 
-function renderitzarTaula(rows, columnKeys) {
-  const tbody = document.getElementById("taula-passis-body");
-  if (!tbody) return;
-
-  const keyId = columnKeys.idIntern;
-  const keyResponsable = columnKeys.responsable;
-  const keyEntrada = columnKeys.entrada;
-  const keyModalitat = columnKeys.modalitat;
-  const keyGestio = columnKeys.gestio;
-
-  const rowsGestio = rows.filter(row => valorEsTrue(row[keyGestio]));
-
-  if (!rowsGestio.length) {
-    tbody.innerHTML = `<tr><td colspan="5">No s'han trobat passis amb PRÒPIES = TRUE.</td></tr>`;
-    return;
-  }
-
-  tbody.innerHTML = rowsGestio.slice(0, 300).map(row => `
-    <tr>
-      <td>${escaparHTML(row[keyId])}</td>
-      <td>${escaparHTML(row[keyResponsable])}</td>
-      <td>${escaparHTML(row[keyEntrada])}</td>
-      <td>${escaparHTML(row[keyModalitat])}</td>
-      <td>${escaparHTML(row.__fila)}</td>
-    </tr>
-  `).join("");
-}
-
 function valorEsTrue(value) {
   const text = normalitzarText(value);
-
-  return (
-    text === "true" ||
-    text === "verdadero" ||
-    text === "cert" ||
-    text === "si" ||
-    text === "sí" ||
-    text === "x"
-  );
+  return text === "true" || text === "verdadero" || text === "cert" || text === "si" || text === "sí" || text === "x";
 }
 
 function construirPathSuau(points) {
@@ -270,7 +296,6 @@ function construirPathSuau(points) {
   }
 
   d += ` T ${points[points.length - 1].x} ${points[points.length - 1].y}`;
-
   return d;
 }
 
@@ -307,4 +332,8 @@ function escaparHTML(value) {
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#039;");
+}
+
+function escaparAtribut(value) {
+  return escaparHTML(value).replaceAll("`", "&#096;");
 }
