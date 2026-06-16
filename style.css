@@ -3341,3 +3341,248 @@ tr:hover td {
   }
 }
 
+
+/* === CAPITALITAT_V4_CLEAN_SINGLE_LOGO === */
+
+/* ============================================================
+   V4 CLEAN · UN SOL LOGO + RAIG DE LLUM + COL·LAPSE A PUNT
+============================================================ */
+
+/* Amaguem capes antigues per evitar duplicacions */
+.cv4-logo-glass,
+.cv4-logo-glow,
+.cv4-logo-sweep,
+.cv4-logo-stage::before,
+.cv4-logo-stage::after {
+  display: none !important;
+  content: none !important;
+}
+
+/* Contenidor del logo */
+.cv4-logo-stage {
+  position: absolute;
+  left: 50%;
+  top: 43%;
+  z-index: 5;
+  width: min(430px, 62vw);
+  aspect-ratio: 900 / 500;
+  transform: translate(-50%, -50%) scale(0.96);
+  opacity: 0;
+  filter: blur(6px);
+  overflow: visible;
+}
+
+/* Animació del contenidor: entra i després es col·lapsa al punt */
+.capitalitat-v4-overlay.is-active .cv4-logo-stage {
+  animation:
+    cv4SingleLogoIn 0.8s cubic-bezier(.22,1,.36,1) 0.15s forwards,
+    cv4SingleLogoCollapse 1.1s cubic-bezier(.2,.92,.24,1) 2.6s forwards !important;
+}
+
+/* Logo únic */
+.cv4-logo-single {
+  position: absolute;
+  inset: 0;
+  background-image: url("assets/logo-capitalitat.png");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
+  opacity: 1;
+  filter:
+    brightness(1.05)
+    saturate(1.04)
+    drop-shadow(0 0 10px rgba(255, 228, 92, 0.26))
+    drop-shadow(0 0 26px rgba(255, 228, 92, 0.14));
+}
+
+/* Raig de llum únic, només una vegada */
+.cv4-logo-single::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(
+      100deg,
+      transparent 0%,
+      transparent 38%,
+      rgba(255,255,255,0.00) 42%,
+      rgba(255,255,255,0.85) 49%,
+      rgba(255,245,190,0.95) 51%,
+      rgba(255,228,92,0.60) 55%,
+      transparent 63%,
+      transparent 100%
+    );
+  mix-blend-mode: screen;
+  opacity: 0;
+  transform: translateX(-130%);
+  filter: blur(1px);
+}
+
+.capitalitat-v4-overlay.is-active .cv4-logo-single::after {
+  animation: cv4SingleSweep 1.25s cubic-bezier(.16,.84,.22,1) 1.0s forwards;
+}
+
+/* Punt groc: apareix quan el logo arriba al centre */
+.cv4-seed {
+  position: absolute;
+  left: 50%;
+  top: calc(50% + 84px);
+  z-index: 8;
+  width: 12px;
+  height: 12px;
+  margin-left: -6px;
+  margin-top: -6px;
+  border-radius: 999px;
+  background: #ffe45c;
+  opacity: 0;
+  box-shadow:
+    0 0 14px rgba(255, 228, 92, 0.95),
+    0 0 34px rgba(255, 228, 92, 0.45),
+    0 0 70px rgba(255, 228, 92, 0.22);
+}
+
+.capitalitat-v4-overlay.is-active .cv4-seed {
+  animation:
+    cv4SeedInClean 0.35s ease 3.38s forwards,
+    cv4SeedHoldClean 1.7s linear 3.75s forwards,
+    cv4SeedFadeClean 0.35s ease 5.85s forwards;
+}
+
+/* Ajustem la línia perquè comenci just després del punt */
+.capitalitat-v4-overlay.is-active .cv4-line {
+  animation:
+    cv4LineGrow 1.95s cubic-bezier(.18,.86,.22,1) 4.0s forwards,
+    cv4LineFade 0.7s ease 6.25s forwards !important;
+}
+
+.capitalitat-v4-overlay.is-active .cv4-line::before {
+  animation: cv4LineLightLeft 1.95s linear 4.0s forwards !important;
+}
+
+.capitalitat-v4-overlay.is-active .cv4-line::after {
+  animation: cv4LineLightRight 1.95s linear 4.0s forwards !important;
+}
+
+.capitalitat-v4-overlay.is-active .cv4-date {
+  animation:
+    cv4DateIn 0.65s ease 5.5s forwards,
+    cv4DateMoveUp 0.85s cubic-bezier(.22,1,.36,1) 6.15s forwards !important;
+}
+
+.capitalitat-v4-overlay.is-active .cv4-progress {
+  animation: cv4ProgressIn 0.9s cubic-bezier(.22,1,.36,1) 6.15s forwards !important;
+}
+
+/* KEYFRAMES nous i nets */
+
+@keyframes cv4SingleLogoIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.94);
+    filter: blur(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+    filter: blur(0);
+  }
+}
+
+@keyframes cv4SingleSweep {
+  0% {
+    opacity: 0;
+    transform: translateX(-130%);
+  }
+  10% {
+    opacity: 1;
+  }
+  82% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(130%);
+  }
+}
+
+/* El logo complet es converteix en el punt */
+@keyframes cv4SingleLogoCollapse {
+  0% {
+    top: 43%;
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+    filter: blur(0);
+  }
+
+  58% {
+    top: calc(50% + 48px);
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(0.22);
+    filter: blur(1px);
+  }
+
+  100% {
+    top: calc(50% + 84px);
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.04);
+    filter: blur(6px);
+  }
+}
+
+@keyframes cv4SeedInClean {
+  from {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes cv4SeedHoldClean {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes cv4SeedFadeClean {
+  to {
+    opacity: 0;
+    transform: scale(0.55);
+  }
+}
+
+@media (max-width: 620px) {
+  .cv4-logo-stage {
+    width: min(360px, 80vw);
+  }
+
+  @keyframes cv4SingleLogoCollapse {
+    0% {
+      top: 43%;
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1);
+      filter: blur(0);
+    }
+
+    58% {
+      top: calc(50% + 62px);
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(0.22);
+      filter: blur(1px);
+    }
+
+    100% {
+      top: calc(50% + 96px);
+      opacity: 0;
+      transform: translate(-50%, -50%) scale(0.04);
+      filter: blur(6px);
+    }
+  }
+}

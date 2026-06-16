@@ -1513,9 +1513,7 @@ function mostrarExperienciaCapitalitatV4() {
     <button class="cv4-close" type="button" aria-label="Tancar animació">×</button>
 
     <div class="cv4-logo-stage">
-      <div class="cv4-logo-glass"></div>
-      <div class="cv4-logo-glow"></div>
-      <div class="cv4-logo-sweep"></div>
+      <div class="cv4-logo-single"></div>
     </div>
 
     <div class="cv4-seed"></div>
