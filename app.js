@@ -1,10 +1,11 @@
-const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRWPBpxuBECSh1kLS1Vm-gdmOQhWw6_aBUUsjrX3wMZlaL17IsIkhFrSa8ovmbMR-uFL07SeX5ClGOM/pub?gid=953396512&single=true&output=csv";
+const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRWPBpxuBECSh1kLS1Vm-gdmOQhWw6_aBUUsjrX3wMZlaL17IsIkhFrSa8ovmbMR-uFL07SeX5ClGOM/pubhtml?gid=953396512&single=true";
 
 const COLS = {
   ID_INTERN: 1,       // B
   RESPONSABLE: 3,     // D
   IMPORTANT: 4,       // E
   MODALITAT: 12,      // M
+  DATA_INICI: 13,     // N
   TIPUS_ENTRADA: 24   // Y
 };
 
@@ -16,6 +17,8 @@ const RESPONSABLES = [
   "Cristian",
   "Neda"
 ];
+
+const MESOS = ["Gen", "Feb", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Oct", "Nov", "Des"];
 
 document.addEventListener("DOMContentLoaded", carregarDades);
 
@@ -62,6 +65,8 @@ function prepararDades(rows) {
       const tipusEntradaOriginal = getCell(row, COLS.TIPUS_ENTRADA);
       const modalitatOriginal = getCell(row, COLS.MODALITAT);
       const responsableOriginal = getCell(row, COLS.RESPONSABLE);
+      const dataIniciOriginal = getCell(row, COLS.DATA_INICI);
+      const mesIndex = extreureMesIndex(dataIniciOriginal);
 
       return {
         fila: index + 2,
@@ -72,7 +77,9 @@ function prepararDades(rows) {
         tipusEntrada: classificarTipusEntrada(tipusEntradaOriginal),
         tipusEntradaOriginal,
         modalitat: classificarModalitat(modalitatOriginal),
-        modalitatOriginal
+        modalitatOriginal,
+        dataIniciOriginal,
+        mesIndex
       };
     })
     .filter(Boolean);
@@ -106,7 +113,10 @@ function prepararDades(rows) {
       "Neda",
       "Altres",
       "Sense responsable"
-    ])
+    ]),
+
+    activitatsPerMes: comptarPerMes(passis),
+    activitatsPerMesGestio: comptarPerMes(passisImportants)
   };
 
   return {
@@ -121,11 +131,189 @@ function renderitzarDades(data) {
   posarText("kpi-total-passis", resum.totalPassis);
   posarText("kpi-passis-importants", resum.passisImportants);
 
+  renderitzarAreaChartMesos(
+    "chart-any-complet",
+    resum.activitatsPerMes,
+    "Totes les activitats"
+  );
+
+  renderitzarAreaChartMesos(
+    "chart-any-gestio",
+    resum.activitatsPerMesGestio,
+    "Activitats gestionades per nosaltres"
+  );
+
   renderitzarBarChart("chart-tipus-entrada", resum.tipusEntrada);
   renderitzarBarChart("chart-modalitat", resum.modalitat);
   renderitzarBarChart("chart-responsable", resum.responsable);
 
   renderitzarTaula(data.passis);
+}
+
+function comptarPerMes(items) {
+  const mesos = new Array(12).fill(0);
+
+  items.forEach(item => {
+    if (Number.isInteger(item.mesIndex) && item.mesIndex >= 0 && item.mesIndex <= 11) {
+      mesos[item.mesIndex]++;
+    }
+  });
+
+  return mesos;
+}
+
+function renderitzarAreaChartMesos(containerId, valors, subtitol) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+
+  const width = 1000;
+  const height = 360;
+  const margin = { top: 24, right: 24, bottom: 52, left: 54 };
+  const plotWidth = width - margin.left - margin.right;
+  const plotHeight = height - margin.top - margin.bottom;
+  const baseY = margin.top + plotHeight;
+  const stepX = plotWidth / 11;
+
+  const maxValorReal = Math.max(...valors, 1);
+  const maxValor = arrodonirMaxGrafic(maxValorReal);
+
+  const points = valors.map((valor, i) => {
+    const x = margin.left + (stepX * i);
+    const y = baseY - ((valor / maxValor) * plotHeight);
+    return { x, y, valor, mes: MESOS[i] };
+  });
+
+  const linePath = construirPathSuau(points);
+  const areaPath = `${linePath} L ${points[points.length - 1].x} ${baseY} L ${points[0].x} ${baseY} Z`;
+
+  const horizontalTicks = obtenirTicksY(maxValor);
+
+  const uid = containerId.replace(/[^a-zA-Z0-9]/g, "");
+
+  const verticalGrid = points.map(point => `
+    <line
+      x1="${point.x}"
+      y1="${margin.top}"
+      x2="${point.x}"
+      y2="${baseY}"
+      class="chart-grid-vertical"
+    />
+  `).join("");
+
+  const horizontalGrid = horizontalTicks.map(valor => {
+    const y = baseY - ((valor / maxValor) * plotHeight);
+
+    return `
+      <line
+        x1="${margin.left}"
+        y1="${y}"
+        x2="${margin.left + plotWidth}"
+        y2="${y}"
+        class="chart-grid-horizontal"
+      />
+      <text x="${margin.left - 12}" y="${y + 4}" text-anchor="end" class="chart-axis-label">
+        ${valor}
+      </text>
+    `;
+  }).join("");
+
+  const xLabels = points.map(point => `
+    <text x="${point.x}" y="${baseY + 28}" text-anchor="middle" class="chart-axis-label">
+      ${point.mes}
+    </text>
+  `).join("");
+
+  const pointDots = points.map(point => `
+    <circle cx="${point.x}" cy="${point.y}" r="4.5" class="chart-point-glow" />
+    <circle cx="${point.x}" cy="${point.y}" r="2.5" class="chart-point-core" />
+  `).join("");
+
+  container.innerHTML = `
+    <div class="chart-meta">
+      <span class="chart-kicker">${subtitol}</span>
+      <span class="chart-side-label">Número d'activitats</span>
+    </div>
+
+    <svg
+      viewBox="0 0 ${width} ${height}"
+      class="mountain-chart"
+      role="img"
+      aria-label="${subtitol} per mesos"
+    >
+      <defs>
+        <linearGradient id="${uid}AreaGradient" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#FFE45C" stop-opacity="0.95" />
+          <stop offset="45%" stop-color="#FFD028" stop-opacity="0.40" />
+          <stop offset="100%" stop-color="#FFD028" stop-opacity="0.02" />
+        </linearGradient>
+
+        <linearGradient id="${uid}LineGradient" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stop-color="#FFF4A8" />
+          <stop offset="45%" stop-color="#FFE45C" />
+          <stop offset="100%" stop-color="#FFCB1F" />
+        </linearGradient>
+
+        <filter id="${uid}Glow" x="-20%" y="-20%" width="140%" height="140%">
+          <feGaussianBlur stdDeviation="6" result="blur" />
+          <feMerge>
+            <feMergeNode in="blur"/>
+            <feMergeNode in="SourceGraphic"/>
+          </feMerge>
+        </filter>
+      </defs>
+
+      ${verticalGrid}
+      ${horizontalGrid}
+
+      <path
+        d="${areaPath}"
+        fill="url(#${uid}AreaGradient)"
+        filter="url(#${uid}Glow)"
+      />
+
+      <path
+        d="${linePath}"
+        fill="none"
+        stroke="url(#${uid}LineGradient)"
+        stroke-width="3"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        filter="url(#${uid}Glow)"
+      />
+
+      ${pointDots}
+      ${xLabels}
+    </svg>
+  `;
+}
+
+function obtenirTicksY(maxValor) {
+  const ticks = [maxValor, Math.round(maxValor * 0.66), Math.round(maxValor * 0.33), 0];
+  return [...new Set(ticks)].sort((a, b) => b - a);
+}
+
+function arrodonirMaxGrafic(valor) {
+  if (valor <= 5) return 5;
+  if (valor <= 10) return 10;
+  if (valor <= 20) return Math.ceil(valor / 2) * 2;
+  if (valor <= 50) return Math.ceil(valor / 5) * 5;
+  return Math.ceil(valor / 10) * 10;
+}
+
+function construirPathSuau(points) {
+  if (!points.length) return "";
+  if (points.length === 1) return `M ${points[0].x} ${points[0].y}`;
+
+  let d = `M ${points[0].x} ${points[0].y}`;
+
+  for (let i = 1; i < points.length - 1; i++) {
+    const xc = (points[i].x + points[i + 1].x) / 2;
+    const yc = (points[i].y + points[i + 1].y) / 2;
+    d += ` Q ${points[i].x} ${points[i].y} ${xc} ${yc}`;
+  }
+
+  d += ` T ${points[points.length - 1].x} ${points[points.length - 1].y}`;
+  return d;
 }
 
 function renderitzarBarChart(containerId, objecte) {
@@ -257,6 +445,31 @@ function valorEsTrue(valor) {
     text === "si" ||
     text === "sí"
   );
+}
+
+function extreureMesIndex(valor) {
+  const text = String(valor || "").trim();
+
+  if (!text) return null;
+
+  const formatDMY = text.match(/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{2,4})/);
+  if (formatDMY) {
+    const mes = parseInt(formatDMY[2], 10);
+    if (mes >= 1 && mes <= 12) return mes - 1;
+  }
+
+  const formatYMD = text.match(/^(\d{4})[\/\-.](\d{1,2})[\/\-.](\d{1,2})/);
+  if (formatYMD) {
+    const mes = parseInt(formatYMD[2], 10);
+    if (mes >= 1 && mes <= 12) return mes - 1;
+  }
+
+  const data = new Date(text);
+  if (!Number.isNaN(data.getTime())) {
+    return data.getMonth();
+  }
+
+  return null;
 }
 
 function normalitzarText(valor) {
