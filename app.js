@@ -2640,7 +2640,7 @@ function iniciarDibuixPerimetreCapitalitatV5(overlay, progress, path, len, dot1,
 
 /* === CAPITALITAT_V5_FINAL_AUTO_CLOSE_START === */
 
-/* Tanca l'animació 5 segons després d'acabar el percentatge final */
+/* Tanca l'animació 3 segons després d'acabar el percentatge final */
 const mostrarExperienciaCapitalitatV5_base_auto_close_final = mostrarExperienciaCapitalitatV5;
 
 mostrarExperienciaCapitalitatV5 = function() {
@@ -2650,7 +2650,7 @@ mostrarExperienciaCapitalitatV5 = function() {
     clearTimeout(window.__capitalitatV5AutoCloseTimer);
   }
 
-  // Temps aproximat de tota la seqüència + 5 segons de pausa final.
+  // Temps aproximat de tota la seqüència + 3 segons de pausa final.
   window.__capitalitatV5AutoCloseTimer = setTimeout(() => {
     const overlay = document.getElementById("capitalitat-v5-overlay");
     if (!overlay) return;
@@ -2662,5 +2662,5 @@ mostrarExperienciaCapitalitatV5 = function() {
         overlay.remove();
       }
     }, 700);
-  }, 20500);
+  }, 18500);
 };
