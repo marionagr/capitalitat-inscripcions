@@ -2564,9 +2564,9 @@ function animarPerimetreCapitalitatV5(overlay, progress) {
 
   // Tres punts que apareixen des de tres extrems diferents del camp SVG
   const startPositions = [
-    { x: -18, y: 18 },     // esquerra superior
-    { x: 248, y: 20 },     // dreta superior
-    { x: -16, y: 356 }     // esquerra inferior
+    { x: -120, y: -90 },   // cantonada superior esquerra (molt lluny)
+    { x: 360, y: -90 },    // cantonada superior dreta (molt lluny)
+    { x: 360, y: 500 }     // cantonada inferior dreta (molt lluny)
   ];
 
   const targetPositions = [
@@ -2589,7 +2589,7 @@ function animarPerimetreCapitalitatV5(overlay, progress) {
   dot3.style.opacity = "0";
 
   const flyStart = performance.now();
-  const flyDuration = 850;
+  const flyDuration = 1350;
 
   function flyFrame(now) {
     const t = Math.min(1, (now - flyStart) / flyDuration);
@@ -2623,7 +2623,7 @@ function iniciarDibuixPerimetreCapitalitatV5(overlay, progress, path, len, dot1,
   const start = performance.now();
 
   // Abans era 3600. Ara és una mica més lent, però no massa.
-  const duration = 4350;
+  const duration = 5600;
   let copyShown = false;
 
   function frame(now) {
@@ -2637,7 +2637,7 @@ function iniciarDibuixPerimetreCapitalitatV5(overlay, progress, path, len, dot1,
     posicionarDot(path, dot2, Math.max(0, eased - 0.10), len);
     posicionarDot(path, dot3, Math.max(0, eased - 0.20), len);
 
-    if (!copyShown && t > 0.72) {
+    if (!copyShown && t > 0.80) {
       overlay.classList.add("is-copy-visible");
       copyShown = true;
     }
