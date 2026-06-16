@@ -2545,3 +2545,132 @@ function animarPerimetreCapitalitatV5(overlay, progress) {
 function TrueCapitalitatV5() {
   return true;
 }
+
+/* === CAPITALITAT_V5_DOTS_FROM_CORNERS_START === */
+
+/* ============================================================
+   CAPITALITAT V5 · PUNTS DES DE DIFERENTS EXTREMS + MÉS LENT
+============================================================ */
+
+function animarPerimetreCapitalitatV5(overlay, progress) {
+  const path = overlay.querySelector("[data-cv5-path-1]");
+
+  const dot1 = overlay.querySelector("[data-cv5-dot-1]");
+  const dot2 = overlay.querySelector("[data-cv5-dot-2]");
+  const dot3 = overlay.querySelector("[data-cv5-dot-3]");
+
+  const numberEl = overlay.querySelector("[data-cv5-number]");
+  const circleEl = overlay.querySelector("[data-cv5-circle]");
+
+  const len = path.getTotalLength();
+  prepararPath(path, len);
+
+  // Tres punts que apareixen des de tres extrems diferents del camp SVG
+  const startPositions = [
+    { x: -18, y: 18 },     // esquerra superior
+    { x: 248, y: 20 },     // dreta superior
+    { x: -16, y: 356 }     // esquerra inferior
+  ];
+
+  const targetPositions = [
+    path.getPointAtLength(0),
+    path.getPointAtLength(len * 0.12),
+    path.getPointAtLength(len * 0.24)
+  ];
+
+  dot1.setAttribute("cx", startPositions[0].x);
+  dot1.setAttribute("cy", startPositions[0].y);
+
+  dot2.setAttribute("cx", startPositions[1].x);
+  dot2.setAttribute("cy", startPositions[1].y);
+
+  dot3.setAttribute("cx", startPositions[2].x);
+  dot3.setAttribute("cy", startPositions[2].y);
+
+  dot1.style.opacity = "0";
+  dot2.style.opacity = "0";
+  dot3.style.opacity = "0";
+
+  const flyStart = performance.now();
+  const flyDuration = 850;
+
+  function flyFrame(now) {
+    const t = Math.min(1, (now - flyStart) / flyDuration);
+    const eased = 1 - Math.pow(1 - t, 3);
+
+    [dot1, dot2, dot3].forEach((dot, index) => {
+      const sx = startPositions[index].x;
+      const sy = startPositions[index].y;
+      const tx = targetPositions[index].x;
+      const ty = targetPositions[index].y;
+
+      const x = sx + (tx - sx) * eased;
+      const y = sy + (ty - sy) * eased;
+
+      dot.setAttribute("cx", x.toFixed(2));
+      dot.setAttribute("cy", y.toFixed(2));
+      dot.style.opacity = String(Math.min(1, eased * 1.4));
+    });
+
+    if (t < 1) {
+      requestAnimationFrame(flyFrame);
+    } else {
+      iniciarDibuixPerimetreCapitalitatV5(overlay, progress, path, len, dot1, dot2, dot3, numberEl, circleEl);
+    }
+  }
+
+  requestAnimationFrame(flyFrame);
+}
+
+function iniciarDibuixPerimetreCapitalitatV5(overlay, progress, path, len, dot1, dot2, dot3, numberEl, circleEl) {
+  const start = performance.now();
+
+  // Abans era 3600. Ara és una mica més lent, però no massa.
+  const duration = 4350;
+  let copyShown = false;
+
+  function frame(now) {
+    const t = Math.min(1, (now - start) / duration);
+    const eased = 1 - Math.pow(1 - t, 2.05);
+
+    pintarPath(path, len, eased);
+
+    // Els tres punts avancen amb una petita separació perquè sembli més viu.
+    posicionarDot(path, dot1, eased, len);
+    posicionarDot(path, dot2, Math.max(0, eased - 0.10), len);
+    posicionarDot(path, dot3, Math.max(0, eased - 0.20), len);
+
+    if (!copyShown && t > 0.72) {
+      overlay.classList.add("is-copy-visible");
+      copyShown = true;
+    }
+
+    if (t < 1) {
+      requestAnimationFrame(frame);
+    } else {
+      window.setTimeout(() => {
+        overlay.classList.add("is-copy-leaving");
+
+        window.setTimeout(() => {
+          fusionarPuntsCapitalitatV5(overlay, [dot1, dot2, dot3], { x: 116, y: 190 }, () => {
+            overlay.classList.add("is-seed-visible");
+
+            window.setTimeout(() => {
+              overlay.classList.add("is-timeline-start");
+            }, 360);
+
+            window.setTimeout(() => {
+              overlay.classList.add("is-progress-visible");
+            }, 2700);
+
+            window.setTimeout(() => {
+              animarPercentatgeCapitalitatV5(numberEl, circleEl, progress.percent, 1650);
+            }, 3020);
+          });
+        }, 620);
+      }, 900);
+    }
+  }
+
+  requestAnimationFrame(frame);
+}
