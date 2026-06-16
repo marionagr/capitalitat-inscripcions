@@ -44,6 +44,7 @@ let PRO_CALENDAR_MODE = "all";
 
 document.addEventListener("DOMContentLoaded", () => {
   activarNavegacio();
+  activarAnimacioLogoCapitalitat();
   carregarDades();
 });
 
@@ -1099,4 +1100,153 @@ function escaparAtribut(value) {
 
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+
+/* =========================
+   ANIMACIÓ LOGO CAPITALITAT
+========================= */
+
+function activarAnimacioLogoCapitalitat() {
+  const logoTrigger = document.querySelector(".brand-block") || document.querySelector(".brand-logo");
+
+  if (!logoTrigger) return;
+
+  logoTrigger.style.cursor = "pointer";
+  logoTrigger.setAttribute("title", "Veure progrés de la Capitalitat");
+
+  logoTrigger.addEventListener("click", () => {
+    mostrarAnimacioCapitalitat();
+  });
+}
+
+function mostrarAnimacioCapitalitat() {
+  let overlay = document.getElementById("capitalitat-progress-overlay");
+
+  if (!overlay) {
+    overlay = crearOverlayCapitalitat();
+    document.body.appendChild(overlay);
+  }
+
+  const progress = calcularProgresCapitalitat();
+  const percentText = overlay.querySelector("[data-capitalitat-percent]");
+  const daysText = overlay.querySelector("[data-capitalitat-days]");
+  const circle = overlay.querySelector("[data-capitalitat-circle]");
+
+  if (percentText) {
+    percentText.textContent = `${progress.percent}%`;
+  }
+
+  if (daysText) {
+    if (progress.remainingDays > 0) {
+      daysText.textContent = `Falten ${progress.remainingDays} dies per acabar la Capitalitat`;
+    } else if (progress.percent >= 100) {
+      daysText.textContent = "La Capitalitat ha finalitzat";
+    } else {
+      daysText.textContent = "La Capitalitat encara no ha començat";
+    }
+  }
+
+  if (circle) {
+    const radius = Number(circle.getAttribute("r"));
+    const circumference = 2 * Math.PI * radius;
+    const offset = circumference - (progress.percent / 100) * circumference;
+
+    circle.style.strokeDasharray = `${circumference}`;
+    circle.style.strokeDashoffset = `${circumference}`;
+
+    requestAnimationFrame(() => {
+      circle.style.strokeDashoffset = `${offset}`;
+    });
+  }
+
+  overlay.classList.remove("is-active", "show-progress");
+
+  requestAnimationFrame(() => {
+    overlay.classList.add("is-active");
+  });
+
+  window.setTimeout(() => {
+    overlay.classList.add("show-progress");
+  }, 1800);
+}
+
+function crearOverlayCapitalitat() {
+  const overlay = document.createElement("div");
+  overlay.id = "capitalitat-progress-overlay";
+  overlay.className = "capitalitat-overlay";
+  overlay.setAttribute("aria-hidden", "true");
+
+  overlay.innerHTML = `
+    <button class="capitalitat-close" type="button" aria-label="Tancar animació">×</button>
+
+    <div class="capitalitat-sequence">
+      <div class="capitalitat-line-stage">
+        <span class="capitalitat-date capitalitat-date-left">12 de febrer</span>
+        <span class="capitalitat-date capitalitat-date-right">13 de desembre</span>
+        <span class="capitalitat-line"></span>
+      </div>
+
+      <div class="capitalitat-progress-stage">
+        <div class="capitalitat-progress-ring">
+          <svg viewBox="0 0 220 220" aria-hidden="true">
+            <circle class="capitalitat-ring-bg" cx="110" cy="110" r="92"></circle>
+            <circle class="capitalitat-ring-progress" cx="110" cy="110" r="92" data-capitalitat-circle></circle>
+          </svg>
+
+          <div class="capitalitat-progress-number">
+            <strong data-capitalitat-percent>—</strong>
+            <span>dies transcorreguts</span>
+          </div>
+        </div>
+
+        <p data-capitalitat-days>Calculant dies restants...</p>
+      </div>
+    </div>
+  `;
+
+  overlay.addEventListener("click", event => {
+    if (
+      event.target === overlay ||
+      event.target.closest(".capitalitat-close")
+    ) {
+      tancarAnimacioCapitalitat();
+    }
+  });
+
+  document.addEventListener("keydown", event => {
+    if (event.key === "Escape") {
+      tancarAnimacioCapitalitat();
+    }
+  });
+
+  return overlay;
+}
+
+function tancarAnimacioCapitalitat() {
+  const overlay = document.getElementById("capitalitat-progress-overlay");
+  if (!overlay) return;
+
+  overlay.classList.remove("is-active", "show-progress");
+}
+
+function calcularProgresCapitalitat() {
+  const MS_DIA = 24 * 60 * 60 * 1000;
+
+  const inici = new Date(2026, 1, 12);
+  const final = new Date(2026, 11, 13);
+
+  const ara = new Date();
+  const avui = new Date(ara.getFullYear(), ara.getMonth(), ara.getDate());
+
+  const totalDies = Math.max(1, Math.round((final - inici) / MS_DIA));
+  const diesPassats = Math.round((avui - inici) / MS_DIA);
+  const remainingDays = Math.max(0, Math.ceil((final - avui) / MS_DIA));
+
+  const percent = Math.min(100, Math.max(0, Math.round((diesPassats / totalDies) * 100)));
+
+  return {
+    percent,
+    remainingDays
+  };
 }
