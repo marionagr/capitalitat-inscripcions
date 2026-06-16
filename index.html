@@ -46,6 +46,11 @@
           <span class="pill-dot"></span>
           <span>Mapa</span>
         </button>
+
+        <button class="nav-pill nav-pill-calendari" data-view="view-calendari">
+          <span class="pill-dot"></span>
+          <span>Calendari</span>
+        </button>
       </div>
     </aside>
 
@@ -238,6 +243,56 @@
                   </tr>
                 </tbody>
               </table>
+            </div>
+          </section>
+
+        </section>
+
+        <section id="view-calendari" class="view">
+
+          <section class="panel calendar-panel">
+            <div class="panel-header">
+              <span class="panel-number">01</span>
+              <div>
+                <h2>Calendari mensual</h2>
+                <p>
+                  Activitats ordenades per DATA INICI_. Clica una activitat per veure'n
+                  tota la informació.
+                </p>
+              </div>
+            </div>
+
+            <div class="calendar-toolbar">
+              <button id="calendar-prev" class="calendar-nav-button" type="button">← Mes anterior</button>
+              <div>
+                <h3 id="calendar-title">Calendari</h3>
+                <p id="calendar-subtitle">Dilluns a diumenge</p>
+              </div>
+              <button id="calendar-next" class="calendar-nav-button" type="button">Mes següent →</button>
+            </div>
+
+            <div class="calendar-layout">
+              <div class="calendar-main">
+                <div class="calendar-weekdays">
+                  <span>Dilluns</span>
+                  <span>Dimarts</span>
+                  <span>Dimecres</span>
+                  <span>Dijous</span>
+                  <span>Divendres</span>
+                  <span>Dissabte</span>
+                  <span>Diumenge</span>
+                </div>
+
+                <div id="calendar-grid" class="calendar-grid">
+                  <p>Carregant calendari...</p>
+                </div>
+              </div>
+
+              <aside id="calendar-detail" class="calendar-detail">
+                <span class="detail-eyebrow">Detall activitat</span>
+                <h3>Selecciona una activitat</h3>
+                <p>Clica qualsevol activitat del calendari per veure la seva fitxa.</p>
+              </aside>
             </div>
           </section>
 
