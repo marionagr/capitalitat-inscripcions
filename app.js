@@ -1615,3 +1615,395 @@ function calcularProgresCapitalitat() {
 
   return { percent, remainingDays };
 }
+
+/* === CAPITALITAT_V5_START === */
+
+/* ============================================================
+   CAPITALITAT V5 · PERÍMETRE + 3 PUNTS + FUSIÓ
+============================================================ */
+
+window.addEventListener("load", () => {
+  try {
+    activarAnimacioLogoCapitalitat();
+    activarIntroInicialCapitalitat();
+  } catch (e) {
+    console.error("Capitalitat V5 init error:", e);
+  }
+});
+
+function activarAnimacioLogoCapitalitat() {
+  const logoTrigger = document.querySelector(".brand-block") || document.querySelector(".brand-logo");
+  if (!logoTrigger) return;
+
+  logoTrigger.style.cursor = "pointer";
+  logoTrigger.setAttribute("title", "Veure progrés de la Capitalitat");
+
+  if (!logoTrigger.dataset.capitalitatV5Bound) {
+    logoTrigger.addEventListener("click", () => {
+      mostrarExperienciaCapitalitatV5();
+    });
+    logoTrigger.dataset.capitalitatV5Bound = "1";
+  }
+}
+
+function activarIntroInicialCapitalitat() {
+  if (window.__capitalitatV5IntroDone) return;
+  window.__capitalitatV5IntroDone = true;
+
+  window.setTimeout(() => {
+    mostrarExperienciaCapitalitatV5();
+  }, 650);
+}
+
+/* Compatibilitat amb versions anteriors */
+function mostrarAnimacioCapitalitat() { mostrarExperienciaCapitalitatV5(); }
+function mostrarIntroInicialCapitalitat() { mostrarExperienciaCapitalitatV5(); }
+function mostrarExperienciaCapitalitatFinal() { mostrarExperienciaCapitalitatV5(); }
+function mostrarExperienciaCapitalitatV3() { mostrarExperienciaCapitalitatV5(); }
+function mostrarExperienciaCapitalitatV4() { mostrarExperienciaCapitalitatV5(); }
+
+function mostrarExperienciaCapitalitatV5() {
+  document.querySelectorAll(
+    "#capitalitat-progress-overlay, #capitalitat-intro-overlay, #capitalitat-cinematic-overlay, #capitalitat-final-overlay, #capitalitat-v3-overlay, #capitalitat-v4-overlay, #capitalitat-v5-overlay"
+  ).forEach(el => el.remove());
+
+  const progress = calcularProgresCapitalitat();
+
+  const overlay = document.createElement("div");
+  overlay.id = "capitalitat-v5-overlay";
+  overlay.className = "capitalitat-v5-overlay";
+
+  overlay.innerHTML = `
+    <button class="cv5-close" type="button" aria-label="Tancar animació">×</button>
+
+    <div class="cv5-logo-area">
+      <svg class="cv5-logo-svg" viewBox="0 0 620 760" aria-hidden="true">
+        <!-- Path 1: perímetre principal -->
+        <path class="cv5-path-base" d="
+          M 80 70
+          H 240
+          L 305 135
+          L 370 70
+          H 530
+          L 590 130
+          V 300
+          L 510 380
+          H 590
+          V 465
+          H 500
+          L 590 555
+          V 655
+          L 530 715
+          H 370
+          L 305 650
+          V 520
+          L 240 585
+          H 80
+          V 485
+          L 155 410
+          H 80
+          V 305
+          L 155 230
+          H 80
+          Z" />
+
+        <path class="cv5-path-draw" data-cv5-path-1 d="
+          M 80 70
+          H 240
+          L 305 135
+          L 370 70
+          H 530
+          L 590 130
+          V 300
+          L 510 380
+          H 590
+          V 465
+          H 500
+          L 590 555
+          V 655
+          L 530 715
+          H 370
+          L 305 650
+          V 520
+          L 240 585
+          H 80
+          V 485
+          L 155 410
+          H 80
+          V 305
+          L 155 230
+          H 80
+          Z" />
+
+        <!-- Path 2: rombe central -->
+        <path class="cv5-path-base" d="
+          M 305 285
+          L 395 375
+          L 305 465
+          L 215 375
+          Z" />
+
+        <path class="cv5-path-draw" data-cv5-path-2 d="
+          M 305 285
+          L 395 375
+          L 305 465
+          L 215 375
+          Z" />
+
+        <!-- Path 3: triangles interiors -->
+        <path class="cv5-path-base" d="
+          M 225 245
+          L 305 165
+          V 285
+          Z
+          M 225 545
+          L 305 465
+          V 585
+          Z" />
+
+        <path class="cv5-path-draw" data-cv5-path-3 d="
+          M 225 245
+          L 305 165
+          V 285
+          Z
+          M 225 545
+          L 305 465
+          V 585
+          Z" />
+
+        <circle class="cv5-dot cv5-dot-1" data-cv5-dot-1 cx="0" cy="0" r="5"></circle>
+        <circle class="cv5-dot cv5-dot-2" data-cv5-dot-2 cx="0" cy="0" r="5"></circle>
+        <circle class="cv5-dot cv5-dot-3" data-cv5-dot-3 cx="0" cy="0" r="5"></circle>
+      </svg>
+
+      <div class="cv5-brand-copy">
+        <span>Barcelona 2026</span>
+        <strong>Capital Mundial de l'Arquitectura</strong>
+      </div>
+    </div>
+
+    <div class="cv5-seed"></div>
+
+    <div class="cv5-timeline">
+      <span class="cv5-date cv5-date-left">12 de febrer</span>
+      <span class="cv5-date cv5-date-right">13 de desembre</span>
+      <span class="cv5-line"></span>
+    </div>
+
+    <div class="cv5-progress">
+      <div class="cv5-ring">
+        <svg viewBox="0 0 220 220" aria-hidden="true">
+          <circle class="cv5-ring-bg" cx="110" cy="110" r="92"></circle>
+          <circle class="cv5-ring-progress" cx="110" cy="110" r="92" data-cv5-circle></circle>
+        </svg>
+
+        <div class="cv5-number">
+          <strong data-cv5-number>0%</strong>
+          <span>dies transcorreguts</span>
+        </div>
+      </div>
+
+      <p>${progress.remainingDays > 0 ? `Falten ${progress.remainingDays} dies per acabar la Capitalitat` : "La Capitalitat ha finalitzat"}</p>
+    </div>
+  `;
+
+  document.body.appendChild(overlay);
+
+  const circle = overlay.querySelector("[data-cv5-circle]");
+  if (circle) {
+    const radius = Number(circle.getAttribute("r"));
+    const circumference = 2 * Math.PI * radius;
+    circle.style.strokeDasharray = `${circumference}`;
+    circle.style.strokeDashoffset = `${circumference}`;
+  }
+
+  overlay.addEventListener("click", event => {
+    if (event.target === overlay || event.target.closest(".cv5-close")) {
+      overlay.classList.add("is-closing");
+      window.setTimeout(() => overlay.remove(), 550);
+    }
+  });
+
+  requestAnimationFrame(() => {
+    overlay.classList.add("is-active");
+    animarPerimetreCapitalitatV5(overlay, progress);
+  });
+}
+
+function animarPerimetreCapitalitatV5(overlay, progress) {
+  const path1 = overlay.querySelector("[data-cv5-path-1]");
+  const path2 = overlay.querySelector("[data-cv5-path-2]");
+  const path3 = overlay.querySelector("[data-cv5-path-3]");
+
+  const dot1 = overlay.querySelector("[data-cv5-dot-1]");
+  const dot2 = overlay.querySelector("[data-cv5-dot-2]");
+  const dot3 = overlay.querySelector("[data-cv5-dot-3]");
+
+  const numberEl = overlay.querySelector("[data-cv5-number]");
+  const circleEl = overlay.querySelector("[data-cv5-circle]");
+
+  const svg = overlay.querySelector(".cv5-logo-svg");
+
+  const len1 = path1.getTotalLength();
+  const len2 = path2.getTotalLength();
+  const len3 = path3.getTotalLength();
+
+  prepararPath(path1, len1);
+  prepararPath(path2, len2);
+  prepararPath(path3, len3);
+
+  posicionarDot(path1, dot1, 0, len1);
+  posicionarDot(path2, dot2, 0, len2);
+  posicionarDot(path3, dot3, 0, len3);
+
+  const start = performance.now();
+  const duration = 2500;
+
+  function frame(now) {
+    const t = Math.min(1, (now - start) / duration);
+    const eased = 1 - Math.pow(1 - t, 2.4);
+
+    pintarPath(path1, len1, eased);
+    pintarPath(path2, len2, Math.min(1, eased * 1.05));
+    pintarPath(path3, len3, Math.min(1, eased * 1.08));
+
+    posicionarDot(path1, dot1, eased, len1);
+    posicionarDot(path2, dot2, Math.min(1, eased * 1.05), len2);
+    posicionarDot(path3, dot3, Math.min(1, eased * 1.08), len3);
+
+    if (t < 1) {
+      requestAnimationFrame(frame);
+    } else {
+      overlay.classList.add("is-copy-visible");
+
+      window.setTimeout(() => {
+        fusionarPuntsCapitalitatV5(overlay, [dot1, dot2, dot3], { x: 305, y: 375 }, () => {
+          overlay.classList.add("is-seed-visible");
+
+          window.setTimeout(() => {
+            overlay.classList.add("is-timeline-start");
+          }, 250);
+
+          window.setTimeout(() => {
+            overlay.classList.add("is-progress-visible");
+          }, 2400);
+
+          window.setTimeout(() => {
+            animarPercentatgeCapitalitatV5(numberEl, circleEl, progress.percent, 1700);
+          }, 2700);
+        });
+      }, 850);
+    }
+  }
+
+  requestAnimationFrame(frame);
+}
+
+function prepararPath(path, length) {
+  path.style.strokeDasharray = `${length}`;
+  path.style.strokeDashoffset = `${length}`;
+}
+
+function pintarPath(path, length, progress) {
+  const drawn = Math.max(0, Math.min(length, length * progress));
+  path.style.strokeDashoffset = `${length - drawn}`;
+}
+
+function posicionarDot(path, dot, progress, length) {
+  const clamped = Math.max(0, Math.min(1, progress));
+  const point = path.getPointAtLength(length * clamped);
+
+  dot.setAttribute("cx", point.x.toFixed(2));
+  dot.setAttribute("cy", point.y.toFixed(2));
+  dot.style.opacity = clamped > 0.01 ? "1" : "0";
+}
+
+function fusionarPuntsCapitalitatV5(overlay, dots, target, onComplete) {
+  const startPoints = dots.map(dot => ({
+    dot,
+    x: Number(dot.getAttribute("cx")),
+    y: Number(dot.getAttribute("cy"))
+  }));
+
+  const start = performance.now();
+  const duration = 900;
+
+  overlay.classList.add("is-merging");
+
+  function frame(now) {
+    const t = Math.min(1, (now - start) / duration);
+    const eased = 1 - Math.pow(1 - t, 3);
+
+    startPoints.forEach(({ dot, x, y }) => {
+      const nx = x + (target.x - x) * eased;
+      const ny = y + (target.y - y) * eased;
+
+      dot.setAttribute("cx", nx.toFixed(2));
+      dot.setAttribute("cy", ny.toFixed(2));
+
+      if (t > 0.7) {
+        dot.style.opacity = String(1 - (t - 0.7) / 0.3);
+      }
+    });
+
+    if (t < 1) {
+      requestAnimationFrame(frame);
+    } else {
+      startPoints.forEach(({ dot }) => {
+        dot.style.opacity = "0";
+      });
+
+      overlay.classList.add("is-logo-fading");
+
+      if (typeof onComplete === "function") onComplete();
+    }
+  }
+
+  requestAnimationFrame(frame);
+}
+
+function animarPercentatgeCapitalitatV5(numberEl, circleEl, targetPercent, duration = 1700) {
+  const start = performance.now();
+
+  let circumference = 0;
+  if (circleEl) {
+    const radius = Number(circleEl.getAttribute("r"));
+    circumference = 2 * Math.PI * radius;
+    circleEl.style.strokeDasharray = `${circumference}`;
+    circleEl.style.strokeDashoffset = `${circumference}`;
+  }
+
+  function frame(now) {
+    const t = Math.min(1, (now - start) / duration);
+    const eased = 1 - Math.pow(1 - t, 3);
+    const current = Math.round(targetPercent * eased);
+
+    if (numberEl) numberEl.textContent = `${current}%`;
+
+    if (circleEl) {
+      const offset = circumference - (current / 100) * circumference;
+      circleEl.style.strokeDashoffset = `${offset}`;
+    }
+
+    if (t < 1) requestAnimationFrame(frame);
+  }
+
+  requestAnimationFrame(frame);
+}
+
+function calcularProgresCapitalitat() {
+  const MS_DIA = 24 * 60 * 60 * 1000;
+
+  const inici = new Date(2026, 1, 12);
+  const final = new Date(2026, 11, 13);
+
+  const ara = new Date();
+  const avui = new Date(ara.getFullYear(), ara.getMonth(), ara.getDate());
+
+  const totalDies = Math.max(1, Math.round((final - inici) / MS_DIA));
+  const diesPassats = Math.round((avui - inici) / MS_DIA);
+  const remainingDays = Math.max(0, Math.ceil((final - avui) / MS_DIA));
+  const percent = Math.min(100, Math.max(0, Math.round((diesPassats / totalDies) * 100)));
+
+  return { percent, remainingDays };
+}
