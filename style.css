@@ -4593,3 +4593,69 @@ tr:hover td {
     drop-shadow(0 0 18px rgba(255, 228, 92, 0.62))
     drop-shadow(0 0 34px rgba(255, 228, 92, 0.18)) !important;
 }
+
+/* === CAPITALITAT_V5_REAL_SVG_STYLE_START === */
+
+/* El logo ara ve del SVG real d'Inkscape */
+.cv5-logo-area {
+  top: 41% !important;
+  gap: clamp(34px, 5vw, 90px) !important;
+}
+
+.cv5-logo-svg-real {
+  width: min(310px, 34vw) !important;
+  max-height: 62vh;
+  overflow: visible;
+}
+
+.cv5-path-base {
+  stroke: rgba(255, 228, 92, 0.08) !important;
+  stroke-width: 1.25 !important;
+}
+
+.cv5-path-draw {
+  stroke: #ffe45c !important;
+  stroke-width: 1.75 !important;
+  filter:
+    drop-shadow(0 0 6px rgba(255, 228, 92, 0.78))
+    drop-shadow(0 0 16px rgba(255, 228, 92, 0.30))
+    drop-shadow(0 0 34px rgba(255, 228, 92, 0.12)) !important;
+}
+
+.cv5-dot {
+  fill: #fff5a6 !important;
+  filter:
+    drop-shadow(0 0 8px rgba(255, 228, 92, 1))
+    drop-shadow(0 0 18px rgba(255, 228, 92, 0.62))
+    drop-shadow(0 0 34px rgba(255, 228, 92, 0.18)) !important;
+}
+
+.cv5-brand-copy {
+  max-width: 360px !important;
+}
+
+.cv5-brand-copy span {
+  font-size: clamp(46px, 5.2vw, 82px) !important;
+  font-weight: 540 !important;
+}
+
+.cv5-brand-copy strong {
+  color: rgba(255,255,255,0.72) !important;
+  letter-spacing: 0.055em !important;
+}
+
+@media (max-width: 900px) {
+  .cv5-logo-area {
+    top: 38% !important;
+    flex-direction: column;
+    gap: 22px !important;
+  }
+
+  .cv5-logo-svg-real {
+    width: min(280px, 56vw) !important;
+  }
+
+  .cv5-brand-copy {
+    text-align: center;
+  }
+}
