@@ -248,32 +248,57 @@
 
         </section>
 
-        <section id="view-calendari" class="view">
+                <section id="view-calendari" class="view">
 
-          <section class="panel calendar-panel">
-            <div class="panel-header">
+          <section class="panel pro-calendar-panel">
+            <div class="panel-header panel-header-calendar">
               <span class="panel-number">01</span>
-              <div>
+
+              <div class="calendar-header-copy">
                 <h2>Calendari mensual</h2>
                 <p>
-                  Activitats ordenades per DATA INICI_. Clica una activitat per veure'n
-                  tota la informació.
+                  Activitats ordenades per DATA INICI_. De dilluns a diumenge.
+                  Clica una activitat per veure'n tota la informació.
                 </p>
               </div>
-            </div>
 
-            <div class="calendar-toolbar">
-              <button id="calendar-prev" class="calendar-nav-button" type="button">← Mes anterior</button>
-              <div>
-                <h3 id="calendar-title">Calendari</h3>
-                <p id="calendar-subtitle">Dilluns a diumenge</p>
+              <div class="calendar-mode-toggle" id="calendar-mode-toggle">
+                <button type="button" class="calendar-mode-button active" data-calendar-mode="all">Totes</button>
+                <button type="button" class="calendar-mode-button" data-calendar-mode="auto">Autogestionades</button>
               </div>
-              <button id="calendar-next" class="calendar-nav-button" type="button">Mes següent →</button>
             </div>
 
-            <div class="calendar-layout">
-              <div class="calendar-main">
-                <div class="calendar-weekdays">
+            <div class="pro-calendar-head">
+              <div>
+                <span class="calendar-eyebrow">Calendari 2026</span>
+                <h3 id="pro-calendar-title">Gener 2026</h3>
+                <p id="pro-calendar-subtitle">Activitats del mes</p>
+              </div>
+
+              <div class="pro-calendar-controls">
+                <button id="pro-calendar-prev" type="button">←</button>
+                <button id="pro-calendar-next" type="button">→</button>
+              </div>
+            </div>
+
+            <div id="pro-calendar-months" class="pro-calendar-months">
+              <button type="button" data-month="0">Gen</button>
+              <button type="button" data-month="1">Feb</button>
+              <button type="button" data-month="2">Mar</button>
+              <button type="button" data-month="3">Abr</button>
+              <button type="button" data-month="4">Mai</button>
+              <button type="button" data-month="5">Jun</button>
+              <button type="button" data-month="6">Jul</button>
+              <button type="button" data-month="7">Ago</button>
+              <button type="button" data-month="8">Set</button>
+              <button type="button" data-month="9">Oct</button>
+              <button type="button" data-month="10">Nov</button>
+              <button type="button" data-month="11">Des</button>
+            </div>
+
+            <div class="pro-calendar-layout">
+              <div class="pro-calendar-main">
+                <div class="pro-calendar-weekdays">
                   <span>Dilluns</span>
                   <span>Dimarts</span>
                   <span>Dimecres</span>
@@ -283,12 +308,12 @@
                   <span>Diumenge</span>
                 </div>
 
-                <div id="calendar-grid" class="calendar-grid">
+                <div id="pro-calendar-grid" class="pro-calendar-grid">
                   <p>Carregant calendari...</p>
                 </div>
               </div>
 
-              <aside id="calendar-detail" class="calendar-detail">
+              <aside id="pro-calendar-detail" class="pro-calendar-detail">
                 <span class="detail-eyebrow">Detall activitat</span>
                 <h3>Selecciona una activitat</h3>
                 <p>Clica qualsevol activitat del calendari per veure la seva fitxa.</p>
@@ -298,7 +323,7 @@
 
         </section>
 
-        <section id="view-mapa" class="view">
+<section id="view-mapa" class="view">
 
           <section class="panel map-panel">
             <div class="panel-header">

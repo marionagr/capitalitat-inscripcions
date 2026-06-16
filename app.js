@@ -34,6 +34,15 @@ let COLUMN_KEYS = {};
 let mapInstance = null;
 let mapInitialised = false;
 
+let PRO_CALENDAR_ROWS = [];
+let PRO_CALENDAR_AUTOGESTIONADES = [];
+let PRO_CALENDAR_MONTH = 0;
+let PRO_CALENDAR_YEAR = 2026;
+let PRO_CALENDAR_READY = false;
+let PRO_CALENDAR_LOOKUP = new Map();
+let PRO_CALENDAR_MODE = "all";
+
+
 let CALENDAR_ROWS = [];
 let CALENDAR_DATE = null;
 let CALENDAR_EVENT_LOOKUP = new Map();
@@ -103,6 +112,7 @@ function renderitzarDades(data) {
   inicialitzarCalendari(rows);
 
   AUTOGESTIONADES = rows.filter(row => valorEsTrue(row[COLUMN_KEYS.gestio]));
+  initializeProfessionalCalendar(rows, AUTOGESTIONADES);
 
   const totalCharts = generarResumGrafiques(rows);
   const autoCharts = generarResumGrafiques(AUTOGESTIONADES);
@@ -918,4 +928,305 @@ function escaparHTML(value) {
 
 function escaparAtribut(value) {
   return escaparHTML(value).replaceAll("`", "&#096;");
+}
+
+
+function initializeProfessionalCalendar(allRows, autoRows) {
+  PRO_CALENDAR_ROWS = allRows || [];
+  PRO_CALENDAR_AUTOGESTIONADES = autoRows || [];
+
+  const sourceRows = PRO_CALENDAR_ROWS.length ? PRO_CALENDAR_ROWS : PRO_CALENDAR_AUTOGESTIONADES;
+
+  const firstDate = sourceRows
+    .map(row => parseCalendarDate(row[COLUMN_KEYS.dataInici]))
+    .filter(Boolean)
+    .sort((a, b) => a - b)[0];
+
+  if (!PRO_CALENDAR_READY) {
+    if (firstDate) {
+      PRO_CALENDAR_YEAR = firstDate.getFullYear();
+      PRO_CALENDAR_MONTH = firstDate.getMonth();
+    }
+    setupProfessionalCalendarEvents();
+    PRO_CALENDAR_READY = true;
+  }
+
+  renderProfessionalCalendar();
+}
+
+function setupProfessionalCalendarEvents() {
+  const prev = document.getElementById("pro-calendar-prev");
+  const next = document.getElementById("pro-calendar-next");
+  const months = document.getElementById("pro-calendar-months");
+  const grid = document.getElementById("pro-calendar-grid");
+  const modeToggle = document.getElementById("calendar-mode-toggle");
+
+  if (prev && !prev.dataset.bound) {
+    prev.addEventListener("click", () => {
+      PRO_CALENDAR_MONTH--;
+      if (PRO_CALENDAR_MONTH < 0) {
+        PRO_CALENDAR_MONTH = 11;
+        PRO_CALENDAR_YEAR--;
+      }
+      renderProfessionalCalendar();
+    });
+    prev.dataset.bound = "1";
+  }
+
+  if (next && !next.dataset.bound) {
+    next.addEventListener("click", () => {
+      PRO_CALENDAR_MONTH++;
+      if (PRO_CALENDAR_MONTH > 11) {
+        PRO_CALENDAR_MONTH = 0;
+        PRO_CALENDAR_YEAR++;
+      }
+      renderProfessionalCalendar();
+    });
+    next.dataset.bound = "1";
+  }
+
+  if (months && !months.dataset.bound) {
+    months.addEventListener("click", event => {
+      const button = event.target.closest("[data-month]");
+      if (!button) return;
+
+      PRO_CALENDAR_MONTH = Number(button.dataset.month);
+      renderProfessionalCalendar();
+    });
+    months.dataset.bound = "1";
+  }
+
+  if (grid && !grid.dataset.bound) {
+    grid.addEventListener("click", event => {
+      const button = event.target.closest("[data-calendar-event]");
+      if (!button) return;
+
+      const row = PRO_CALENDAR_LOOKUP.get(button.dataset.calendarEvent);
+      if (row) {
+        renderProfessionalCalendarDetail(row);
+      }
+    });
+    grid.dataset.bound = "1";
+  }
+
+  if (modeToggle && !modeToggle.dataset.bound) {
+    modeToggle.addEventListener("click", event => {
+      const button = event.target.closest("[data-calendar-mode]");
+      if (!button) return;
+
+      PRO_CALENDAR_MODE = button.dataset.calendarMode;
+      renderProfessionalCalendar();
+    });
+    modeToggle.dataset.bound = "1";
+  }
+}
+
+function getProfessionalCalendarWorkingRows() {
+  return PRO_CALENDAR_MODE === "auto"
+    ? PRO_CALENDAR_AUTOGESTIONADES
+    : PRO_CALENDAR_ROWS;
+}
+
+function renderProfessionalCalendar() {
+  const grid = document.getElementById("pro-calendar-grid");
+  const title = document.getElementById("pro-calendar-title");
+  const subtitle = document.getElementById("pro-calendar-subtitle");
+  const months = document.getElementById("pro-calendar-months");
+  const modeToggle = document.getElementById("calendar-mode-toggle");
+
+  if (!grid) return;
+
+  const monthDate = new Date(PRO_CALENDAR_YEAR, PRO_CALENDAR_MONTH, 1);
+  const monthName = monthDate.toLocaleDateString("ca-ES", {
+    month: "long",
+    year: "numeric"
+  });
+
+  if (title) {
+    title.textContent = monthName.charAt(0).toUpperCase() + monthName.slice(1);
+  }
+
+  if (months) {
+    months.querySelectorAll("[data-month]").forEach(button => {
+      button.classList.toggle("active", Number(button.dataset.month) === PRO_CALENDAR_MONTH);
+    });
+  }
+
+  if (modeToggle) {
+    modeToggle.querySelectorAll("[data-calendar-mode]").forEach(button => {
+      button.classList.toggle("active", button.dataset.calendarMode === PRO_CALENDAR_MODE);
+    });
+  }
+
+  const events = getProfessionalCalendarEvents(PRO_CALENDAR_YEAR, PRO_CALENDAR_MONTH);
+
+  if (subtitle) {
+    const labelMode = PRO_CALENDAR_MODE === "auto" ? "autogestionades" : "totals";
+    subtitle.textContent = `${events.length} activitats ${labelMode} aquest mes`;
+  }
+
+  PRO_CALENDAR_LOOKUP = new Map();
+
+  const firstDay = new Date(PRO_CALENDAR_YEAR, PRO_CALENDAR_MONTH, 1);
+  const lastDay = new Date(PRO_CALENDAR_YEAR, PRO_CALENDAR_MONTH + 1, 0);
+  const daysInMonth = lastDay.getDate();
+
+  const mondayOffset = (firstDay.getDay() + 6) % 7;
+  const totalCells = Math.ceil((mondayOffset + daysInMonth) / 7) * 7;
+
+  const eventsByDay = new Map();
+
+  events.forEach((eventItem, index) => {
+    const day = eventItem.date.getDate();
+
+    if (!eventsByDay.has(day)) {
+      eventsByDay.set(day, []);
+    }
+
+    const eventId = `event-${eventItem.row.__fila || index}-${index}`;
+    PRO_CALENDAR_LOOKUP.set(eventId, eventItem.row);
+
+    eventsByDay.get(day).push({
+      id: eventId,
+      row: eventItem.row
+    });
+  });
+
+  let html = "";
+
+  for (let cell = 0; cell < totalCells; cell++) {
+    const day = cell - mondayOffset + 1;
+
+    if (day < 1 || day > daysInMonth) {
+      html += `<div class="pro-calendar-day is-empty"></div>`;
+      continue;
+    }
+
+    const dayEvents = eventsByDay.get(day) || [];
+    const visibleEvents = dayEvents.slice(0, 4);
+    const moreCount = Math.max(dayEvents.length - visibleEvents.length, 0);
+
+    const eventsHtml = visibleEvents.map(item => {
+      const idIntern = item.row[COLUMN_KEYS.idIntern] || "";
+      const titol = item.row[COLUMN_KEYS.titol] || "Sense títol";
+
+      return `
+        <button class="pro-calendar-event" type="button" data-calendar-event="${escaparAtribut(item.id)}">
+          <span>${escaparHTML(idIntern)}</span>
+          <strong>${escaparHTML(titol)}</strong>
+        </button>
+      `;
+    }).join("");
+
+    html += `
+      <div class="pro-calendar-day">
+        <div class="pro-calendar-day-number">${day}</div>
+        <div class="pro-calendar-events">
+          ${eventsHtml}
+          ${moreCount ? `<div class="pro-calendar-more">+${moreCount} activitats més</div>` : ""}
+        </div>
+      </div>
+    `;
+  }
+
+  grid.innerHTML = html;
+}
+
+function getProfessionalCalendarEvents(year, month) {
+  const workingRows = getProfessionalCalendarWorkingRows();
+
+  return workingRows
+    .map(row => {
+      return {
+        row,
+        date: parseCalendarDate(row[COLUMN_KEYS.dataInici])
+      };
+    })
+    .filter(item => {
+      return (
+        item.date &&
+        item.date.getFullYear() === year &&
+        item.date.getMonth() === month
+      );
+    })
+    .sort((a, b) => {
+      const dateDiff = a.date - b.date;
+      if (dateDiff !== 0) return dateDiff;
+
+      return String(a.row[COLUMN_KEYS.horaInici] || "").localeCompare(
+        String(b.row[COLUMN_KEYS.horaInici] || "")
+      );
+    });
+}
+
+function renderProfessionalCalendarDetail(row) {
+  const detail = document.getElementById("pro-calendar-detail");
+  if (!detail) return;
+
+  const enllac = String(row[COLUMN_KEYS.enllacInscripcions] || "").trim();
+
+  const linkHtml = enllac
+    ? `<a class="detail-link" href="${escaparAtribut(enllac)}" target="_blank" rel="noopener noreferrer">Obrir enllaç d'inscripcions</a>`
+    : `<span class="warning-pill">Falta enllaç d'inscripcions</span>`;
+
+  detail.innerHTML = `
+    <span class="detail-eyebrow">Detall activitat</span>
+    <h3>${escaparHTML(row[COLUMN_KEYS.titol] || "Sense títol")}</h3>
+
+    <div class="detail-list">
+      ${detailItem("ID intern", row[COLUMN_KEYS.idIntern])}
+      ${detailItem("Encarregada", row[COLUMN_KEYS.responsable])}
+      ${detailItem("Títol activitat", row[COLUMN_KEYS.titol])}
+      ${detailItem("Modalitat", row[COLUMN_KEYS.modalitat])}
+      ${detailItem("Data inici", row[COLUMN_KEYS.dataInici])}
+      ${detailItem("Hora inici", row[COLUMN_KEYS.horaInici])}
+      ${detailItem("Categoria", row[COLUMN_KEYS.categoria])}
+      ${detailItem("Espai", row[COLUMN_KEYS.espai])}
+    </div>
+
+    <div class="detail-actions">
+      ${linkHtml}
+    </div>
+  `;
+}
+
+function detailItem(label, value) {
+  return `
+    <div class="detail-item">
+      <span>${escaparHTML(label)}</span>
+      <strong>${escaparHTML(value || "—")}</strong>
+    </div>
+  `;
+}
+
+function parseCalendarDate(value) {
+  const text = String(value || "").trim();
+
+  if (!text) return null;
+
+  const dmy = text.match(/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{2,4})/);
+  if (dmy) {
+    const day = Number(dmy[1]);
+    const month = Number(dmy[2]) - 1;
+    let year = Number(dmy[3]);
+    if (year < 100) year += 2000;
+
+    const date = new Date(year, month, day);
+    if (!Number.isNaN(date.getTime())) return date;
+  }
+
+  const ymd = text.match(/^(\d{4})[\/\-.](\d{1,2})[\/\-.](\d{1,2})/);
+  if (ymd) {
+    const year = Number(ymd[1]);
+    const month = Number(ymd[2]) - 1;
+    const day = Number(ymd[3]);
+
+    const date = new Date(year, month, day);
+    if (!Number.isNaN(date.getTime())) return date;
+  }
+
+  const date = new Date(text);
+  if (!Number.isNaN(date.getTime())) return date;
+
+  return null;
 }
