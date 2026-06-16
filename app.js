@@ -2843,85 +2843,182 @@ mostrarExperienciaCapitalitatV5 = function() {
     `;
   }
 
+  function capBuildSmoothPath(points) {
+    if (!points || points.length < 2) return "";
+
+    let d = `M ${points[0].x.toFixed(2)} ${points[0].y.toFixed(2)}`;
+
+    for (let i = 0; i < points.length - 1; i += 1) {
+      const p0 = points[i - 1] || points[i];
+      const p1 = points[i];
+      const p2 = points[i + 1];
+      const p3 = points[i + 2] || p2;
+
+      const cp1x = p1.x + (p2.x - p0.x) / 6;
+      const cp1y = p1.y + (p2.y - p0.y) / 6;
+      const cp2x = p2.x - (p3.x - p1.x) / 6;
+      const cp2y = p2.y - (p3.y - p1.y) / 6;
+
+      d += ` C ${cp1x.toFixed(2)} ${cp1y.toFixed(2)}, ${cp2x.toFixed(2)} ${cp2y.toFixed(2)}, ${p2.x.toFixed(2)} ${p2.y.toFixed(2)}`;
+    }
+
+    return d;
+  }
+
   function capRenderMonthChart(chartEl, rows, keys) {
     if (!chartEl) return;
 
     const dateKey = keys.dataInici || "data_inici";
-    const counts = Array.from({ length: 12 }, () => 0);
+    const categoryKey = keys.categoria || "categoria";
+
+    const monthlyPasses = Array.from({ length: 12 }, () => 0);
+    const monthlyCategories = Array.from({ length: 12 }, () => new Set());
 
     rows.forEach(row => {
       const date = capParseDate(row[dateKey]);
       if (!date) return;
-      counts[date.getMonth()] += 1;
+
+      const monthIndex = date.getMonth();
+      monthlyPasses[monthIndex] += 1;
+
+      const category = capNormCategory(row[categoryKey]);
+      if (category && category !== "Sense categoria") {
+        monthlyCategories[monthIndex].add(category);
+      }
     });
 
-    const total = rows.length;
-    const max = Math.max(1, ...counts);
+    const monthlyCategoryCounts = monthlyCategories.map(set => set.size);
+    const totalPasses = rows.length;
+    const maxPasses = Math.max(1, ...monthlyPasses);
+    const maxCategories = Math.max(1, ...monthlyCategoryCounts);
 
-    const width = 920;
-    const height = 260;
-    const padX = 48;
-    const padTop = 38;
-    const padBottom = 48;
-    const chartH = height - padTop - padBottom;
-    const step = (width - padX * 2) / 11;
+    const tickStep = maxPasses > 500 ? 500 : 100;
+    const maxX = Math.max(tickStep, Math.ceil(maxPasses / tickStep) * tickStep);
 
-    const points = counts.map((value, index) => {
-      const x = padX + step * index;
-      const y = padTop + chartH - (value / max) * chartH;
+    const width = 1080;
+    const height = 430;
+    const padTop = 42;
+    const padRight = 70;
+    const padBottom = 50;
+    const padLeft = 130;
 
-      return {
-        month: MONTHS_CA[index],
-        value,
-        x,
-        y
-      };
-    });
+    const plotW = width - padLeft - padRight;
+    const plotH = height - padTop - padBottom;
+    const rowStep = plotH / 11;
 
-    const lineD = points.map((p, i) => `${i === 0 ? "M" : "L"} ${p.x.toFixed(2)} ${p.y.toFixed(2)}`).join(" ");
+    const passPoints = monthlyPasses.map((value, index) => ({
+      month: MONTHS_CA[index],
+      value,
+      x: padLeft + (value / maxX) * plotW,
+      y: padTop + rowStep * index
+    }));
+
+    const categoryPoints = monthlyCategoryCounts.map((value, index) => ({
+      month: MONTHS_CA[index],
+      value,
+      x: padLeft + (value / maxCategories) * plotW,
+      y: padTop + rowStep * index
+    }));
+
+    const passPath = capBuildSmoothPath(passPoints);
+    const categoryPath = capBuildSmoothPath(categoryPoints);
+
+    const xTicks = [];
+    for (let v = 0; v <= maxX; v += tickStep) {
+      xTicks.push(v);
+    }
+
+    const peakMonthIndex = monthlyPasses.indexOf(maxPasses);
+    const peakMonth = MONTHS_CA[peakMonthIndex];
+    const avgPasses = Math.round(totalPasses / 12);
 
     chartEl.innerHTML = `
-      <div class="cap-month-chart">
-        <div class="cap-month-head">
-          <div>
-            <strong>Total passis per mes</strong>
-            <span>Distribució mensual segons la data d’inici</span>
+      <div class="cap-month-chart cap-month-chart-premium">
+        <div class="cap-month-head cap-month-head-premium">
+          <div class="cap-month-kpis">
+            <div class="cap-month-kpi">
+              <strong>${totalPasses}</strong>
+              <span>PASSIS TOTALS</span>
+            </div>
+            <div class="cap-month-kpi">
+              <strong>${maxPasses}</strong>
+              <span>PIC MENSUAL · ${peakMonth.toUpperCase()}</span>
+            </div>
+            <div class="cap-month-kpi cap-month-kpi-small">
+              <strong>${avgPasses}</strong>
+              <span>MITJANA / MES</span>
+            </div>
           </div>
-          <b>${total} passis</b>
+
+          <div class="cap-month-meta-note">
+            <span class="cap-month-badge is-yellow">Passis per mes</span>
+            <span class="cap-month-badge is-white">Categories diferents / mes</span>
+          </div>
         </div>
 
-        <div class="cap-month-svg-wrap">
-          <svg class="cap-month-svg" viewBox="0 0 ${width} ${height}" preserveAspectRatio="none" aria-label="Total passis per mes">
+        <div class="cap-month-svg-wrap cap-month-svg-wrap-premium">
+          <svg class="cap-month-svg cap-month-svg-premium" viewBox="0 0 ${width} ${height}" preserveAspectRatio="none" aria-label="Passis per mes i categories per mes">
             <defs>
-              <linearGradient id="capMonthLineGradient" x1="0" x2="1" y1="0" y2="0">
-                <stop offset="0%" stop-color="rgba(255,228,92,0.2)" />
-                <stop offset="50%" stop-color="rgba(255,228,92,1)" />
-                <stop offset="100%" stop-color="rgba(255,228,92,0.2)" />
+              <linearGradient id="capPassLineGradient" x1="0" x2="1" y1="0" y2="0">
+                <stop offset="0%" stop-color="rgba(255,228,92,0.30)" />
+                <stop offset="35%" stop-color="rgba(255,228,92,0.95)" />
+                <stop offset="100%" stop-color="rgba(255,228,92,0.75)" />
               </linearGradient>
             </defs>
 
-            ${[0, 0.25, 0.5, 0.75, 1].map(t => {
-              const y = padTop + chartH * t;
-              return `<line x1="${padX}" y1="${y}" x2="${width - padX}" y2="${y}" class="cap-month-grid" />`;
+            ${xTicks.map(v => {
+              const x = padLeft + (v / maxX) * plotW;
+              return `
+                <line class="cap-month-grid-vertical" x1="${x}" y1="${padTop}" x2="${x}" y2="${padTop + plotH}" />
+                <text class="cap-month-axis-x" x="${x}" y="${height - 12}" text-anchor="middle">${v}</text>
+              `;
             }).join("")}
 
-            <path d="${lineD}" class="cap-month-line" />
+            ${passPoints.map(p => `
+              <text class="cap-month-axis-y" x="${padLeft - 16}" y="${p.y + 4}" text-anchor="end">${p.month}</text>
+            `).join("")}
 
-            ${points.map((p, index) => `
-              <g class="cap-month-point"
+            <path d="${categoryPath}" class="cap-month-line-categories" />
+            <path d="${passPath}" class="cap-month-line-passes" />
+
+            ${categoryPoints.map(p => `
+              <g class="cap-month-point cap-month-point-categories"
+                 data-series="Categories diferents"
                  data-month="${p.month}"
                  data-value="${p.value}"
                  transform="translate(${p.x}, ${p.y})">
-                <circle r="6"></circle>
-                <circle r="14"></circle>
+                <circle r="4.4"></circle>
               </g>
+            `).join("")}
 
-              <text class="cap-month-label"
-                    x="${p.x}"
-                    y="${height - 18}"
-                    text-anchor="middle">${p.month.slice(0, 3)}</text>
+            ${passPoints.map(p => `
+              <g class="cap-month-point cap-month-point-passes"
+                 data-series="Passis"
+                 data-month="${p.month}"
+                 data-value="${p.value}"
+                 transform="translate(${p.x}, ${p.y})">
+                <circle r="5.6"></circle>
+              </g>
             `).join("")}
           </svg>
+        </div>
+
+        <div class="cap-month-legend">
+          <div class="cap-month-legend-item">
+            <span class="cap-month-legend-line is-yellow"></span>
+            <div>
+              <strong>Passis per mes</strong>
+              <span>Nombre total de passis segons la data d’inici.</span>
+            </div>
+          </div>
+
+          <div class="cap-month-legend-item">
+            <span class="cap-month-legend-line is-white"></span>
+            <div>
+              <strong>Categories diferents per mes</strong>
+              <span>Nombre de categories presents cada mes.</span>
+            </div>
+          </div>
         </div>
       </div>
     `;
@@ -2940,15 +3037,21 @@ mostrarExperienciaCapitalitatV5 = function() {
 
     chartEl.querySelectorAll(".cap-month-point").forEach(point => {
       point.addEventListener("mouseenter", () => {
+        const series = point.dataset.series;
         const month = point.dataset.month;
         const value = point.dataset.value;
-        tooltip.innerHTML = `<strong>${value}</strong><span>${month} · passis</span>`;
+
+        tooltip.innerHTML = `
+          <strong>${value}</strong>
+          <span>${series}</span>
+          <em>${month}</em>
+        `;
         tooltip.classList.add("is-visible");
       });
 
       point.addEventListener("mousemove", event => {
-        tooltip.style.left = `${event.clientX + 14}px`;
-        tooltip.style.top = `${event.clientY - 20}px`;
+        tooltip.style.left = `${event.clientX + 16}px`;
+        tooltip.style.top = `${event.clientY - 18}px`;
       });
 
       point.addEventListener("mouseleave", () => {
