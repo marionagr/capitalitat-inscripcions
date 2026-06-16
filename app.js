@@ -3996,3 +3996,530 @@ mostrarExperienciaCapitalitatV5 = function() {
     }
   });
 })();
+
+/* === CAPITALITAT_CALENDAR_ANNUAL_MATRIX_START === */
+
+/* ============================================================
+   CALENDARI · MENSUAL / ANUAL + MATRIU ANUAL
+============================================================ */
+
+(() => {
+  const MONTHS_FULL = [
+    "Gener", "Febrer", "Març", "Abril", "Maig", "Juny",
+    "Juliol", "Agost", "Setembre", "Octubre", "Novembre", "Desembre"
+  ];
+
+  const MONTHS_SHORT = [
+    "GEN", "FEB", "MAR", "ABR", "MAI", "JUN",
+    "JUL", "AGO", "SET", "OCT", "NOV", "DES"
+  ];
+
+  let calendarDataCache = null;
+
+  function capHtml(value) {
+    return String(value ?? "")
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#039;");
+  }
+
+  function capNorm(value) {
+    return String(value ?? "")
+      .replace(/\u00a0/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+  }
+
+  function capNormCategory(value) {
+    const v = capNorm(value);
+    if (!v) return "Sense categoria";
+
+    const low = v.toLowerCase();
+
+    if (low === "rutes" || low === "ruta") return "Rutes";
+    if (low === "exposicio" || low === "exposició" || low === "exposicions") return "Exposicions";
+    if (low === "conferencia" || low === "conferència" || low === "conferències") return "Conferències";
+    if (low === "instal·lacio" || low === "instal·lació" || low === "instal·lacions") return "Instal·lacions";
+    if (low === "taller" || low === "tallers") return "Tallers";
+
+    return v;
+  }
+
+  function capParseDate(value) {
+    const raw = capNorm(value);
+    if (!raw) return null;
+
+    const match = raw.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})/);
+    if (!match) return null;
+
+    const day = Number(match[1]);
+    const month = Number(match[2]) - 1;
+    let year = Number(match[3]);
+
+    if (year < 100) year += 2000;
+    if (month < 0 || month > 11) return null;
+
+    return new Date(year, month, day);
+  }
+
+  async function capLoadCalendarData() {
+    if (calendarDataCache) return calendarDataCache;
+
+    const response = await fetch("data/inscripcions.json?v=" + Date.now());
+    const data = await response.json();
+
+    calendarDataCache = {
+      rows: Array.isArray(data.rows) ? data.rows : [],
+      keys: data.columnKeys || {}
+    };
+
+    return calendarDataCache;
+  }
+
+  function capFindCalendarView() {
+    return (
+      document.getElementById("view-calendari") ||
+      document.getElementById("view-calendar") ||
+      document.querySelector('[data-view="calendari"]') ||
+      document.querySelector('[data-view="calendar"]') ||
+      document.querySelector(".view-calendari") ||
+      document.querySelector(".view-calendar") ||
+      document.querySelector(".calendar-view") ||
+      document.querySelector("#calendar") ||
+      document.querySelector(".calendar-section")
+    );
+  }
+
+  function capEnsureCalendarTabs() {
+    const view = capFindCalendarView();
+    if (!view) return null;
+
+    let tabs = view.querySelector(".cap-calendar-tabs");
+    let monthlyPanel = view.querySelector(".cap-calendar-monthly-panel");
+    let annualPanel = view.querySelector(".cap-calendar-annual-panel");
+
+    if (!tabs) {
+      tabs = document.createElement("div");
+      tabs.className = "cap-calendar-tabs";
+      tabs.innerHTML = `
+        <button class="is-active" type="button" data-cap-calendar-mode="monthly">Calendari mensual</button>
+        <button type="button" data-cap-calendar-mode="annual">Calendari anual</button>
+      `;
+
+      monthlyPanel = document.createElement("div");
+      monthlyPanel.className = "cap-calendar-monthly-panel";
+
+      annualPanel = document.createElement("div");
+      annualPanel.className = "cap-calendar-annual-panel";
+      annualPanel.hidden = true;
+
+      const originalChildren = [...view.children];
+      view.prepend(tabs);
+      view.appendChild(monthlyPanel);
+      view.appendChild(annualPanel);
+
+      originalChildren.forEach(child => {
+        if (child === tabs || child === monthlyPanel || child === annualPanel) return;
+        monthlyPanel.appendChild(child);
+      });
+    }
+
+    tabs.querySelectorAll("[data-cap-calendar-mode]").forEach(button => {
+      if (button.dataset.capCalendarBound) return;
+      button.dataset.capCalendarBound = "1";
+
+      button.addEventListener("click", () => {
+        const mode = button.dataset.capCalendarMode;
+
+        tabs.querySelectorAll("button").forEach(btn => {
+          btn.classList.toggle("is-active", btn === button);
+        });
+
+        if (mode === "monthly") {
+          monthlyPanel.hidden = false;
+          annualPanel.hidden = true;
+          capTryOpenCurrentMonth(monthlyPanel);
+        }
+
+        if (mode === "annual") {
+          monthlyPanel.hidden = true;
+          annualPanel.hidden = false;
+          capRenderAnnualCalendarMatrix(annualPanel);
+        }
+      });
+    });
+
+    return { view, tabs, monthlyPanel, annualPanel };
+  }
+
+  function capTryOpenCurrentMonth(monthlyPanel) {
+    if (!monthlyPanel) return;
+
+    const now = new Date();
+    const wantedMonth = MONTHS_FULL[now.getMonth()].toLowerCase();
+    const wantedYear = String(now.getFullYear());
+
+    const headerSelectors = [
+      ".calendar-title",
+      ".calendar-header",
+      ".month-title",
+      ".calendar-month",
+      "h1",
+      "h2",
+      "h3"
+    ];
+
+    function readHeader() {
+      for (const selector of headerSelectors) {
+        const el = monthlyPanel.querySelector(selector);
+        const text = capNorm(el?.textContent).toLowerCase();
+        if (text) return text;
+      }
+
+      return capNorm(monthlyPanel.textContent).toLowerCase().slice(0, 400);
+    }
+
+    function isWantedMonth() {
+      const text = readHeader();
+      return text.includes(wantedMonth) && text.includes(wantedYear);
+    }
+
+    if (isWantedMonth()) return;
+
+    const nextButton =
+      monthlyPanel.querySelector('[data-calendar-next]') ||
+      monthlyPanel.querySelector('[aria-label*="següent" i]') ||
+      monthlyPanel.querySelector('[aria-label*="next" i]') ||
+      [...monthlyPanel.querySelectorAll("button")].find(btn => {
+        const t = capNorm(btn.textContent).toLowerCase();
+        return t === "›" || t === ">" || t.includes("següent") || t.includes("next");
+      });
+
+    const prevButton =
+      monthlyPanel.querySelector('[data-calendar-prev]') ||
+      monthlyPanel.querySelector('[aria-label*="anterior" i]') ||
+      monthlyPanel.querySelector('[aria-label*="prev" i]') ||
+      [...monthlyPanel.querySelectorAll("button")].find(btn => {
+        const t = capNorm(btn.textContent).toLowerCase();
+        return t === "‹" || t === "<" || t.includes("anterior") || t.includes("prev");
+      });
+
+    if (!nextButton && !prevButton) return;
+
+    let attempts = 0;
+
+    function step() {
+      if (isWantedMonth() || attempts > 24) return;
+      attempts += 1;
+
+      const text = readHeader();
+
+      if (text.includes("2025") && nextButton) {
+        nextButton.click();
+      } else if (text.includes("2027") && prevButton) {
+        prevButton.click();
+      } else if (nextButton) {
+        nextButton.click();
+      }
+
+      window.setTimeout(step, 40);
+    }
+
+    step();
+  }
+
+  function capCountMapIncrement(map, key, amount = 1) {
+    const cleanKey = key || "Sense informació";
+    map.set(cleanKey, (map.get(cleanKey) || 0) + amount);
+  }
+
+  function capTopEntries(map, limit = 4) {
+    return [...map.entries()]
+      .map(([label, value]) => ({ label, value }))
+      .sort((a, b) => b.value - a.value || a.label.localeCompare(b.label, "ca"))
+      .slice(0, limit);
+  }
+
+  function capDominantFromMap(map) {
+    return capTopEntries(map, 1)[0]?.label || "Sense informació";
+  }
+
+  function capModClass(modalitat) {
+    const m = capNorm(modalitat).toUpperCase();
+
+    if (m === "A") return "is-mod-a";
+    if (m === "B") return "is-mod-b";
+    if (m === "C") return "is-mod-c";
+
+    return "is-mod-other";
+  }
+
+  async function capRenderAnnualCalendarMatrix(annualPanel) {
+    if (!annualPanel) return;
+
+    annualPanel.innerHTML = `
+      <div class="cap-annual-loading">
+        Construint calendari anual...
+      </div>
+    `;
+
+    const { rows, keys } = await capLoadCalendarData();
+
+    const dateKey = keys.dataInici || "data_inici";
+    const categoryKey = keys.categoria || "categoria";
+    const modalitatKey = keys.modalitat || "modalitat";
+    const districtKey = keys.districte || "districte";
+
+    const targetYear = 2026;
+
+    const yearRows = rows.filter(row => {
+      const date = capParseDate(row[dateKey]);
+      return date && date.getFullYear() === targetYear;
+    });
+
+    const totalAllRows = rows.length;
+    const totalYearRows = yearRows.length;
+
+    const monthTotals = Array.from({ length: 12 }, () => 0);
+    const categoryTotals = new Map();
+    const districtTotals = new Map();
+
+    const categoryMonthMap = new Map();
+
+    yearRows.forEach(row => {
+      const date = capParseDate(row[dateKey]);
+      if (!date) return;
+
+      const monthIndex = date.getMonth();
+      const category = capNormCategory(row[categoryKey]);
+      const modalitat = capNorm(row[modalitatKey]) || "Sense modalitat";
+      const district = capNorm(row[districtKey]) || "Sense districte";
+
+      monthTotals[monthIndex] += 1;
+      capCountMapIncrement(categoryTotals, category);
+      capCountMapIncrement(districtTotals, district);
+
+      if (!categoryMonthMap.has(category)) {
+        categoryMonthMap.set(category, {
+          category,
+          total: 0,
+          months: Array.from({ length: 12 }, () => ({
+            total: 0,
+            modalitats: new Map(),
+            districtes: new Map()
+          }))
+        });
+      }
+
+      const categoryObj = categoryMonthMap.get(category);
+      const cell = categoryObj.months[monthIndex];
+
+      categoryObj.total += 1;
+      cell.total += 1;
+      capCountMapIncrement(cell.modalitats, modalitat);
+      capCountMapIncrement(cell.districtes, district);
+    });
+
+    const categories = [...categoryMonthMap.values()]
+      .sort((a, b) => b.total - a.total || a.category.localeCompare(b.category, "ca"));
+
+    const maxCell = Math.max(
+      1,
+      ...categories.flatMap(category => category.months.map(month => month.total))
+    );
+
+    const peakMonthValue = Math.max(0, ...monthTotals);
+    const peakMonthIndex = monthTotals.indexOf(peakMonthValue);
+
+    const topCategory = capTopEntries(categoryTotals, 1)[0] || { label: "—", value: 0 };
+    const topDistrict = capTopEntries(districtTotals, 1)[0] || { label: "—", value: 0 };
+
+    const cellW = 72;
+    const rowH = 34;
+    const padLeft = 170;
+    const padTop = 78;
+    const padRight = 40;
+    const padBottom = 82;
+
+    const width = padLeft + cellW * 12 + padRight;
+    const height = padTop + rowH * Math.max(1, categories.length) + padBottom;
+
+    annualPanel.innerHTML = `
+      <section class="cap-annual-card">
+        <div class="cap-annual-head">
+          <div>
+            <span>Calendari anual</span>
+            <h3>Matriu anual de passis · ${targetYear}</h3>
+            <p>X = mesos · Y = categories · mida = nombre de passis · color = modalitat dominant</p>
+          </div>
+        </div>
+
+        <div class="cap-annual-kpis">
+          <div>
+            <strong>${totalAllRows}</strong>
+            <span>Passis totals base</span>
+          </div>
+
+          <div>
+            <strong>${totalYearRows}</strong>
+            <span>Passis amb data ${targetYear}</span>
+          </div>
+
+          <div>
+            <strong>${MONTHS_FULL[peakMonthIndex] || "—"}</strong>
+            <span>Mes més actiu · ${peakMonthValue}</span>
+          </div>
+
+          <div>
+            <strong>${capHtml(topCategory.label)}</strong>
+            <span>Categoria principal · ${topCategory.value}</span>
+          </div>
+
+          <div>
+            <strong>${capHtml(topDistrict.label)}</strong>
+            <span>Districte principal · ${topDistrict.value}</span>
+          </div>
+        </div>
+
+        <div class="cap-annual-scroll">
+          <svg class="cap-annual-svg"
+               viewBox="0 0 ${width} ${height}"
+               style="min-width:${width}px; height:${height}px;"
+               aria-label="Matriu anual de passis per categoria i mes">
+
+            ${MONTHS_SHORT.map((month, index) => {
+              const x = padLeft + index * cellW + cellW / 2;
+              return `
+                <text class="cap-annual-month-label"
+                      x="${x}"
+                      y="34"
+                      text-anchor="middle">${month}</text>
+
+                <line class="cap-annual-grid-line"
+                      x1="${x}"
+                      y1="${padTop - 24}"
+                      x2="${x}"
+                      y2="${height - padBottom + 12}" />
+              `;
+            }).join("")}
+
+            ${categories.map((category, rowIndex) => {
+              const y = padTop + rowIndex * rowH + rowH / 2;
+              return `
+                <text class="cap-annual-category-label"
+                      x="${padLeft - 18}"
+                      y="${y + 4}"
+                      text-anchor="end">${capHtml(category.category)}</text>
+
+                <line class="cap-annual-row-line"
+                      x1="${padLeft - 6}"
+                      y1="${y}"
+                      x2="${width - padRight}"
+                      y2="${y}" />
+              `;
+            }).join("")}
+
+            ${categories.flatMap((category, rowIndex) => {
+              return category.months.map((cell, monthIndex) => {
+                if (!cell.total) return "";
+
+                const x = padLeft + monthIndex * cellW + cellW / 2;
+                const y = padTop + rowIndex * rowH + rowH / 2;
+                const radius = 3.5 + Math.sqrt(cell.total / maxCell) * 16;
+                const dominantModalitat = capDominantFromMap(cell.modalitats);
+                const dominantDistrictes = capTopEntries(cell.districtes, 3)
+                  .map(item => `${item.label} (${item.value})`)
+                  .join(", ");
+
+                return `
+                  <circle
+                    class="cap-annual-bubble ${capModClass(dominantModalitat)}"
+                    cx="${x}"
+                    cy="${y}"
+                    r="${radius.toFixed(2)}"
+                    data-month="${capHtml(MONTHS_FULL[monthIndex])}"
+                    data-category="${capHtml(category.category)}"
+                    data-total="${cell.total}"
+                    data-modalitat="${capHtml(dominantModalitat)}"
+                    data-districtes="${capHtml(dominantDistrictes || "Sense informació")}"
+                  />
+                `;
+              });
+            }).join("")}
+          </svg>
+        </div>
+
+        <div class="cap-annual-legend">
+          <div><i class="is-mod-a"></i><span>Modalitat A</span></div>
+          <div><i class="is-mod-b"></i><span>Modalitat B</span></div>
+          <div><i class="is-mod-c"></i><span>Modalitat C</span></div>
+          <div><i class="is-mod-other"></i><span>Altres / sense modalitat</span></div>
+          <p>La mida del punt indica el nombre de passis d’aquella categoria durant aquell mes.</p>
+        </div>
+      </section>
+    `;
+
+    capInstallAnnualTooltip(annualPanel);
+  }
+
+  function capInstallAnnualTooltip(annualPanel) {
+    let tooltip = document.querySelector(".cap-annual-tooltip");
+
+    if (!tooltip) {
+      tooltip = document.createElement("div");
+      tooltip.className = "cap-annual-tooltip";
+      document.body.appendChild(tooltip);
+    }
+
+    annualPanel.querySelectorAll(".cap-annual-bubble").forEach(bubble => {
+      bubble.addEventListener("mouseenter", () => {
+        tooltip.innerHTML = `
+          <strong>${bubble.dataset.total} passis</strong>
+          <span>${bubble.dataset.month} · ${bubble.dataset.category}</span>
+          <em>Modalitat dominant: ${bubble.dataset.modalitat}</em>
+          <em>Districtes: ${bubble.dataset.districtes}</em>
+        `;
+
+        tooltip.classList.add("is-visible");
+      });
+
+      bubble.addEventListener("mousemove", event => {
+        tooltip.style.left = `${event.clientX + 16}px`;
+        tooltip.style.top = `${event.clientY - 18}px`;
+      });
+
+      bubble.addEventListener("mouseleave", () => {
+        tooltip.classList.remove("is-visible");
+      });
+    });
+  }
+
+  function capEnhanceCalendar() {
+    const parts = capEnsureCalendarTabs();
+    if (!parts) return;
+
+    capTryOpenCurrentMonth(parts.monthlyPanel);
+  }
+
+  function capScheduleEnhanceCalendar() {
+    setTimeout(capEnhanceCalendar, 300);
+    setTimeout(capEnhanceCalendar, 1000);
+    setTimeout(capEnhanceCalendar, 1800);
+  }
+
+  document.addEventListener("DOMContentLoaded", capScheduleEnhanceCalendar);
+  window.addEventListener("load", capScheduleEnhanceCalendar);
+
+  document.addEventListener("click", event => {
+    const target = event.target.closest("button, a, .nav-item, .sidebar-item");
+    if (!target) return;
+
+    const text = capNorm(target.textContent).toLowerCase();
+
+    if (text.includes("calendari") || text.includes("calendar")) {
+      capScheduleEnhanceCalendar();
+    }
+  });
+})();
