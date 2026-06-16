@@ -1776,9 +1776,8 @@ function mostrarExperienciaCapitalitatV5() {
         <circle class="cv5-dot cv5-dot-3" data-cv5-dot-3 cx="0" cy="0" r="5"></circle>
       </svg>
 
-      <div class="cv5-brand-copy">
-        <span>Barcelona 2026</span>
-        <strong>Capital Mundial de l'Arquitectura</strong>
+      <div class="cv5-brand-copy cv5-brand-copy-svg">
+        <img src="assets/lletres.svg" alt="Barcelona 2026 Capital Mundial de l'Arquitectura">
       </div>
     </div>
 
@@ -2094,9 +2093,8 @@ function mostrarExperienciaCapitalitatV5() {
         <circle class="cv5-dot cv5-dot-3" data-cv5-dot-3 cx="0" cy="0" r="5"></circle>
       </svg>
 
-      <div class="cv5-brand-copy">
-        <span>Barcelona 2026</span>
-        <strong>Capital Mundial de l'Arquitectura</strong>
+      <div class="cv5-brand-copy cv5-brand-copy-svg">
+        <img src="assets/lletres.svg" alt="Barcelona 2026 Capital Mundial de l'Arquitectura">
       </div>
     </div>
 
@@ -2421,9 +2419,8 @@ function mostrarExperienciaCapitalitatV5() {
         <circle class="cv5-dot cv5-dot-3" data-cv5-dot-3 cx="0" cy="0" r="4.5"></circle>
       </svg>
 
-      <div class="cv5-brand-copy">
-        <span>Barcelona 2026</span>
-        <strong>Capital Mundial de l'Arquitectura</strong>
+      <div class="cv5-brand-copy cv5-brand-copy-svg">
+        <img src="assets/lletres.svg" alt="Barcelona 2026 Capital Mundial de l'Arquitectura">
       </div>
     </div>
 

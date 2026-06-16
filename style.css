@@ -4659,3 +4659,65 @@ tr:hover td {
     text-align: center;
   }
 }
+
+/* === CAPITALITAT_V5_LETTERS_SVG_STYLE === */
+
+/* Lletres oficials en SVG */
+.cv5-brand-copy-svg {
+  width: min(440px, 36vw) !important;
+  max-width: none !important;
+  opacity: 0;
+  transform: translateX(-6px) translateY(18px) scale(0.98);
+  filter: blur(10px);
+}
+
+.cv5-brand-copy-svg img {
+  display: block;
+  width: 100%;
+  height: auto;
+  filter:
+    brightness(0) invert(1)
+    drop-shadow(0 0 14px rgba(255,255,255,0.18))
+    drop-shadow(0 0 34px rgba(255,228,92,0.10));
+}
+
+/* Entrada de les lletres una mica més ampla i elegant */
+.capitalitat-v5-overlay.is-copy-visible .cv5-brand-copy-svg {
+  opacity: 1 !important;
+  transform: translateX(0) translateY(0) scale(1.08) !important;
+  filter: blur(0) !important;
+  transition:
+    opacity 0.8s ease,
+    transform 0.8s cubic-bezier(.22,1,.36,1),
+    filter 0.8s ease;
+}
+
+/* Sortida abans de la fusió */
+.capitalitat-v5-overlay.is-copy-leaving .cv5-brand-copy-svg {
+  opacity: 0 !important;
+  transform: translateX(10px) translateY(-10px) scale(1.03) !important;
+  filter: blur(8px) !important;
+  transition:
+    opacity 0.55s ease,
+    transform 0.55s ease,
+    filter 0.55s ease;
+}
+
+/* Anul·lem els estils antics de span/strong si encara queden */
+.cv5-brand-copy-svg span,
+.cv5-brand-copy-svg strong {
+  display: none !important;
+}
+
+@media (max-width: 900px) {
+  .cv5-brand-copy-svg {
+    width: min(420px, 68vw) !important;
+    text-align: center;
+  }
+}
+
+@media (max-width: 620px) {
+  .cv5-brand-copy-svg {
+    width: min(340px, 78vw) !important;
+  }
+}
