@@ -1,6 +1,6 @@
 const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRWPBpxuBECSh1kLS1Vm-gdmOQhWw6_aBUUsjrX3wMZlaL17IsIkhFrSa8ovmbMR-uFL07SeX5ClGOM/pubhtml?gid=953396512&single=true";
 
-const COLS = {
+const FALLBACK_COLS = {
   ID_INTERN: 1,       // B
   RESPONSABLE: 3,     // D
   IMPORTANT: 4,       // E
@@ -36,6 +36,11 @@ async function carregarDades() {
     }
 
     const csvText = await response.text();
+
+    if (csvText.trim().startsWith("<")) {
+      throw new Error("L'enllaç no sembla un CSV. Sembla una pàgina HTML.");
+    }
+
     const rows = parseCSV(csvText);
 
     if (rows.length < 2) {
@@ -45,27 +50,38 @@ async function carregarDades() {
     const dades = prepararDades(rows);
     renderitzarDades(dades);
 
-    status.textContent = `Dades carregades correctament · ${new Date().toLocaleString("ca-ES")}`;
+    status.textContent =
+      `Dades carregades · files CSV: ${dades.debug.filesCSV} · ` +
+      `columnes CSV: ${dades.debug.columnesCSV} · ` +
+      `columna ID: ${dades.debug.columnaIdIntern} · ` +
+      `passis: ${dades.resum.totalPassis} · ` +
+      `gestió TRUE: ${dades.resum.passisImportants}`;
+
+    console.log("DEBUG VISOR", dades.debug);
+    window.__VISOR_DEBUG__ = dades.debug;
+
   } catch (error) {
     console.error(error);
-    status.textContent = "No s'han pogut carregar les dades. Revisa l'enllaç CSV o la publicació del full.";
+    status.textContent = "No s'han pogut carregar les dades. Revisa que l'enllaç sigui CSV i que apunti al full INSCRIPCIONS.";
   }
 }
 
 function prepararDades(rows) {
+  const header = rows[0] || [];
   const dataRows = rows.slice(1);
+  const columnes = detectarColumnes(header, dataRows);
 
   const passis = dataRows
     .map((row, index) => {
-      const idIntern = getCell(row, COLS.ID_INTERN);
+      const idIntern = getCell(row, columnes.ID_INTERN);
 
       if (!idIntern) return null;
 
-      const important = valorEsTrue(getCell(row, COLS.IMPORTANT));
-      const tipusEntradaOriginal = getCell(row, COLS.TIPUS_ENTRADA);
-      const modalitatOriginal = getCell(row, COLS.MODALITAT);
-      const responsableOriginal = getCell(row, COLS.RESPONSABLE);
-      const dataIniciOriginal = getCell(row, COLS.DATA_INICI);
+      const important = valorEsTrue(getCell(row, columnes.IMPORTANT));
+      const tipusEntradaOriginal = getCell(row, columnes.TIPUS_ENTRADA);
+      const modalitatOriginal = getCell(row, columnes.MODALITAT);
+      const responsableOriginal = getCell(row, columnes.RESPONSABLE);
+      const dataIniciOriginal = getCell(row, columnes.DATA_INICI);
       const mesIndex = extreureMesIndex(dataIniciOriginal);
 
       return {
@@ -119,10 +135,159 @@ function prepararDades(rows) {
     activitatsPerMesGestio: comptarPerMes(passisImportants)
   };
 
+  const debug = {
+    filesCSV: dataRows.length,
+    columnesCSV: header.length,
+    headers: header,
+    columnesDetectades: {
+      ID_INTERN: columnes.ID_INTERN,
+      RESPONSABLE: columnes.RESPONSABLE,
+      IMPORTANT: columnes.IMPORTANT,
+      MODALITAT: columnes.MODALITAT,
+      DATA_INICI: columnes.DATA_INICI,
+      TIPUS_ENTRADA: columnes.TIPUS_ENTRADA
+    },
+    columnaIdIntern: `${lletraColumna(columnes.ID_INTERN)} (${header[columnes.ID_INTERN] || "sense capçalera"})`,
+    primersIds: passis.slice(0, 20).map(p => p.idIntern),
+    passisDetectats: passis.length,
+    passisTrueDetectats: passisImportants.length
+  };
+
   return {
     resum,
-    passis: passisImportants
+    passis: passisImportants,
+    debug
   };
+}
+
+function detectarColumnes(header, dataRows) {
+  const normalitzats = header.map(h => normalitzarText(h));
+
+  const buscarHeader = (opcions, fallback) => {
+    for (const opcio of opcions) {
+      const paraules = Array.isArray(opcio) ? opcio : [opcio];
+
+      const index = normalitzats.findIndex(headerText =>
+        paraules.every(paraula => headerText.includes(normalitzarText(paraula)))
+      );
+
+      if (index !== -1) return index;
+    }
+
+    return fallback;
+  };
+
+  let columnes = {
+    ID_INTERN: buscarHeader([
+      ["id", "intern"],
+      ["id_intern"],
+      ["idintern"]
+    ], FALLBACK_COLS.ID_INTERN),
+
+    RESPONSABLE: buscarHeader([
+      ["responsable"],
+      ["gestio"],
+      ["gestió"],
+      ["produccio"],
+      ["producció"]
+    ], FALLBACK_COLS.RESPONSABLE),
+
+    IMPORTANT: buscarHeader([
+      ["true"],
+      ["propi"],
+      ["propies"],
+      ["pròpies"],
+      ["gestio", "nosaltres"],
+      ["gestió", "nosaltres"]
+    ], FALLBACK_COLS.IMPORTANT),
+
+    MODALITAT: buscarHeader([
+      ["modalitat"],
+      ["modalidad"]
+    ], FALLBACK_COLS.MODALITAT),
+
+    DATA_INICI: buscarHeader([
+      ["data", "inici"],
+      ["data_inici"],
+      ["fecha", "inicio"],
+      ["date", "start"]
+    ], FALLBACK_COLS.DATA_INICI),
+
+    TIPUS_ENTRADA: buscarHeader([
+      ["tipus", "entrada"],
+      ["tipo", "entrada"],
+      ["entrada"],
+      ["inscripcio"],
+      ["inscripción"]
+    ], FALLBACK_COLS.TIPUS_ENTRADA)
+  };
+
+  columnes.ID_INTERN = millorarColumnaIdIntern(columnes.ID_INTERN, header, dataRows);
+  columnes.RESPONSABLE = detectarColumnaResponsable(columnes.RESPONSABLE, dataRows);
+
+  return columnes;
+}
+
+function millorarColumnaIdIntern(columnaActual, header, dataRows) {
+  const countActual = comptarNoBuits(dataRows, columnaActual);
+
+  if (countActual > 20) return columnaActual;
+
+  const candidats = header
+    .map((h, index) => ({
+      index,
+      header: normalitzarText(h),
+      count: comptarNoBuits(dataRows, index)
+    }))
+    .filter(c => c.header.includes("id"));
+
+  if (!candidats.length) return columnaActual;
+
+  candidats.sort((a, b) => b.count - a.count);
+
+  if (candidats[0].count > countActual) {
+    return candidats[0].index;
+  }
+
+  return columnaActual;
+}
+
+function detectarColumnaResponsable(columnaActual, dataRows) {
+  const countActual = comptarResponsables(dataRows, columnaActual);
+  let millorColumna = columnaActual;
+  let millorCount = countActual;
+
+  const maxCols = Math.max(...dataRows.slice(0, 50).map(row => row.length), 0);
+
+  for (let col = 0; col < maxCols; col++) {
+    const count = comptarResponsables(dataRows, col);
+
+    if (count > millorCount) {
+      millorCount = count;
+      millorColumna = col;
+    }
+  }
+
+  return millorColumna;
+}
+
+function comptarNoBuits(rows, col) {
+  return rows.reduce((total, row) => {
+    const value = getCell(row, col);
+    return value ? total + 1 : total;
+  }, 0);
+}
+
+function comptarResponsables(rows, col) {
+  return rows.reduce((total, row) => {
+    const value = normalitzarText(getCell(row, col));
+
+    const match = RESPONSABLES.some(responsable =>
+      value.includes(normalitzarText(responsable))
+    );
+
+    return match ? total + 1 : total;
+  }, 0);
 }
 
 function renderitzarDades(data) {
@@ -187,40 +352,23 @@ function renderitzarAreaChartMesos(containerId, valors, subtitol) {
   const areaPath = `${linePath} L ${points[points.length - 1].x} ${baseY} L ${points[0].x} ${baseY} Z`;
 
   const horizontalTicks = obtenirTicksY(maxValor);
-
   const uid = containerId.replace(/[^a-zA-Z0-9]/g, "");
 
   const verticalGrid = points.map(point => `
-    <line
-      x1="${point.x}"
-      y1="${margin.top}"
-      x2="${point.x}"
-      y2="${baseY}"
-      class="chart-grid-vertical"
-    />
+    <line x1="${point.x}" y1="${margin.top}" x2="${point.x}" y2="${baseY}" class="chart-grid-vertical" />
   `).join("");
 
   const horizontalGrid = horizontalTicks.map(valor => {
     const y = baseY - ((valor / maxValor) * plotHeight);
 
     return `
-      <line
-        x1="${margin.left}"
-        y1="${y}"
-        x2="${margin.left + plotWidth}"
-        y2="${y}"
-        class="chart-grid-horizontal"
-      />
-      <text x="${margin.left - 12}" y="${y + 4}" text-anchor="end" class="chart-axis-label">
-        ${valor}
-      </text>
+      <line x1="${margin.left}" y1="${y}" x2="${margin.left + plotWidth}" y2="${y}" class="chart-grid-horizontal" />
+      <text x="${margin.left - 12}" y="${y + 4}" text-anchor="end" class="chart-axis-label">${valor}</text>
     `;
   }).join("");
 
   const xLabels = points.map(point => `
-    <text x="${point.x}" y="${baseY + 28}" text-anchor="middle" class="chart-axis-label">
-      ${point.mes}
-    </text>
+    <text x="${point.x}" y="${baseY + 28}" text-anchor="middle" class="chart-axis-label">${point.mes}</text>
   `).join("");
 
   const pointDots = points.map(point => `
@@ -234,12 +382,7 @@ function renderitzarAreaChartMesos(containerId, valors, subtitol) {
       <span class="chart-side-label">Número d'activitats</span>
     </div>
 
-    <svg
-      viewBox="0 0 ${width} ${height}"
-      class="mountain-chart"
-      role="img"
-      aria-label="${subtitol} per mesos"
-    >
+    <svg viewBox="0 0 ${width} ${height}" class="mountain-chart" role="img" aria-label="${subtitol} per mesos">
       <defs>
         <linearGradient id="${uid}AreaGradient" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0%" stop-color="#FFE45C" stop-opacity="0.95" />
@@ -265,21 +408,8 @@ function renderitzarAreaChartMesos(containerId, valors, subtitol) {
       ${verticalGrid}
       ${horizontalGrid}
 
-      <path
-        d="${areaPath}"
-        fill="url(#${uid}AreaGradient)"
-        filter="url(#${uid}Glow)"
-      />
-
-      <path
-        d="${linePath}"
-        fill="none"
-        stroke="url(#${uid}LineGradient)"
-        stroke-width="3"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-        filter="url(#${uid}Glow)"
-      />
+      <path d="${areaPath}" fill="url(#${uid}AreaGradient)" filter="url(#${uid}Glow)" />
+      <path d="${linePath}" fill="none" stroke="url(#${uid}LineGradient)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" filter="url(#${uid}Glow)" />
 
       ${pointDots}
       ${xLabels}
@@ -318,6 +448,8 @@ function construirPathSuau(points) {
 
 function renderitzarBarChart(containerId, objecte) {
   const container = document.getElementById(containerId);
+  if (!container) return;
+
   const entries = Object.entries(objecte);
   const total = entries.reduce((sum, [, value]) => sum + value, 0);
   const max = Math.max(...entries.map(([, value]) => value), 1);
@@ -347,6 +479,7 @@ function renderitzarBarChart(containerId, objecte) {
 
 function renderitzarTaula(passis) {
   const tbody = document.getElementById("taula-passis-body");
+  if (!tbody) return;
 
   if (!passis.length) {
     tbody.innerHTML = `
@@ -501,7 +634,47 @@ function escaparHTML(value) {
     .replaceAll("'", "&#039;");
 }
 
+function lletraColumna(index) {
+  let num = index + 1;
+  let text = "";
+
+  while (num > 0) {
+    const mod = (num - 1) % 26;
+    text = String.fromCharCode(65 + mod) + text;
+    num = Math.floor((num - mod) / 26);
+  }
+
+  return text;
+}
+
+function detectarSeparador(text) {
+  const firstLine = text.split(/\r?\n/)[0] || "";
+  const separators = [",", ";", "\t"];
+  let best = ",";
+  let bestCount = -1;
+
+  separators.forEach(separator => {
+    let count = 0;
+    let insideQuotes = false;
+
+    for (let i = 0; i < firstLine.length; i++) {
+      const char = firstLine[i];
+
+      if (char === '"') insideQuotes = !insideQuotes;
+      if (char === separator && !insideQuotes) count++;
+    }
+
+    if (count > bestCount) {
+      bestCount = count;
+      best = separator;
+    }
+  });
+
+  return best;
+}
+
 function parseCSV(text) {
+  const delimiter = detectarSeparador(text);
   const rows = [];
   let row = [];
   let cell = "";
@@ -516,7 +689,7 @@ function parseCSV(text) {
       i++;
     } else if (char === '"') {
       insideQuotes = !insideQuotes;
-    } else if (char === "," && !insideQuotes) {
+    } else if (char === delimiter && !insideQuotes) {
       row.push(cell);
       cell = "";
     } else if ((char === "\n" || char === "\r") && !insideQuotes) {
