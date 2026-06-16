@@ -1777,7 +1777,7 @@ function mostrarExperienciaCapitalitatV5() {
       </svg>
 
       <div class="cv5-brand-copy cv5-brand-copy-svg">
-        <img src="assets/lletres.svg" alt="Barcelona 2026 Capital Mundial de l'Arquitectura">
+        <img src="assets/lletres-fill.svg" alt="Barcelona 2026 Capital Mundial de l'Arquitectura">
       </div>
     </div>
 
@@ -2094,7 +2094,7 @@ function mostrarExperienciaCapitalitatV5() {
       </svg>
 
       <div class="cv5-brand-copy cv5-brand-copy-svg">
-        <img src="assets/lletres.svg" alt="Barcelona 2026 Capital Mundial de l'Arquitectura">
+        <img src="assets/lletres-fill.svg" alt="Barcelona 2026 Capital Mundial de l'Arquitectura">
       </div>
     </div>
 
@@ -2385,7 +2385,7 @@ function mostrarExperienciaCapitalitatV5() {
       </svg>
 
       <div class="cv5-brand-copy cv5-brand-copy-svg">
-        <img src="assets/lletres.svg" alt="Barcelona 2026 Capital Mundial de l'Arquitectura">
+        <img src="assets/lletres-fill.svg" alt="Barcelona 2026 Capital Mundial de l'Arquitectura">
       </div>
     </div>
 

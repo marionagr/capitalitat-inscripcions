@@ -4799,3 +4799,63 @@ tr:hover td {
     width: min(350px, 82vw) !important;
   }
 }
+
+/* === CAPITALITAT_V5_FILLED_LETTERS_STYLE === */
+
+/* Si el nou SVG ja està ple, el mostrem directament */
+.cv5-brand-copy-svg {
+  position: relative !important;
+  width: min(500px, 40vw) !important;
+  max-width: none !important;
+  opacity: 0;
+  transform: translateX(-6px) translateY(18px) scale(0.98);
+  filter: blur(10px);
+}
+
+.cv5-brand-copy-svg img {
+  display: block !important;
+  width: 100% !important;
+  height: auto !important;
+  visibility: visible !important;
+  filter:
+    drop-shadow(0 0 10px rgba(255, 228, 92, 0.50))
+    drop-shadow(0 0 26px rgba(255, 228, 92, 0.22));
+}
+
+/* Desactivem la màscara antiga */
+.cv5-brand-copy-svg::before {
+  display: none !important;
+  content: none !important;
+}
+
+.capitalitat-v5-overlay.is-copy-visible .cv5-brand-copy-svg {
+  opacity: 1 !important;
+  transform: translateX(0) translateY(0) scale(1.06) !important;
+  filter: blur(0) !important;
+  transition:
+    opacity 0.8s ease,
+    transform 0.8s cubic-bezier(.22,1,.36,1),
+    filter 0.8s ease;
+}
+
+.capitalitat-v5-overlay.is-copy-leaving .cv5-brand-copy-svg {
+  opacity: 0 !important;
+  transform: translateX(10px) translateY(-10px) scale(1.02) !important;
+  filter: blur(8px) !important;
+  transition:
+    opacity 0.55s ease,
+    transform 0.55s ease,
+    filter 0.55s ease;
+}
+
+@media (max-width: 900px) {
+  .cv5-brand-copy-svg {
+    width: min(440px, 70vw) !important;
+  }
+}
+
+@media (max-width: 620px) {
+  .cv5-brand-copy-svg {
+    width: min(350px, 82vw) !important;
+  }
+}
