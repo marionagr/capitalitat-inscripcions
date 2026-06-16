@@ -18,7 +18,7 @@
       <p class="eyebrow">Capitalitat Mundial de l'Arquitectura 2026</p>
       <h1>Visor d'inscripcions</h1>
       <p class="intro">
-        Seguiment dels passis gestionats des del full d'INSCRIPCIONS.
+        Seguiment dels passis i activitats gestionades des del full d'INSCRIPCIONS.
         El visor llegeix les dades del Google Sheets i mostra els indicadors principals.
       </p>
       <p id="status" class="status-line">Carregant dades...</p>
@@ -39,10 +39,40 @@
       </article>
     </section>
 
+    <section class="chart-stack">
+      <section class="panel chart-panel">
+        <div class="panel-header">
+          <span class="panel-number">01</span>
+          <div>
+            <h2>Activitats al llarg de l’any</h2>
+            <p>Columna N · data inici de totes les activitats.</p>
+          </div>
+        </div>
+
+        <div id="chart-any-complet" class="mountain-chart-wrap">
+          <p>Carregant...</p>
+        </div>
+      </section>
+
+      <section class="panel chart-panel">
+        <div class="panel-header">
+          <span class="panel-number">02</span>
+          <div>
+            <h2>Activitats gestionades per nosaltres</h2>
+            <p>Columna N · només files amb TRUE a la columna E.</p>
+          </div>
+        </div>
+
+        <div id="chart-any-gestio" class="mountain-chart-wrap">
+          <p>Carregant...</p>
+        </div>
+      </section>
+    </section>
+
     <section class="dashboard-grid">
       <section class="panel">
         <div class="panel-header">
-          <span class="panel-number">01</span>
+          <span class="panel-number">03</span>
           <div>
             <h2>Tipus d'entrada</h2>
             <p>Columna Y · gratuïta, inscripció prèvia i pagament.</p>
@@ -56,7 +86,7 @@
 
       <section class="panel">
         <div class="panel-header">
-          <span class="panel-number">02</span>
+          <span class="panel-number">04</span>
           <div>
             <h2>Modalitat</h2>
             <p>Columna M · modalitats A, B i C.</p>
@@ -70,7 +100,7 @@
 
       <section class="panel">
         <div class="panel-header">
-          <span class="panel-number">03</span>
+          <span class="panel-number">05</span>
           <div>
             <h2>Gestió</h2>
             <p>Columna D · Marc, Hotaru, Laida, Roger, Cristian i Neda.</p>
@@ -85,7 +115,7 @@
 
     <section class="panel full-panel">
       <div class="panel-header table-header">
-        <span class="panel-number">04</span>
+        <span class="panel-number">06</span>
         <div>
           <h2>Passis gestionats</h2>
           <p>Files amb ID intern a la columna B i TRUE a la columna E.</p>
