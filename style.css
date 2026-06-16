@@ -50,14 +50,15 @@ body {
 }
 
 .brand-block {
-  min-height: 70px;
+  min-height: 92px;
   display: flex;
   align-items: center;
+  width: 100%;
 }
 
 .brand-logo {
-  width: 150px;
-  max-width: 100%;
+  width: 100%;
+  max-width: none;
   display: block;
   filter: brightness(0) invert(1);
   opacity: 0.95;
@@ -649,4 +650,9 @@ tr:hover td {
   .leaflet-map {
     height: 480px;
   }
+}
+
+
+.autogestionades-charts {
+  margin-bottom: 16px;
 }
