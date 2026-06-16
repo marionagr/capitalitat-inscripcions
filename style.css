@@ -3586,3 +3586,307 @@ tr:hover td {
     }
   }
 }
+
+/* === CAPITALITAT_V4_EPIC_REVEAL === */
+
+/* ============================================================
+   V4 EPIC REVEAL · EL LOGO NO APAREIX DE COP
+============================================================ */
+
+/* El contenidor del logo ja no entra com una imatge directa */
+.cv4-logo-stage {
+  opacity: 0 !important;
+  filter: blur(10px);
+  overflow: visible !important;
+}
+
+/* El logo es manté com una sola peça, però apareix per màscara */
+.cv4-logo-single {
+  background-image: none !important;
+  opacity: 1 !important;
+  filter: none !important;
+}
+
+/* Punt / llum central abans de revelar el logo */
+.cv4-logo-stage::before {
+  content: "" !important;
+  display: block !important;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  z-index: 5;
+  width: 12px;
+  height: 12px;
+  border-radius: 999px;
+  background: #ffe45c;
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0.4);
+  box-shadow:
+    0 0 18px rgba(255, 228, 92, 1),
+    0 0 46px rgba(255, 228, 92, 0.58),
+    0 0 110px rgba(255, 228, 92, 0.28);
+}
+
+/* Logo oficial com a màscara groga, revelat des del centre */
+.cv4-logo-single::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  background:
+    linear-gradient(
+      145deg,
+      rgba(255, 252, 210, 1) 0%,
+      rgba(255, 232, 92, 0.98) 28%,
+      rgba(255, 205, 32, 0.92) 58%,
+      rgba(255, 246, 180, 1) 100%
+    );
+  mask-image: url("assets/logo-capitalitat.png");
+  -webkit-mask-image: url("assets/logo-capitalitat.png");
+  mask-repeat: no-repeat;
+  -webkit-mask-repeat: no-repeat;
+  mask-position: center;
+  -webkit-mask-position: center;
+  mask-size: contain;
+  -webkit-mask-size: contain;
+  opacity: 0;
+  clip-path: inset(0 50% 0 50%);
+  filter:
+    drop-shadow(0 0 10px rgba(255, 228, 92, 0.42))
+    drop-shadow(0 0 28px rgba(255, 228, 92, 0.22));
+}
+
+/* Raig de llum únic que passa pel logo després de revelar-se */
+.cv4-logo-single::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  background:
+    linear-gradient(
+      105deg,
+      transparent 0%,
+      transparent 38%,
+      rgba(255,255,255,0.00) 43%,
+      rgba(255,255,255,0.95) 49%,
+      rgba(255,245,190,1) 51%,
+      rgba(255,228,92,0.72) 55%,
+      transparent 64%,
+      transparent 100%
+    );
+  mask-image: url("assets/logo-capitalitat.png");
+  -webkit-mask-image: url("assets/logo-capitalitat.png");
+  mask-repeat: no-repeat;
+  -webkit-mask-repeat: no-repeat;
+  mask-position: center;
+  -webkit-mask-position: center;
+  mask-size: contain;
+  -webkit-mask-size: contain;
+  opacity: 0;
+  transform: translateX(-135%);
+  filter:
+    drop-shadow(0 0 18px rgba(255,255,255,0.42))
+    drop-shadow(0 0 34px rgba(255,228,92,0.42));
+}
+
+/* Animació general: primer apareix la llum, després es revela el logo, després col·lapsa */
+.capitalitat-v4-overlay.is-active .cv4-logo-stage {
+  animation:
+    cv4EpicStageIn 0.01s linear 0s forwards,
+    cv4EpicLogoCollapse 1.25s cubic-bezier(.2,.92,.24,1) 3.25s forwards !important;
+}
+
+.capitalitat-v4-overlay.is-active .cv4-logo-stage::before {
+  animation:
+    cv4EpicSeedPulse 0.9s cubic-bezier(.22,1,.36,1) 0.18s forwards,
+    cv4EpicSeedFade 0.45s ease 1.0s forwards !important;
+}
+
+.capitalitat-v4-overlay.is-active .cv4-logo-single::before {
+  animation:
+    cv4EpicLogoReveal 1.55s cubic-bezier(.18,.86,.22,1) 0.65s forwards,
+    cv4EpicLogoHold 1.1s ease 2.15s forwards !important;
+}
+
+.capitalitat-v4-overlay.is-active .cv4-logo-single::after {
+  animation: cv4EpicSweep 1.35s cubic-bezier(.16,.84,.22,1) 1.7s forwards !important;
+}
+
+/* Reajustem punt, línia, dates i percentatge perquè segueixin el nou timing */
+.capitalitat-v4-overlay.is-active .cv4-seed {
+  animation:
+    cv4SeedInClean 0.35s ease 4.05s forwards,
+    cv4SeedHoldClean 1.7s linear 4.4s forwards,
+    cv4SeedFadeClean 0.35s ease 6.5s forwards !important;
+}
+
+.capitalitat-v4-overlay.is-active .cv4-line {
+  animation:
+    cv4LineGrow 1.95s cubic-bezier(.18,.86,.22,1) 4.65s forwards,
+    cv4LineFade 0.7s ease 6.9s forwards !important;
+}
+
+.capitalitat-v4-overlay.is-active .cv4-line::before {
+  animation: cv4LineLightLeft 1.95s linear 4.65s forwards !important;
+}
+
+.capitalitat-v4-overlay.is-active .cv4-line::after {
+  animation: cv4LineLightRight 1.95s linear 4.65s forwards !important;
+}
+
+.capitalitat-v4-overlay.is-active .cv4-date {
+  animation:
+    cv4DateIn 0.65s ease 6.15s forwards,
+    cv4DateMoveUp 0.85s cubic-bezier(.22,1,.36,1) 6.85s forwards !important;
+}
+
+.capitalitat-v4-overlay.is-active .cv4-progress {
+  animation: cv4ProgressIn 0.9s cubic-bezier(.22,1,.36,1) 6.85s forwards !important;
+}
+
+/* KEYFRAMES */
+
+@keyframes cv4EpicStageIn {
+  to {
+    opacity: 1;
+    filter: blur(0);
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+@keyframes cv4EpicSeedPulse {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.25);
+  }
+
+  40% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.25);
+  }
+
+  100% {
+    opacity: 0.9;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+@keyframes cv4EpicSeedFade {
+  to {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.55);
+  }
+}
+
+@keyframes cv4EpicLogoReveal {
+  0% {
+    opacity: 0;
+    clip-path: inset(0 50% 0 50%);
+    filter:
+      drop-shadow(0 0 6px rgba(255, 228, 92, 0.25))
+      drop-shadow(0 0 18px rgba(255, 228, 92, 0.12));
+  }
+
+  16% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 1;
+    clip-path: inset(0 0 0 0);
+    filter:
+      drop-shadow(0 0 10px rgba(255, 228, 92, 0.42))
+      drop-shadow(0 0 28px rgba(255, 228, 92, 0.22));
+  }
+}
+
+@keyframes cv4EpicLogoHold {
+  0% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.018);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes cv4EpicSweep {
+  0% {
+    opacity: 0;
+    transform: translateX(-135%);
+  }
+
+  12% {
+    opacity: 1;
+  }
+
+  82% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+    transform: translateX(135%);
+  }
+}
+
+/* Col·lapse més suau: el logo es dissol cap al punt */
+@keyframes cv4EpicLogoCollapse {
+  0% {
+    top: 43%;
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+    filter: blur(0);
+  }
+
+  35% {
+    top: 43%;
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(0.72);
+    filter: blur(0.5px);
+  }
+
+  68% {
+    top: calc(50% + 52px);
+    opacity: 0.85;
+    transform: translate(-50%, -50%) scale(0.22);
+    filter: blur(2px);
+  }
+
+  100% {
+    top: calc(50% + 84px);
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.035);
+    filter: blur(8px);
+  }
+}
+
+@media (max-width: 620px) {
+  @keyframes cv4EpicLogoCollapse {
+    0% {
+      top: 43%;
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1);
+      filter: blur(0);
+    }
+
+    68% {
+      top: calc(50% + 64px);
+      opacity: 0.85;
+      transform: translate(-50%, -50%) scale(0.22);
+      filter: blur(2px);
+    }
+
+    100% {
+      top: calc(50% + 96px);
+      opacity: 0;
+      transform: translate(-50%, -50%) scale(0.035);
+      filter: blur(8px);
+    }
+  }
+}
+

@@ -1567,7 +1567,7 @@ function mostrarExperienciaCapitalitatV4() {
   // Quan ja apareix el bloc del progrés, el número puja de 0 al percentatge real
   window.setTimeout(() => {
     animarPercentatgeCapitalitatV4(numberEl, circle, progress.percent, 1700);
-  }, 7000);
+  }, 7600);
 }
 
 function animarPercentatgeCapitalitatV4(numberEl, circleEl, targetPercent, duration = 1700) {
