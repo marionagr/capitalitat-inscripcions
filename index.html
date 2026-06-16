@@ -13,9 +13,10 @@
       <p class="eyebrow">Capitalitat Mundial de l'Arquitectura 2026</p>
       <h1>Visor d'inscripcions</h1>
       <p class="intro">
-        Eina interna per consultar l'estat de les activitats amb inscripció prèvia,
-        aforaments, inscrits i properes dates.
+        Seguiment dels passis i activitats gestionades des del full d'INSCRIPCIONS.
+        El visor llegeix totes les columnes del full, però només mostra les dades seleccionades.
       </p>
+      <p id="status" class="status-line">Carregant dades...</p>
     </div>
   </header>
 
@@ -23,59 +24,62 @@
 
     <section class="kpi-grid">
       <article class="card">
-        <span class="label">Activitats totals</span>
-        <strong>—</strong>
+        <span class="label">Total de passis</span>
+        <strong id="kpi-total-passis">—</strong>
       </article>
 
       <article class="card">
-        <span class="label">Amb inscripció prèvia</span>
-        <strong>—</strong>
+        <span class="label">Passis gestionats per nosaltres</span>
+        <strong id="kpi-passis-importants">—</strong>
       </article>
+    </section>
 
-      <article class="card">
-        <span class="label">Sense enllaç</span>
-        <strong>—</strong>
-      </article>
+    <section class="section-grid">
+      <section class="panel">
+        <div class="panel-header">
+          <h2>Tipus d'entrada</h2>
+          <p>Classificació segons la columna Y del full INSCRIPCIONS.</p>
+        </div>
 
-      <article class="card">
-        <span class="label">Properes activitats</span>
-        <strong>—</strong>
-      </article>
+        <div id="tipus-entrada-grid" class="mini-grid">
+          <p>Carregant...</p>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-header">
+          <h2>Modalitat</h2>
+          <p>Classificació segons la columna M del full INSCRIPCIONS.</p>
+        </div>
+
+        <div id="modalitat-grid" class="mini-grid">
+          <p>Carregant...</p>
+        </div>
+      </section>
     </section>
 
     <section class="panel">
       <div class="panel-header">
-        <h2>Activitats</h2>
-        <p>Primera versió del visor. Més endavant aquesta taula es connectarà al Google Sheets.</p>
+        <h2>Passis importants</h2>
+        <p>
+          De moment es mostren només les files amb ID intern a la columna B
+          i TRUE a la columna E.
+        </p>
       </div>
 
       <table>
         <thead>
           <tr>
+            <th>ID intern</th>
             <th>Activitat</th>
-            <th>Data</th>
-            <th>Districte</th>
-            <th>Inscrits</th>
-            <th>Aforament</th>
-            <th>Estat</th>
+            <th>Tipus d'entrada</th>
+            <th>Modalitat</th>
+            <th>Fila</th>
           </tr>
         </thead>
-        <tbody>
+        <tbody id="taula-passis-body">
           <tr>
-            <td>Exemple d'activitat</td>
-            <td>22/06/2026</td>
-            <td>Eixample</td>
-            <td>32</td>
-            <td>40</td>
-            <td><span class="status ok">Oberta</span></td>
-          </tr>
-          <tr>
-            <td>Activitat sense enllaç</td>
-            <td>28/06/2026</td>
-            <td>Sant Martí</td>
-            <td>—</td>
-            <td>25</td>
-            <td><span class="status warning">Sense enllaç</span></td>
+            <td colspan="5">Carregant...</td>
           </tr>
         </tbody>
       </table>
