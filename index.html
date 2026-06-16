@@ -3,12 +3,13 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Visor d'inscripcions · Capitalitat</title>
+  <title>Inscripcions · Capitalitat</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
 
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
@@ -16,8 +17,20 @@
   <div class="app-shell">
 
     <aside class="sidebar">
-      <div class="sidebar-inner">
-        <p class="sidebar-label">Menú</p>
+      <div class="sidebar-top">
+        <div class="brand-block">
+          <img
+            src="assets/logo-capitalitat.png"
+            alt="Logo Capitalitat"
+            class="brand-logo"
+            onerror="this.style.display='none'; document.getElementById('brand-fallback').style.display='block';"
+          />
+          <div id="brand-fallback" class="brand-fallback">CAPITALITAT</div>
+        </div>
+      </div>
+
+      <div class="sidebar-menu">
+        <p class="sidebar-label">MENÚ</p>
 
         <button class="nav-pill nav-pill-total active" data-view="view-total">
           <span class="pill-dot"></span>
@@ -41,9 +54,9 @@
       <header class="header">
         <div class="header-inner">
           <p class="eyebrow">Capitalitat Mundial de l'Arquitectura 2026</p>
-          <h1>Visor d'inscripcions</h1>
+          <h1>INSCRIPCIONS</h1>
           <p class="intro">
-            Seguiment dels passis i activitats gestionades des del full d'INSCRIPCIONS.
+            Seguiment d’activitats, passis i espais vinculats al full d’INSCRIPCIONS.
           </p>
           <p id="status" class="status-line">Carregant dades...</p>
         </div>
@@ -190,22 +203,21 @@
             <div class="panel-header">
               <span class="panel-number">01</span>
               <div>
-                <h2>Mapa</h2>
+                <h2>Mapa d’espais autogestionats</h2>
                 <p>
-                  Vista pendent de configurar. Aquí podrem mostrar les activitats per espai,
-                  districte o coordenades quan preparem la informació geogràfica.
+                  Espais detectats a partir de la columna “ESPAI ON ES DESENVOLUPARÀ L'ACTIVITAT”.
+                  Si el valor és només un districte, no es representa al mapa.
                 </p>
               </div>
             </div>
 
-            <div class="map-placeholder">
-              <div class="map-grid"></div>
-              <div class="map-message">
-                <span>Mapa en preparació</span>
-                <strong>Proper pas</strong>
-                <p>Afegirem punts per districte o per espai quan tinguem les coordenades.</p>
-              </div>
+            <div class="map-toolbar">
+              <span id="map-counter" class="map-counter">Carregant espais...</span>
+              <span id="map-note" class="map-note">La primera vegada pot tardar una mica mentre localitza espais.</span>
             </div>
+
+            <div id="autogestionades-map" class="leaflet-map"></div>
+            <div id="map-status" class="map-status">Preparant mapa...</div>
           </section>
 
         </section>
@@ -215,6 +227,7 @@
     </div>
   </div>
 
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

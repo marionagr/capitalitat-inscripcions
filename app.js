@@ -10,9 +10,29 @@ const MESOS_LABELS = [
   "Jul", "Ago", "Set", "Oct", "Nov", "Des"
 ];
 
+const DISTRICTES_EXCLOSOS = [
+  "ciutat vella",
+  "eixample",
+  "sants-montjuic",
+  "sants montjuic",
+  "les corts",
+  "sarria-sant gervasi",
+  "sarria sant gervasi",
+  "gracia",
+  "horta-guinardo",
+  "horta guinardo",
+  "nou barris",
+  "sant andreu",
+  "sant marti",
+  "sant martí"
+];
+
 let APP_DATA = null;
 let AUTOGESTIONADES = [];
 let COLUMN_KEYS = {};
+
+let mapInstance = null;
+let mapInitialised = false;
 
 document.addEventListener("DOMContentLoaded", () => {
   activarNavegacio();
@@ -24,7 +44,7 @@ function activarNavegacio() {
   const views = document.querySelectorAll(".view");
 
   buttons.forEach(button => {
-    button.addEventListener("click", () => {
+    button.addEventListener("click", async () => {
       const viewId = button.dataset.view;
 
       buttons.forEach(btn => btn.classList.remove("active"));
@@ -32,6 +52,13 @@ function activarNavegacio() {
 
       button.classList.add("active");
       document.getElementById(viewId)?.classList.add("active");
+
+      if (viewId === "view-mapa" && APP_DATA) {
+        await renderitzarMapaAutogestionades();
+        setTimeout(() => {
+          if (mapInstance) mapInstance.invalidateSize();
+        }, 200);
+      }
     });
   });
 }
@@ -149,6 +176,183 @@ function renderitzarTaulaAutogestionades(rows) {
       </tr>
     `;
   }).join("");
+}
+
+async function renderitzarMapaAutogestionades() {
+  const mapStatus = document.getElementById("map-status");
+  const mapCounter = document.getElementById("map-counter");
+  const mapEl = document.getElementById("autogestionades-map");
+
+  if (!mapEl) return;
+
+  if (!mapInstance) {
+    mapInstance = L.map("autogestionades-map", {
+      zoomControl: true
+    }).setView([41.3874, 2.1686], 12);
+
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(mapInstance);
+  }
+
+  if (mapInitialised) {
+    setTimeout(() => mapInstance.invalidateSize(), 150);
+    return;
+  }
+
+  mapStatus.textContent = "Localitzant espais...";
+  mapCounter.textContent = "Preparant punts...";
+  mapInitialised = true;
+
+  const espais = prepararEspaisMapa(AUTOGESTIONADES);
+
+  if (!espais.length) {
+    mapStatus.textContent = "No s'han trobat espais vàlids per representar.";
+    mapCounter.textContent = "0 espais";
+    return;
+  }
+
+  const bounds = [];
+  let trobats = 0;
+  let noTrobats = 0;
+
+  for (let i = 0; i < espais.length; i++) {
+    const espai = espais[i];
+    mapStatus.textContent = `Localitzant espais... ${i + 1}/${espais.length}`;
+
+    const coords = await geocodificarEspai(espai.nom);
+
+    if (coords) {
+      trobats++;
+
+      const marker = L.marker([coords.lat, coords.lng]).addTo(mapInstance);
+
+      const activitatsHtml = espai.activitats
+        .slice(0, 5)
+        .map(item => `<li>${escaparHTML(item.titol)} <span>(${escaparHTML(item.data)})</span></li>`)
+        .join("");
+
+      marker.bindPopup(`
+        <div class="map-popup">
+          <strong>${escaparHTML(espai.nom)}</strong>
+          <p>${espai.total} activitats autogestionades</p>
+          <ul>${activitatsHtml}</ul>
+        </div>
+      `);
+
+      bounds.push([coords.lat, coords.lng]);
+    } else {
+      noTrobats++;
+    }
+  }
+
+  if (bounds.length) {
+    mapInstance.fitBounds(bounds, { padding: [40, 40] });
+  } else {
+    mapInstance.setView([41.3874, 2.1686], 12);
+  }
+
+  mapCounter.textContent = `${trobats} espais localitzats`;
+  mapStatus.textContent = noTrobats
+    ? `${noTrobats} espais no s'han pogut localitzar automàticament.`
+    : "Mapa preparat correctament.";
+
+  setTimeout(() => mapInstance.invalidateSize(), 150);
+}
+
+function prepararEspaisMapa(rows) {
+  const grouped = new Map();
+
+  rows.forEach(row => {
+    const espaiOriginal = String(row[COLUMN_KEYS.espai] || "").trim();
+    if (!espaiOriginal) return;
+
+    if (esDistricte(espaiOriginal)) return;
+
+    const key = normalitzarText(espaiOriginal);
+
+    if (!grouped.has(key)) {
+      grouped.set(key, {
+        nom: espaiOriginal,
+        total: 0,
+        activitats: []
+      });
+    }
+
+    const entry = grouped.get(key);
+    entry.total += 1;
+    entry.activitats.push({
+      titol: row[COLUMN_KEYS.titol] || "Sense títol",
+      data: row[COLUMN_KEYS.dataInici] || ""
+    });
+  });
+
+  return [...grouped.values()];
+}
+
+function esDistricte(value) {
+  const text = normalitzarText(value);
+  return DISTRICTES_EXCLOSOS.includes(text);
+}
+
+async function geocodificarEspai(nomEspai) {
+  const cacheKey = `geo_${normalitzarText(nomEspai)}`;
+  const cache = carregarGeocache();
+
+  if (cache[cacheKey]) {
+    return cache[cacheKey];
+  }
+
+  const query = encodeURIComponent(`${nomEspai}, Barcelona, Spain`);
+  const url = `https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&q=${query}`;
+
+  try {
+    const response = await fetch(url, {
+      headers: {
+        "Accept": "application/json"
+      }
+    });
+
+    if (!response.ok) {
+      return null;
+    }
+
+    const results = await response.json();
+
+    if (!results.length) {
+      return null;
+    }
+
+    const coords = {
+      lat: Number(results[0].lat),
+      lng: Number(results[0].lon)
+    };
+
+    cache[cacheKey] = coords;
+    guardarGeocache(cache);
+
+    await sleep(250);
+    return coords;
+  } catch (error) {
+    console.error("Error geocodificant espai:", nomEspai, error);
+    return null;
+  }
+}
+
+function carregarGeocache() {
+  try {
+    return JSON.parse(localStorage.getItem("capitalitat_geocache_v1") || "{}");
+  } catch {
+    return {};
+  }
+}
+
+function guardarGeocache(cache) {
+  localStorage.setItem("capitalitat_geocache_v1", JSON.stringify(cache));
+}
+
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 function objecteMesosAArray(objecte) {
