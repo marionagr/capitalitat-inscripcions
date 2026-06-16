@@ -4,17 +4,22 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Visor d'inscripcions · Capitalitat</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
 
   <header class="header">
-    <div>
+    <div class="header-inner">
       <p class="eyebrow">Capitalitat Mundial de l'Arquitectura 2026</p>
       <h1>Visor d'inscripcions</h1>
       <p class="intro">
-        Seguiment dels passis i activitats gestionades des del full d'INSCRIPCIONS.
-        El visor llegeix totes les columnes del full, però només mostra les dades seleccionades.
+        Seguiment dels passis gestionats des del full d'INSCRIPCIONS.
+        El visor llegeix les dades del Google Sheets i mostra els indicadors principals.
       </p>
       <p id="status" class="status-line">Carregant dades...</p>
     </div>
@@ -23,66 +28,88 @@
   <main class="container">
 
     <section class="kpi-grid">
-      <article class="card">
+      <article class="card kpi-card">
         <span class="label">Total de passis</span>
         <strong id="kpi-total-passis">—</strong>
       </article>
 
-      <article class="card">
+      <article class="card kpi-card">
         <span class="label">Passis gestionats per nosaltres</span>
         <strong id="kpi-passis-importants">—</strong>
       </article>
     </section>
 
-    <section class="section-grid">
+    <section class="dashboard-grid">
       <section class="panel">
         <div class="panel-header">
-          <h2>Tipus d'entrada</h2>
-          <p>Classificació segons la columna Y del full INSCRIPCIONS.</p>
+          <span class="panel-number">01</span>
+          <div>
+            <h2>Tipus d'entrada</h2>
+            <p>Columna Y · gratuïta, inscripció prèvia i pagament.</p>
+          </div>
         </div>
 
-        <div id="tipus-entrada-grid" class="mini-grid">
+        <div id="chart-tipus-entrada" class="bar-chart">
           <p>Carregant...</p>
         </div>
       </section>
 
       <section class="panel">
         <div class="panel-header">
-          <h2>Modalitat</h2>
-          <p>Classificació segons la columna M del full INSCRIPCIONS.</p>
+          <span class="panel-number">02</span>
+          <div>
+            <h2>Modalitat</h2>
+            <p>Columna M · modalitats A, B i C.</p>
+          </div>
         </div>
 
-        <div id="modalitat-grid" class="mini-grid">
+        <div id="chart-modalitat" class="bar-chart">
+          <p>Carregant...</p>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-header">
+          <span class="panel-number">03</span>
+          <div>
+            <h2>Gestió</h2>
+            <p>Columna D · Marc, Hotaru, Laida, Roger, Cristian i Neda.</p>
+          </div>
+        </div>
+
+        <div id="chart-responsable" class="bar-chart">
           <p>Carregant...</p>
         </div>
       </section>
     </section>
 
-    <section class="panel">
-      <div class="panel-header">
-        <h2>Passis importants</h2>
-        <p>
-          De moment es mostren només les files amb ID intern a la columna B
-          i TRUE a la columna E.
-        </p>
+    <section class="panel full-panel">
+      <div class="panel-header table-header">
+        <span class="panel-number">04</span>
+        <div>
+          <h2>Passis gestionats</h2>
+          <p>Files amb ID intern a la columna B i TRUE a la columna E.</p>
+        </div>
       </div>
 
-      <table>
-        <thead>
-          <tr>
-            <th>ID intern</th>
-            <th>Activitat</th>
-            <th>Tipus d'entrada</th>
-            <th>Modalitat</th>
-            <th>Fila</th>
-          </tr>
-        </thead>
-        <tbody id="taula-passis-body">
-          <tr>
-            <td colspan="5">Carregant...</td>
-          </tr>
-        </tbody>
-      </table>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>ID intern</th>
+              <th>Gestió</th>
+              <th>Tipus d'entrada</th>
+              <th>Modalitat</th>
+              <th>Fila</th>
+            </tr>
+          </thead>
+          <tbody id="taula-passis-body">
+            <tr>
+              <td colspan="5">Carregant...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </section>
 
   </main>
