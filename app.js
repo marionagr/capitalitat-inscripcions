@@ -1150,25 +1150,33 @@ function mostrarAnimacioCapitalitat() {
   if (circle) {
     const radius = Number(circle.getAttribute("r"));
     const circumference = 2 * Math.PI * radius;
-    const offset = circumference - (progress.percent / 100) * circumference;
 
     circle.style.strokeDasharray = `${circumference}`;
     circle.style.strokeDashoffset = `${circumference}`;
-
-    requestAnimationFrame(() => {
-      circle.style.strokeDashoffset = `${offset}`;
-    });
   }
 
-  overlay.classList.remove("is-active", "show-progress");
+  overlay.classList.remove("is-active", "show-progress", "draw-circle");
 
   requestAnimationFrame(() => {
     overlay.classList.add("is-active");
   });
 
+  // Primer: línia + dates. Després apareix el percentatge.
   window.setTimeout(() => {
     overlay.classList.add("show-progress");
-  }, 1800);
+  }, 3900);
+
+  // Primer apareix el %. Després es comença a omplir la rodona.
+  window.setTimeout(() => {
+    if (circle) {
+      const radius = Number(circle.getAttribute("r"));
+      const circumference = 2 * Math.PI * radius;
+      const offset = circumference - (progress.percent / 100) * circumference;
+      circle.style.strokeDashoffset = `${offset}`;
+    }
+
+    overlay.classList.add("draw-circle");
+  }, 4650);
 }
 
 function crearOverlayCapitalitat() {

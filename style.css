@@ -1565,3 +1565,132 @@ tr:hover td {
     text-align: center;
   }
 }
+
+/* =========================================
+   AJUST FI ANIMACIÓ LOGO · SEQÜÈNCIA LENTA
+========================================= */
+
+.capitalitat-line {
+  transform: scaleX(0) !important;
+  transform-origin: center center !important;
+}
+
+.capitalitat-overlay.is-active .capitalitat-line {
+  animation:
+    capitalitatLineGrowSlow 2.25s cubic-bezier(.18, .86, .22, 1) forwards,
+    capitalitatLineFadeSlow 0.85s ease 3.15s forwards !important;
+}
+
+.capitalitat-date {
+  top: 50% !important;
+  opacity: 0;
+  filter: blur(10px);
+  transform: translateY(-50%) scale(0.98);
+}
+
+.capitalitat-date-left {
+  left: clamp(28px, 9vw, 110px) !important;
+}
+
+.capitalitat-date-right {
+  right: clamp(28px, 9vw, 110px) !important;
+}
+
+.capitalitat-overlay.is-active .capitalitat-date {
+  animation:
+    capitalitatDateInSlow 0.9s ease 2.05s forwards !important;
+}
+
+/* Quan surt el percentatge, les dates es mantenen visibles però pugen una mica */
+.capitalitat-overlay.show-progress .capitalitat-date {
+  opacity: 1 !important;
+  filter: blur(0) !important;
+  top: 23% !important;
+  transform: translateY(-50%) scale(1) !important;
+  transition:
+    top 0.9s cubic-bezier(.22, 1, .36, 1),
+    opacity 0.5s ease,
+    filter 0.5s ease,
+    transform 0.9s cubic-bezier(.22, 1, .36, 1);
+}
+
+.capitalitat-progress-stage {
+  opacity: 0;
+  transform: scale(0.92);
+  filter: blur(14px);
+}
+
+.capitalitat-overlay.show-progress .capitalitat-progress-stage {
+  animation: capitalitatProgressInSlow 1.05s cubic-bezier(.22, 1, .36, 1) forwards !important;
+}
+
+.capitalitat-ring-progress {
+  transition: stroke-dashoffset 1.85s cubic-bezier(.18, .86, .22, 1) !important;
+}
+
+@keyframes capitalitatLineGrowSlow {
+  0% {
+    transform: scaleX(0);
+    opacity: 0;
+  }
+
+  12% {
+    opacity: 1;
+  }
+
+  100% {
+    transform: scaleX(1);
+    opacity: 1;
+  }
+}
+
+@keyframes capitalitatLineFadeSlow {
+  to {
+    opacity: 0;
+    transform: scaleX(1);
+    filter: blur(8px);
+  }
+}
+
+@keyframes capitalitatDateInSlow {
+  0% {
+    opacity: 0;
+    filter: blur(10px);
+    transform: translateY(-50%) scale(0.96);
+  }
+
+  100% {
+    opacity: 1;
+    filter: blur(0);
+    transform: translateY(-50%) scale(1);
+  }
+}
+
+@keyframes capitalitatProgressInSlow {
+  0% {
+    opacity: 0;
+    transform: scale(0.92);
+    filter: blur(14px);
+  }
+
+  100% {
+    opacity: 1;
+    transform: scale(1);
+    filter: blur(0);
+  }
+}
+
+@media (max-width: 850px) {
+  .capitalitat-overlay.show-progress .capitalitat-date {
+    top: 18% !important;
+  }
+
+  .capitalitat-date-left {
+    left: 26px !important;
+  }
+
+  .capitalitat-date-right {
+    right: 26px !important;
+  }
+}
+
