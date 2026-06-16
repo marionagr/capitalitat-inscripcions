@@ -1454,3 +1454,265 @@ function calcularProgresCapitalitat() {
   };
 }
 
+
+/* === CAPITALITAT_V3_START === */
+
+/* ============================================================
+   CAPITALITAT V3 · INTRO CINEMÀTICA
+   Logo lluminós → títol epic → línia → dates → % + anell
+============================================================ */
+
+window.addEventListener("load", () => {
+  try {
+    activarAnimacioLogoCapitalitat();
+    activarIntroInicialCapitalitat();
+  } catch (e) {
+    console.error("Capitalitat V3 init error:", e);
+  }
+});
+
+function activarAnimacioLogoCapitalitat() {
+  const logoTrigger = document.querySelector(".brand-block") || document.querySelector(".brand-logo");
+  if (!logoTrigger) return;
+
+  logoTrigger.style.cursor = "pointer";
+  logoTrigger.setAttribute("title", "Veure progrés de la Capitalitat");
+
+  if (!logoTrigger.dataset.capitalitatV3Bound) {
+    logoTrigger.addEventListener("click", () => {
+      mostrarExperienciaCapitalitatV3();
+    });
+    logoTrigger.dataset.capitalitatV3Bound = "1";
+  }
+}
+
+function activarIntroInicialCapitalitat() {
+  if (window.__capitalitatV3IntroDone) return;
+  window.__capitalitatV3IntroDone = true;
+
+  window.setTimeout(() => {
+    mostrarExperienciaCapitalitatV3();
+  }, 650);
+}
+
+// Compatibilitat amb funcions anteriors
+function mostrarAnimacioCapitalitat() {
+  mostrarExperienciaCapitalitatV3();
+}
+function mostrarIntroInicialCapitalitat() {
+  mostrarExperienciaCapitalitatV3();
+}
+function mostrarExperienciaCapitalitatFinal() {
+  mostrarExperienciaCapitalitatV3();
+}
+
+function mostrarExperienciaCapitalitatV3() {
+  document.querySelectorAll(
+    "#capitalitat-progress-overlay, #capitalitat-intro-overlay, #capitalitat-cinematic-overlay, #capitalitat-final-overlay, #capitalitat-v3-overlay"
+  ).forEach(el => el.remove());
+
+  const progress = calcularProgresCapitalitat();
+
+  const overlay = document.createElement("div");
+  overlay.id = "capitalitat-v3-overlay";
+  overlay.className = "capitalitat-v3-overlay";
+  overlay.innerHTML = `
+    <button class="cv3-close" type="button" aria-label="Tancar animació">×</button>
+
+    <div class="cv3-logo-stage">
+      <svg class="cv3-logo-svg" viewBox="0 0 260 330" aria-hidden="true">
+        <path
+          class="cv3-logo-base"
+          pathLength="1000"
+          d="M45 18
+             H132
+             L170 56
+             H215
+             V103
+             H170
+             V126
+             H212
+             V174
+             H170
+             V200
+             H214
+             V248
+             H170
+             L132 286
+             H45
+             V232
+             H86
+             V194
+             H45
+             V146
+             H86
+             V108
+             H45
+             Z" />
+        <path
+          class="cv3-logo-progress"
+          pathLength="1000"
+          d="M45 18
+             H132
+             L170 56
+             H215
+             V103
+             H170
+             V126
+             H212
+             V174
+             H170
+             V200
+             H214
+             V248
+             H170
+             L132 286
+             H45
+             V232
+             H86
+             V194
+             H45
+             V146
+             H86
+             V108
+             H45
+             Z" />
+        <path
+          class="cv3-logo-head"
+          pathLength="1000"
+          d="M45 18
+             H132
+             L170 56
+             H215
+             V103
+             H170
+             V126
+             H212
+             V174
+             H170
+             V200
+             H214
+             V248
+             H170
+             L132 286
+             H45
+             V232
+             H86
+             V194
+             H45
+             V146
+             H86
+             V108
+             H45
+             Z" />
+      </svg>
+    </div>
+
+    <div class="cv3-seed"></div>
+
+    <div class="cv3-title">
+      <span>Barcelona 2026</span>
+      <strong>Capital Mundial de l'Arquitectura</strong>
+    </div>
+
+    <div class="cv3-timeline">
+      <span class="cv3-date cv3-date-left">12 de febrer</span>
+      <span class="cv3-date cv3-date-right">13 de desembre</span>
+      <span class="cv3-line"></span>
+    </div>
+
+    <div class="cv3-progress">
+      <div class="cv3-ring">
+        <svg viewBox="0 0 220 220" aria-hidden="true">
+          <circle class="cv3-ring-bg" cx="110" cy="110" r="92"></circle>
+          <circle class="cv3-ring-progress" cx="110" cy="110" r="92" data-cv3-circle></circle>
+        </svg>
+
+        <div class="cv3-number">
+          <strong data-cv3-number>0%</strong>
+          <span>dies transcorreguts</span>
+        </div>
+      </div>
+
+      <p>${progress.remainingDays > 0 ? `Falten ${progress.remainingDays} dies per acabar la Capitalitat` : "La Capitalitat ha finalitzat"}</p>
+    </div>
+  `;
+
+  document.body.appendChild(overlay);
+
+  const circle = overlay.querySelector("[data-cv3-circle]");
+  const numberEl = overlay.querySelector("[data-cv3-number]");
+
+  if (circle) {
+    const radius = Number(circle.getAttribute("r"));
+    const circumference = 2 * Math.PI * radius;
+    circle.style.strokeDasharray = `${circumference}`;
+    circle.style.strokeDashoffset = `${circumference}`;
+  }
+
+  overlay.addEventListener("click", event => {
+    if (event.target === overlay || event.target.closest(".cv3-close")) {
+      overlay.classList.add("is-closing");
+      window.setTimeout(() => overlay.remove(), 550);
+    }
+  });
+
+  requestAnimationFrame(() => {
+    overlay.classList.add("is-active");
+  });
+
+  // El text del % apareix a 0 i puja ràpidament mentre es completa l'anell
+  window.setTimeout(() => {
+    animarPercentatgeCapitalitat(numberEl, circle, progress.percent, 1650);
+  }, 9900);
+}
+
+function animarPercentatgeCapitalitat(numberEl, circleEl, targetPercent, duration = 1650) {
+  const start = performance.now();
+
+  let circumference = 0;
+  if (circleEl) {
+    const radius = Number(circleEl.getAttribute("r"));
+    circumference = 2 * Math.PI * radius;
+    circleEl.style.strokeDasharray = `${circumference}`;
+    circleEl.style.strokeDashoffset = `${circumference}`;
+  }
+
+  function frame(now) {
+    const t = Math.min(1, (now - start) / duration);
+    const eased = 1 - Math.pow(1 - t, 3); // ease out
+    const current = Math.round(targetPercent * eased);
+
+    if (numberEl) {
+      numberEl.textContent = `${current}%`;
+    }
+
+    if (circleEl) {
+      const offset = circumference - (current / 100) * circumference;
+      circleEl.style.strokeDashoffset = `${offset}`;
+    }
+
+    if (t < 1) {
+      requestAnimationFrame(frame);
+    }
+  }
+
+  requestAnimationFrame(frame);
+}
+
+function calcularProgresCapitalitat() {
+  const MS_DIA = 24 * 60 * 60 * 1000;
+
+  const inici = new Date(2026, 1, 12);   // 12 febrer 2026
+  const final = new Date(2026, 11, 13);  // 13 desembre 2026
+
+  const ara = new Date();
+  const avui = new Date(ara.getFullYear(), ara.getMonth(), ara.getDate());
+
+  const totalDies = Math.max(1, Math.round((final - inici) / MS_DIA));
+  const diesPassats = Math.round((avui - inici) / MS_DIA);
+  const remainingDays = Math.max(0, Math.ceil((final - avui) / MS_DIA));
+  const percent = Math.min(100, Math.max(0, Math.round((diesPassats / totalDies) * 100)));
+
+  return { percent, remainingDays };
+}

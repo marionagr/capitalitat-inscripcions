@@ -2480,3 +2480,603 @@ tr:hover td {
     top: calc(50% + 104px);
   }
 }
+
+/* === CAPITALITAT_V3_STYLE_START === */
+
+/* ============================================================
+   CAPITALITAT V3 · INTRO CINEMÀTICA
+============================================================ */
+
+.capitalitat-v3-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 16000;
+  overflow: hidden;
+  opacity: 0;
+  pointer-events: none;
+  display: grid;
+  place-items: center;
+  background:
+    radial-gradient(circle at 50% 52%, rgba(255, 228, 92, 0.08), transparent 28%),
+    radial-gradient(circle at 18% 20%, rgba(255, 255, 255, 0.05), transparent 24%),
+    rgba(0, 0, 0, 0.90);
+  backdrop-filter: blur(28px);
+  -webkit-backdrop-filter: blur(28px);
+  transition: opacity 0.65s ease;
+}
+
+.capitalitat-v3-overlay.is-active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.capitalitat-v3-overlay.is-closing {
+  opacity: 0;
+  transition: opacity 0.55s ease;
+}
+
+.cv3-close {
+  position: absolute;
+  top: 28px;
+  right: 32px;
+  z-index: 30;
+  width: 42px;
+  height: 42px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.18);
+  background: rgba(255,255,255,0.06);
+  color: #fff;
+  font-size: 28px;
+  line-height: 1;
+  cursor: pointer;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+/* --- LOGO STAGE --- */
+
+.cv3-logo-stage {
+  position: absolute;
+  left: 50%;
+  top: 46%;
+  z-index: 4;
+  transform: translate(-50%, -50%);
+  width: min(250px, 38vw);
+  aspect-ratio: 260 / 330;
+  opacity: 1;
+}
+
+.cv3-logo-svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.cv3-logo-base,
+.cv3-logo-progress,
+.cv3-logo-head {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.cv3-logo-base {
+  stroke: rgba(255, 228, 92, 0.14);
+  stroke-width: 2.2;
+  filter: drop-shadow(0 0 8px rgba(255, 228, 92, 0.18));
+}
+
+.cv3-logo-progress {
+  stroke: #ffe45c;
+  stroke-width: 2.4;
+  stroke-dasharray: 1000;
+  stroke-dashoffset: 1000;
+  filter:
+    drop-shadow(0 0 8px rgba(255, 228, 92, 0.65))
+    drop-shadow(0 0 22px rgba(255, 228, 92, 0.35));
+}
+
+.cv3-logo-head {
+  stroke: #fff6a7;
+  stroke-width: 5.2;
+  stroke-dasharray: 28 972;
+  stroke-dashoffset: 1000;
+  filter:
+    drop-shadow(0 0 10px rgba(255, 228, 92, 0.95))
+    drop-shadow(0 0 24px rgba(255, 228, 92, 0.65))
+    drop-shadow(0 0 46px rgba(255, 228, 92, 0.35));
+}
+
+.capitalitat-v3-overlay.is-active .cv3-logo-progress {
+  animation: cv3LogoDraw 2.35s cubic-bezier(.2,.84,.2,1) 0.35s forwards;
+}
+
+.capitalitat-v3-overlay.is-active .cv3-logo-head {
+  animation: cv3LogoHead 2.35s linear 0.35s forwards;
+}
+
+.capitalitat-v3-overlay.is-active .cv3-logo-stage {
+  animation: cv3LogoFade 0.7s ease 3.0s forwards;
+}
+
+/* --- PUNT CENTRAL --- */
+
+.cv3-seed {
+  position: absolute;
+  left: 50%;
+  top: calc(50% + 80px);
+  z-index: 7;
+  width: 12px;
+  height: 12px;
+  margin-left: -6px;
+  margin-top: -6px;
+  border-radius: 999px;
+  background: #ffe45c;
+  opacity: 0;
+  box-shadow:
+    0 0 18px rgba(255, 228, 92, 0.95),
+    0 0 48px rgba(255, 228, 92, 0.55),
+    0 0 110px rgba(255, 228, 92, 0.30);
+}
+
+.cv3-seed::after {
+  content: "";
+  position: absolute;
+  inset: -30px;
+  border-radius: 999px;
+  background: radial-gradient(circle, rgba(255, 228, 92, 0.22), transparent 65%);
+  filter: blur(10px);
+}
+
+.capitalitat-v3-overlay.is-active .cv3-seed {
+  animation:
+    cv3SeedAppear 0.55s ease 2.85s forwards,
+    cv3SeedHold 2.9s linear 3.4s forwards,
+    cv3SeedFade 0.45s ease 6.85s forwards;
+}
+
+/* --- TÍTOL EPIC --- */
+
+.cv3-title {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  z-index: 6;
+  width: min(980px, 90vw);
+  text-align: center;
+  opacity: 0;
+  transform: translate(-50%, -56px) scale(0.94);
+  filter: blur(18px);
+}
+
+.cv3-title span {
+  display: block;
+  color: #ffffff;
+  font-size: clamp(58px, 9vw, 138px);
+  line-height: 0.9;
+  font-weight: 600;
+  letter-spacing: -0.085em;
+  text-shadow:
+    0 0 18px rgba(255,255,255,0.16),
+    0 0 42px rgba(255,255,255,0.10),
+    0 0 84px rgba(255,228,92,0.12);
+}
+
+.cv3-title strong {
+  display: block;
+  margin-top: 22px;
+  color: rgba(255,255,255,0.74);
+  font-size: clamp(15px, 1.65vw, 24px);
+  line-height: 1.2;
+  font-weight: 300;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+}
+
+.capitalitat-v3-overlay.is-active .cv3-title {
+  animation:
+    cv3TitleIn 1.05s cubic-bezier(.22,1,.36,1) 3.2s forwards,
+    cv3TitleOut 0.85s ease 5.75s forwards;
+}
+
+/* --- LÍNIA + DATES --- */
+
+.cv3-timeline {
+  position: absolute;
+  left: 50%;
+  top: calc(50% + 80px);
+  z-index: 7;
+  width: min(760px, 74vw);
+  height: 120px;
+  transform: translate(-50%, -50%);
+}
+
+.cv3-line {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  display: block;
+  width: 100%;
+  height: 1px;
+  transform: translateY(-50%) scaleX(0);
+  transform-origin: center center;
+  opacity: 0;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255,255,255,0.92),
+    rgba(255,228,92,0.98),
+    rgba(255,255,255,0.92),
+    transparent
+  );
+  box-shadow:
+    0 0 18px rgba(255, 228, 92, 0.44),
+    0 0 44px rgba(255, 228, 92, 0.20);
+}
+
+.cv3-line::before,
+.cv3-line::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: #ffe45c;
+  opacity: 0;
+  box-shadow:
+    0 0 12px rgba(255, 228, 92, 0.95),
+    0 0 32px rgba(255, 228, 92, 0.55);
+}
+
+.cv3-line::before {
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.cv3-line::after {
+  right: 50%;
+  transform: translate(50%, -50%);
+}
+
+.capitalitat-v3-overlay.is-active .cv3-line {
+  animation:
+    cv3LineGrow 2.25s cubic-bezier(.18,.86,.22,1) 6.55s forwards,
+    cv3LineFade 0.75s ease 9.1s forwards;
+}
+
+.capitalitat-v3-overlay.is-active .cv3-line::before {
+  animation: cv3LineLightLeft 2.25s linear 6.55s forwards;
+}
+
+.capitalitat-v3-overlay.is-active .cv3-line::after {
+  animation: cv3LineLightRight 2.25s linear 6.55s forwards;
+}
+
+.cv3-date {
+  position: absolute;
+  top: 50%;
+  color: rgba(255,255,255,0.88);
+  font-size: clamp(18px, 2vw, 28px);
+  font-weight: 300;
+  letter-spacing: -0.04em;
+  opacity: 0;
+  filter: blur(10px);
+  white-space: nowrap;
+}
+
+.cv3-date-left {
+  left: 0;
+  transform: translate(-112%, -50%) scale(0.98);
+}
+
+.cv3-date-right {
+  right: 0;
+  transform: translate(112%, -50%) scale(0.98);
+}
+
+.capitalitat-v3-overlay.is-active .cv3-date {
+  animation:
+    cv3DateIn 0.75s ease 8.45s forwards,
+    cv3DateMoveUp 0.95s cubic-bezier(.22,1,.36,1) 9.35s forwards;
+}
+
+/* --- PROGRÉS --- */
+
+.cv3-progress {
+  position: absolute;
+  z-index: 9;
+  display: grid;
+  justify-items: center;
+  gap: 22px;
+  opacity: 0;
+  transform: scale(0.92);
+  filter: blur(14px);
+}
+
+.capitalitat-v3-overlay.is-active .cv3-progress {
+  animation: cv3ProgressIn 0.95s cubic-bezier(.22,1,.36,1) 9.35s forwards;
+}
+
+.cv3-ring {
+  width: min(320px, 72vw);
+  aspect-ratio: 1;
+  position: relative;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.11), rgba(255,255,255,0.035)),
+    radial-gradient(circle at top, rgba(255, 228, 92, 0.13), transparent 50%);
+  border: 1px solid rgba(255,255,255,0.14);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.10),
+    0 30px 80px rgba(0,0,0,0.38),
+    0 0 80px rgba(255,228,92,0.12);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+.cv3-ring svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.cv3-ring-bg,
+.cv3-ring-progress {
+  fill: none;
+  stroke-width: 8;
+}
+
+.cv3-ring-bg {
+  stroke: rgba(255,255,255,0.10);
+}
+
+.cv3-ring-progress {
+  stroke: #ffe45c;
+  stroke-linecap: round;
+  filter: drop-shadow(0 0 12px rgba(255,228,92,0.6));
+}
+
+.cv3-number {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+}
+
+.cv3-number strong {
+  display: block;
+  color: #fff;
+  font-size: clamp(58px, 8vw, 96px);
+  font-weight: 600;
+  letter-spacing: -0.08em;
+  line-height: 0.9;
+}
+
+.cv3-number span {
+  display: block;
+  margin-top: 14px;
+  color: rgba(255,255,255,0.58);
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+.cv3-progress p {
+  margin: 0;
+  color: rgba(255,255,255,0.76);
+  font-size: clamp(18px, 2vw, 26px);
+  letter-spacing: -0.04em;
+  text-align: center;
+}
+
+/* --- KEYFRAMES --- */
+
+@keyframes cv3LogoDraw {
+  from { stroke-dashoffset: 1000; }
+  to   { stroke-dashoffset: 0; }
+}
+
+@keyframes cv3LogoHead {
+  from {
+    opacity: 0;
+    stroke-dashoffset: 1000;
+  }
+  6% {
+    opacity: 1;
+  }
+  88% {
+    opacity: 1;
+    stroke-dashoffset: 0;
+  }
+  to {
+    opacity: 0;
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes cv3LogoFade {
+  to {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.96);
+    filter: blur(8px);
+  }
+}
+
+@keyframes cv3SeedAppear {
+  from {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1.1);
+  }
+}
+
+@keyframes cv3SeedHold {
+  from {
+    opacity: 1;
+    transform: scale(1.1);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes cv3SeedFade {
+  to {
+    opacity: 0;
+    transform: scale(0.55);
+  }
+}
+
+@keyframes cv3TitleIn {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -56px) scale(0.94);
+    filter: blur(18px);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(-50%, -56px) scale(1);
+    filter: blur(0);
+  }
+}
+
+@keyframes cv3TitleOut {
+  to {
+    opacity: 0;
+    transform: translate(-50%, -76px) scale(1.02);
+    filter: blur(12px);
+  }
+}
+
+@keyframes cv3LineGrow {
+  0% {
+    opacity: 0;
+    transform: translateY(-50%) scaleX(0);
+  }
+  12% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(-50%) scaleX(1);
+  }
+}
+
+@keyframes cv3LineFade {
+  to {
+    opacity: 0;
+    transform: translateY(-50%) scaleX(1);
+    filter: blur(8px);
+  }
+}
+
+@keyframes cv3LineLightLeft {
+  0% {
+    opacity: 0;
+    left: 50%;
+  }
+  10% {
+    opacity: 1;
+  }
+  84% {
+    opacity: 1;
+    left: 0%;
+  }
+  100% {
+    opacity: 0;
+    left: 0%;
+  }
+}
+
+@keyframes cv3LineLightRight {
+  0% {
+    opacity: 0;
+    right: 50%;
+  }
+  10% {
+    opacity: 1;
+  }
+  84% {
+    opacity: 1;
+    right: 0%;
+  }
+  100% {
+    opacity: 0;
+    right: 0%;
+  }
+}
+
+@keyframes cv3DateIn {
+  to {
+    opacity: 1;
+    filter: blur(0);
+  }
+}
+
+@keyframes cv3DateMoveUp {
+  to {
+    top: -68px;
+    opacity: 1;
+    filter: blur(0);
+  }
+}
+
+@keyframes cv3ProgressIn {
+  to {
+    opacity: 1;
+    transform: scale(1);
+    filter: blur(0);
+  }
+}
+
+@media (max-width: 850px) {
+  .cv3-timeline {
+    width: 78vw;
+  }
+
+  .cv3-date-left {
+    transform: translate(0, -50%) scale(0.98);
+    left: 0;
+  }
+
+  .cv3-date-right {
+    transform: translate(0, -50%) scale(0.98);
+    right: 0;
+  }
+
+  @keyframes cv3DateMoveUp {
+    to {
+      top: -92px;
+      opacity: 1;
+      filter: blur(0);
+    }
+  }
+}
+
+@media (max-width: 620px) {
+  .cv3-title span {
+    font-size: clamp(44px, 14vw, 78px);
+  }
+
+  .cv3-title strong {
+    max-width: 84vw;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .cv3-timeline {
+    top: calc(50% + 96px);
+  }
+
+  .cv3-seed {
+    top: calc(50% + 96px);
+  }
+}
