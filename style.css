@@ -3080,3 +3080,201 @@ tr:hover td {
     top: calc(50% + 96px);
   }
 }
+
+
+/* ============================================================
+   MILLORA LOGO INTRO · UTILITZA EL LOGO REAL
+   Substitueix el traçat manual deforme per una màscara del logo.
+============================================================ */
+
+.cv3-logo-stage {
+  position: absolute !important;
+  left: 50% !important;
+  top: 46% !important;
+  z-index: 4 !important;
+  transform: translate(-50%, -50%) !important;
+  width: min(250px, 38vw) !important;
+  aspect-ratio: 1 / 1 !important;
+  opacity: 1 !important;
+  filter: none !important;
+}
+
+/* Amaguem l'antic SVG si encara existeix */
+.cv3-logo-svg,
+.cv3-logo-base,
+.cv3-logo-progress,
+.cv3-logo-head {
+  display: none !important;
+}
+
+/* Logo real com a màscara */
+.cv3-logo-real,
+.cv3-logo-glow,
+.cv3-logo-scan {
+  position: absolute;
+  inset: 0;
+  background: #ffe45c;
+  mask-image: url("assets/logo-capitalitat.png");
+  -webkit-mask-image: url("assets/logo-capitalitat.png");
+  mask-size: contain;
+  -webkit-mask-size: contain;
+  mask-repeat: no-repeat;
+  -webkit-mask-repeat: no-repeat;
+  mask-position: center;
+  -webkit-mask-position: center;
+}
+
+/* Línia fina base del logo */
+.cv3-logo-real {
+  opacity: 0;
+  background: rgba(255, 228, 92, 0.82);
+  filter:
+    drop-shadow(0 0 8px rgba(255, 228, 92, 0.55))
+    drop-shadow(0 0 24px rgba(255, 228, 92, 0.28));
+  transform: scale(0.96);
+}
+
+/* Glow exterior */
+.cv3-logo-glow {
+  opacity: 0;
+  background: rgba(255, 228, 92, 0.35);
+  filter:
+    blur(8px)
+    drop-shadow(0 0 32px rgba(255, 228, 92, 0.55));
+  transform: scale(1.02);
+}
+
+/* Franja de llum que passa pel logo */
+.cv3-logo-scan {
+  opacity: 0;
+  background:
+    linear-gradient(
+      115deg,
+      transparent 0%,
+      transparent 38%,
+      rgba(255, 255, 255, 0.95) 48%,
+      #ffe45c 52%,
+      transparent 64%,
+      transparent 100%
+    );
+  transform: translateX(-120%) scale(1.04);
+  filter:
+    drop-shadow(0 0 12px rgba(255, 228, 92, 0.95))
+    drop-shadow(0 0 30px rgba(255, 228, 92, 0.55));
+}
+
+/* Nova seqüència de revelat del logo real */
+.capitalitat-v3-overlay.is-active .cv3-logo-real {
+  animation:
+    cv3RealLogoReveal 1.35s cubic-bezier(.22, 1, .36, 1) 0.35s forwards,
+    cv3RealLogoPulse 1.2s ease 1.55s forwards,
+    cv3RealLogoFade 0.7s ease 3.05s forwards !important;
+}
+
+.capitalitat-v3-overlay.is-active .cv3-logo-glow {
+  animation:
+    cv3RealLogoGlow 1.35s cubic-bezier(.22, 1, .36, 1) 0.35s forwards,
+    cv3RealLogoFade 0.7s ease 3.05s forwards !important;
+}
+
+.capitalitat-v3-overlay.is-active .cv3-logo-scan {
+  animation:
+    cv3RealLogoScan 1.65s cubic-bezier(.16, .84, .22, 1) 0.45s forwards,
+    cv3RealLogoFade 0.7s ease 3.05s forwards !important;
+}
+
+/* Anul·lem animació antiga del contenidor */
+.capitalitat-v3-overlay.is-active .cv3-logo-stage {
+  animation: cv3LogoStageFadeClean 0.7s ease 3.05s forwards !important;
+}
+
+@keyframes cv3RealLogoReveal {
+  0% {
+    opacity: 0;
+    clip-path: inset(0 100% 0 0);
+    transform: scale(0.96);
+  }
+
+  55% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 1;
+    clip-path: inset(0 0 0 0);
+    transform: scale(1);
+  }
+}
+
+@keyframes cv3RealLogoGlow {
+  0% {
+    opacity: 0;
+    transform: scale(0.98);
+  }
+
+  60% {
+    opacity: 0.65;
+  }
+
+  100% {
+    opacity: 0.35;
+    transform: scale(1.04);
+  }
+}
+
+@keyframes cv3RealLogoScan {
+  0% {
+    opacity: 0;
+    transform: translateX(-130%) scale(1.04);
+  }
+
+  12% {
+    opacity: 1;
+  }
+
+  80% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+    transform: translateX(130%) scale(1.04);
+  }
+}
+
+@keyframes cv3RealLogoPulse {
+  0% {
+    filter:
+      drop-shadow(0 0 8px rgba(255, 228, 92, 0.55))
+      drop-shadow(0 0 24px rgba(255, 228, 92, 0.28));
+  }
+
+  50% {
+    filter:
+      drop-shadow(0 0 12px rgba(255, 228, 92, 0.85))
+      drop-shadow(0 0 42px rgba(255, 228, 92, 0.46));
+  }
+
+  100% {
+    filter:
+      drop-shadow(0 0 8px rgba(255, 228, 92, 0.55))
+      drop-shadow(0 0 24px rgba(255, 228, 92, 0.28));
+  }
+}
+
+@keyframes cv3RealLogoFade {
+  to {
+    opacity: 0;
+    filter: blur(8px);
+    transform: scale(0.96);
+  }
+}
+
+@keyframes cv3LogoStageFadeClean {
+  to {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.96) !important;
+    filter: blur(8px);
+  }
+}
+

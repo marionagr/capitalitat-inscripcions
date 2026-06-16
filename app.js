@@ -1520,92 +1520,9 @@ function mostrarExperienciaCapitalitatV3() {
     <button class="cv3-close" type="button" aria-label="Tancar animació">×</button>
 
     <div class="cv3-logo-stage">
-      <svg class="cv3-logo-svg" viewBox="0 0 260 330" aria-hidden="true">
-        <path
-          class="cv3-logo-base"
-          pathLength="1000"
-          d="M45 18
-             H132
-             L170 56
-             H215
-             V103
-             H170
-             V126
-             H212
-             V174
-             H170
-             V200
-             H214
-             V248
-             H170
-             L132 286
-             H45
-             V232
-             H86
-             V194
-             H45
-             V146
-             H86
-             V108
-             H45
-             Z" />
-        <path
-          class="cv3-logo-progress"
-          pathLength="1000"
-          d="M45 18
-             H132
-             L170 56
-             H215
-             V103
-             H170
-             V126
-             H212
-             V174
-             H170
-             V200
-             H214
-             V248
-             H170
-             L132 286
-             H45
-             V232
-             H86
-             V194
-             H45
-             V146
-             H86
-             V108
-             H45
-             Z" />
-        <path
-          class="cv3-logo-head"
-          pathLength="1000"
-          d="M45 18
-             H132
-             L170 56
-             H215
-             V103
-             H170
-             V126
-             H212
-             V174
-             H170
-             V200
-             H214
-             V248
-             H170
-             L132 286
-             H45
-             V232
-             H86
-             V194
-             H45
-             V146
-             H86
-             V108
-             H45
-             Z" />
-      </svg>
+      <div class="cv3-logo-real"></div>
+      <div class="cv3-logo-glow"></div>
+      <div class="cv3-logo-scan"></div>
     </div>
 
     <div class="cv3-seed"></div>
