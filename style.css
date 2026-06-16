@@ -1275,3 +1275,23 @@ tr:hover td {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
+
+.dashboard-grid-wide {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.dashboard-grid-wide .panel {
+  min-height: 360px;
+}
+
+@media (max-width: 1350px) {
+  .dashboard-grid-wide {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 900px) {
+  .dashboard-grid-wide {
+    grid-template-columns: 1fr;
+  }
+}
