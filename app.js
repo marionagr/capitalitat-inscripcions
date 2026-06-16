@@ -1455,11 +1455,10 @@ function calcularProgresCapitalitat() {
 }
 
 
-/* === CAPITALITAT_V3_START === */
+/* === CAPITALITAT_V4_START === */
 
 /* ============================================================
-   CAPITALITAT V3 · INTRO CINEMÀTICA
-   Logo lluminós → títol epic → línia → dates → % + anell
+   CAPITALITAT V4 · LOGO OFICIAL + RAIG DE LLUM + COL·LAPSE
 ============================================================ */
 
 window.addEventListener("load", () => {
@@ -1467,7 +1466,7 @@ window.addEventListener("load", () => {
     activarAnimacioLogoCapitalitat();
     activarIntroInicialCapitalitat();
   } catch (e) {
-    console.error("Capitalitat V3 init error:", e);
+    console.error("Capitalitat V4 init error:", e);
   }
 });
 
@@ -1478,75 +1477,64 @@ function activarAnimacioLogoCapitalitat() {
   logoTrigger.style.cursor = "pointer";
   logoTrigger.setAttribute("title", "Veure progrés de la Capitalitat");
 
-  if (!logoTrigger.dataset.capitalitatV3Bound) {
+  if (!logoTrigger.dataset.capitalitatV4Bound) {
     logoTrigger.addEventListener("click", () => {
-      mostrarExperienciaCapitalitatV3();
+      mostrarExperienciaCapitalitatV4();
     });
-    logoTrigger.dataset.capitalitatV3Bound = "1";
+    logoTrigger.dataset.capitalitatV4Bound = "1";
   }
 }
 
 function activarIntroInicialCapitalitat() {
-  if (window.__capitalitatV3IntroDone) return;
-  window.__capitalitatV3IntroDone = true;
+  if (window.__capitalitatV4IntroDone) return;
+  window.__capitalitatV4IntroDone = true;
 
   window.setTimeout(() => {
-    mostrarExperienciaCapitalitatV3();
+    mostrarExperienciaCapitalitatV4();
   }, 650);
 }
 
-// Compatibilitat amb funcions anteriors
-function mostrarAnimacioCapitalitat() {
-  mostrarExperienciaCapitalitatV3();
-}
-function mostrarIntroInicialCapitalitat() {
-  mostrarExperienciaCapitalitatV3();
-}
-function mostrarExperienciaCapitalitatFinal() {
-  mostrarExperienciaCapitalitatV3();
-}
+function mostrarAnimacioCapitalitat() { mostrarExperienciaCapitalitatV4(); }
+function mostrarIntroInicialCapitalitat() { mostrarExperienciaCapitalitatV4(); }
+function mostrarExperienciaCapitalitatFinal() { mostrarExperienciaCapitalitatV4(); }
+function mostrarExperienciaCapitalitatV3() { mostrarExperienciaCapitalitatV4(); }
 
-function mostrarExperienciaCapitalitatV3() {
+function mostrarExperienciaCapitalitatV4() {
   document.querySelectorAll(
-    "#capitalitat-progress-overlay, #capitalitat-intro-overlay, #capitalitat-cinematic-overlay, #capitalitat-final-overlay, #capitalitat-v3-overlay"
+    "#capitalitat-progress-overlay, #capitalitat-intro-overlay, #capitalitat-cinematic-overlay, #capitalitat-final-overlay, #capitalitat-v3-overlay, #capitalitat-v4-overlay"
   ).forEach(el => el.remove());
 
   const progress = calcularProgresCapitalitat();
 
   const overlay = document.createElement("div");
-  overlay.id = "capitalitat-v3-overlay";
-  overlay.className = "capitalitat-v3-overlay";
+  overlay.id = "capitalitat-v4-overlay";
+  overlay.className = "capitalitat-v4-overlay";
   overlay.innerHTML = `
-    <button class="cv3-close" type="button" aria-label="Tancar animació">×</button>
+    <button class="cv4-close" type="button" aria-label="Tancar animació">×</button>
 
-    <div class="cv3-logo-stage">
-      <div class="cv3-logo-real"></div>
-      <div class="cv3-logo-glow"></div>
-      <div class="cv3-logo-scan"></div>
+    <div class="cv4-logo-stage">
+      <div class="cv4-logo-glass"></div>
+      <div class="cv4-logo-glow"></div>
+      <div class="cv4-logo-sweep"></div>
     </div>
 
-    <div class="cv3-seed"></div>
+    <div class="cv4-seed"></div>
 
-    <div class="cv3-title">
-      <span>Barcelona 2026</span>
-      <strong>Capital Mundial de l'Arquitectura</strong>
+    <div class="cv4-timeline">
+      <span class="cv4-date cv4-date-left">12 de febrer</span>
+      <span class="cv4-date cv4-date-right">13 de desembre</span>
+      <span class="cv4-line"></span>
     </div>
 
-    <div class="cv3-timeline">
-      <span class="cv3-date cv3-date-left">12 de febrer</span>
-      <span class="cv3-date cv3-date-right">13 de desembre</span>
-      <span class="cv3-line"></span>
-    </div>
-
-    <div class="cv3-progress">
-      <div class="cv3-ring">
+    <div class="cv4-progress">
+      <div class="cv4-ring">
         <svg viewBox="0 0 220 220" aria-hidden="true">
-          <circle class="cv3-ring-bg" cx="110" cy="110" r="92"></circle>
-          <circle class="cv3-ring-progress" cx="110" cy="110" r="92" data-cv3-circle></circle>
+          <circle class="cv4-ring-bg" cx="110" cy="110" r="92"></circle>
+          <circle class="cv4-ring-progress" cx="110" cy="110" r="92" data-cv4-circle></circle>
         </svg>
 
-        <div class="cv3-number">
-          <strong data-cv3-number>0%</strong>
+        <div class="cv4-number">
+          <strong data-cv4-number>0%</strong>
           <span>dies transcorreguts</span>
         </div>
       </div>
@@ -1557,8 +1545,8 @@ function mostrarExperienciaCapitalitatV3() {
 
   document.body.appendChild(overlay);
 
-  const circle = overlay.querySelector("[data-cv3-circle]");
-  const numberEl = overlay.querySelector("[data-cv3-number]");
+  const circle = overlay.querySelector("[data-cv4-circle]");
+  const numberEl = overlay.querySelector("[data-cv4-number]");
 
   if (circle) {
     const radius = Number(circle.getAttribute("r"));
@@ -1568,7 +1556,7 @@ function mostrarExperienciaCapitalitatV3() {
   }
 
   overlay.addEventListener("click", event => {
-    if (event.target === overlay || event.target.closest(".cv3-close")) {
+    if (event.target === overlay || event.target.closest(".cv4-close")) {
       overlay.classList.add("is-closing");
       window.setTimeout(() => overlay.remove(), 550);
     }
@@ -1578,13 +1566,13 @@ function mostrarExperienciaCapitalitatV3() {
     overlay.classList.add("is-active");
   });
 
-  // El text del % apareix a 0 i puja ràpidament mentre es completa l'anell
+  // Quan ja apareix el bloc del progrés, el número puja de 0 al percentatge real
   window.setTimeout(() => {
-    animarPercentatgeCapitalitat(numberEl, circle, progress.percent, 1650);
-  }, 9900);
+    animarPercentatgeCapitalitatV4(numberEl, circle, progress.percent, 1700);
+  }, 7000);
 }
 
-function animarPercentatgeCapitalitat(numberEl, circleEl, targetPercent, duration = 1650) {
+function animarPercentatgeCapitalitatV4(numberEl, circleEl, targetPercent, duration = 1700) {
   const start = performance.now();
 
   let circumference = 0;
@@ -1597,21 +1585,17 @@ function animarPercentatgeCapitalitat(numberEl, circleEl, targetPercent, duratio
 
   function frame(now) {
     const t = Math.min(1, (now - start) / duration);
-    const eased = 1 - Math.pow(1 - t, 3); // ease out
+    const eased = 1 - Math.pow(1 - t, 3);
     const current = Math.round(targetPercent * eased);
 
-    if (numberEl) {
-      numberEl.textContent = `${current}%`;
-    }
+    if (numberEl) numberEl.textContent = `${current}%`;
 
     if (circleEl) {
       const offset = circumference - (current / 100) * circumference;
       circleEl.style.strokeDashoffset = `${offset}`;
     }
 
-    if (t < 1) {
-      requestAnimationFrame(frame);
-    }
+    if (t < 1) requestAnimationFrame(frame);
   }
 
   requestAnimationFrame(frame);
@@ -1620,8 +1604,8 @@ function animarPercentatgeCapitalitat(numberEl, circleEl, targetPercent, duratio
 function calcularProgresCapitalitat() {
   const MS_DIA = 24 * 60 * 60 * 1000;
 
-  const inici = new Date(2026, 1, 12);   // 12 febrer 2026
-  const final = new Date(2026, 11, 13);  // 13 desembre 2026
+  const inici = new Date(2026, 1, 12);
+  const final = new Date(2026, 11, 13);
 
   const ara = new Date();
   const avui = new Date(ara.getFullYear(), ara.getMonth(), ara.getDate());
