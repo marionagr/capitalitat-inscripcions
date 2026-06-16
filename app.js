@@ -1,4 +1,4 @@
-const CSV_URL = "ENGANXA_AQUI_LA_URL_CSV";
+const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRWPBpxuBECSh1kLS1Vm-gdmOQhWw6_aBUUsjrX3wMZlaL17IsIkhFrSa8ovmbMR-uFL07SeX5ClGOM/pub?gid=953396512&single=true&output=csv";
 
 const COLS = {
   ID_INTERN: 1,       // B
