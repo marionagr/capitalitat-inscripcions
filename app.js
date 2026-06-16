@@ -2270,3 +2270,38 @@ function fusionarPuntsCapitalitatV5(overlay, dots, target, onComplete) {
 
   requestAnimationFrame(frame);
 }
+
+/* === CAPITALITAT_V5_AUTO_CLOSE_START === */
+
+/* ============================================================
+   CAPITALITAT V5 · TANCAMENT AUTOMÀTIC
+   Després de veure dates + percentatge, espera 5 segons i torna a la web.
+============================================================ */
+
+function programarTancamentCapitalitatV5(overlay, delay = 16000) {
+  if (!overlay) return;
+
+  window.setTimeout(() => {
+    if (!document.body.contains(overlay)) return;
+
+    overlay.classList.add("is-closing");
+
+    window.setTimeout(() => {
+      if (document.body.contains(overlay)) {
+        overlay.remove();
+      }
+    }, 650);
+  }, delay);
+}
+
+// Sobreescrivim la funció final perquè programi el tancament automàtic.
+const mostrarExperienciaCapitalitatV5_original_autoClose = mostrarExperienciaCapitalitatV5;
+
+function mostrarExperienciaCapitalitatV5() {
+  mostrarExperienciaCapitalitatV5_original_autoClose();
+
+  window.setTimeout(() => {
+    const overlay = document.getElementById("capitalitat-v5-overlay");
+    programarTancamentCapitalitatV5(overlay, 16000);
+  }, 100);
+}
