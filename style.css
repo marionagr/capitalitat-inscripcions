@@ -4386,3 +4386,188 @@ tr:hover td {
     }
   }
 }
+
+/* === CAPITALITAT_V5_TUNE_STYLE_START === */
+
+/* ============================================================
+   CAPITALITAT V5 · AJUST FI VISUAL
+============================================================ */
+
+/* Composició: logo una mica més protagonista i text millor col·locat */
+.cv5-logo-area {
+  top: 41% !important;
+  gap: clamp(30px, 4.8vw, 82px) !important;
+}
+
+.cv5-logo-svg {
+  width: min(430px, 41vw) !important;
+}
+
+/* El perímetre: més fi, més elegant */
+.cv5-path-base {
+  stroke: rgba(255, 228, 92, 0.08) !important;
+  stroke-width: 1.6 !important;
+}
+
+.cv5-path-draw {
+  stroke: #ffe45c !important;
+  stroke-width: 2.05 !important;
+  filter:
+    drop-shadow(0 0 7px rgba(255, 228, 92, 0.74))
+    drop-shadow(0 0 20px rgba(255, 228, 92, 0.28))
+    drop-shadow(0 0 42px rgba(255, 228, 92, 0.10)) !important;
+}
+
+/* Els tres punts: més vius però petits */
+.cv5-dot {
+  r: 4.6;
+  fill: #fff5a6 !important;
+  filter:
+    drop-shadow(0 0 9px rgba(255, 228, 92, 1))
+    drop-shadow(0 0 22px rgba(255, 228, 92, 0.62))
+    drop-shadow(0 0 44px rgba(255, 228, 92, 0.22)) !important;
+}
+
+/* Text: apareix més net, i després desapareix abans de la fusió */
+.cv5-brand-copy {
+  max-width: 360px !important;
+  transform: translateX(-10px) translateY(18px);
+}
+
+.capitalitat-v5-overlay.is-copy-visible .cv5-brand-copy {
+  opacity: 1 !important;
+  transform: translateX(0) translateY(0) !important;
+  filter: blur(0) !important;
+}
+
+.capitalitat-v5-overlay.is-copy-leaving .cv5-brand-copy {
+  opacity: 0 !important;
+  transform: translateX(10px) translateY(-10px) scale(0.98) !important;
+  filter: blur(8px) !important;
+  transition:
+    opacity 0.55s ease,
+    transform 0.55s ease,
+    filter 0.55s ease;
+}
+
+.cv5-brand-copy span {
+  font-size: clamp(46px, 5.2vw, 82px) !important;
+  font-weight: 520 !important;
+  color: #fff !important;
+}
+
+.cv5-brand-copy strong {
+  color: rgba(255,255,255,0.72) !important;
+  letter-spacing: 0.055em !important;
+}
+
+/* Fusió: el logo no desapareix de cop, es concentra cap al centre */
+.capitalitat-v5-overlay.is-merging .cv5-logo-svg {
+  animation: cv5LogoMicroPulse 0.9s ease forwards;
+}
+
+.capitalitat-v5-overlay.is-logo-fading .cv5-logo-area {
+  top: calc(50% + 84px) !important;
+  opacity: 0 !important;
+  filter: blur(8px) !important;
+  transform: translate(-50%, -50%) scale(0.06) !important;
+  transition:
+    top 0.7s cubic-bezier(.22,1,.36,1),
+    opacity 0.7s ease,
+    filter 0.7s ease,
+    transform 0.7s cubic-bezier(.22,1,.36,1) !important;
+}
+
+/* Punt unificat: apareix amb una petita expansió */
+.capitalitat-v5-overlay.is-seed-visible .cv5-seed::before {
+  content: "";
+  position: absolute;
+  inset: -18px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 228, 92, 0.44);
+  opacity: 0;
+  animation: cv5SeedRippleFine 1.15s ease forwards;
+}
+
+/* La línia surt una mica més neta des del punt */
+.cv5-line {
+  height: 1.15px !important;
+}
+
+/* Dates una mica més separades del centre */
+.cv5-date-left {
+  transform: translate(-120%, -50%) scale(0.98) !important;
+}
+
+.cv5-date-right {
+  transform: translate(120%, -50%) scale(0.98) !important;
+}
+
+/* Progress una mica més premium */
+.cv5-ring {
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.12), rgba(255,255,255,0.034)),
+    radial-gradient(circle at 34% 20%, rgba(255,255,255,0.08), transparent 32%),
+    radial-gradient(circle at top, rgba(255, 228, 92, 0.15), transparent 50%) !important;
+}
+
+/* Keyframes */
+@keyframes cv5LogoMicroPulse {
+  0% {
+    transform: scale(1);
+  }
+
+  45% {
+    transform: scale(1.018);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes cv5SeedRippleFine {
+  0% {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+
+  24% {
+    opacity: 0.85;
+  }
+
+  100% {
+    opacity: 0;
+    transform: scale(2.4);
+  }
+}
+
+@media (max-width: 900px) {
+  .cv5-logo-area {
+    top: 38% !important;
+    gap: 22px !important;
+  }
+
+  .cv5-logo-svg {
+    width: min(360px, 62vw) !important;
+  }
+
+  .cv5-brand-copy {
+    text-align: center;
+    transform: translateY(18px);
+  }
+
+  .capitalitat-v5-overlay.is-logo-fading .cv5-logo-area {
+    top: calc(50% + 96px) !important;
+  }
+}
+
+@media (max-width: 620px) {
+  .cv5-date-left {
+    transform: translate(0, -50%) scale(0.98) !important;
+  }
+
+  .cv5-date-right {
+    transform: translate(0, -50%) scale(0.98) !important;
+  }
+}

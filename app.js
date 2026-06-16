@@ -2007,3 +2007,266 @@ function calcularProgresCapitalitat() {
 
   return { percent, remainingDays };
 }
+
+/* === CAPITALITAT_V5_TUNE_START === */
+
+/* ============================================================
+   CAPITALITAT V5 · AJUST FI
+   Perímetre més acurat + text + fusió més suau
+============================================================ */
+
+function mostrarExperienciaCapitalitatV5() {
+  document.querySelectorAll(
+    "#capitalitat-progress-overlay, #capitalitat-intro-overlay, #capitalitat-cinematic-overlay, #capitalitat-final-overlay, #capitalitat-v3-overlay, #capitalitat-v4-overlay, #capitalitat-v5-overlay"
+  ).forEach(el => el.remove());
+
+  const progress = calcularProgresCapitalitat();
+
+  const outerPath = `
+    M 92 92
+    L 168 18
+    H 258
+    L 318 78
+    L 378 18
+    H 468
+    L 545 92
+    V 274
+    L 470 348
+    H 545
+    V 438
+    H 470
+    L 545 514
+    V 635
+    L 468 712
+    H 378
+    L 318 652
+    V 532
+    L 258 592
+    H 92
+    V 486
+    L 162 416
+    H 92
+    V 300
+    L 162 230
+    H 92
+    Z
+  `;
+
+  const centerPath = `
+    M 318 292
+    L 402 376
+    L 318 460
+    L 234 376
+    Z
+  `;
+
+  const innerPath = `
+    M 238 250
+    L 318 170
+    V 290
+    Z
+    M 238 548
+    L 318 468
+    V 588
+    Z
+  `;
+
+  const overlay = document.createElement("div");
+  overlay.id = "capitalitat-v5-overlay";
+  overlay.className = "capitalitat-v5-overlay";
+
+  overlay.innerHTML = `
+    <button class="cv5-close" type="button" aria-label="Tancar animació">×</button>
+
+    <div class="cv5-logo-area">
+      <svg class="cv5-logo-svg" viewBox="0 0 640 740" aria-hidden="true">
+        <path class="cv5-path-base" d="${outerPath}" />
+        <path class="cv5-path-draw" data-cv5-path-1 d="${outerPath}" />
+
+        <path class="cv5-path-base" d="${centerPath}" />
+        <path class="cv5-path-draw" data-cv5-path-2 d="${centerPath}" />
+
+        <path class="cv5-path-base" d="${innerPath}" />
+        <path class="cv5-path-draw" data-cv5-path-3 d="${innerPath}" />
+
+        <circle class="cv5-dot cv5-dot-1" data-cv5-dot-1 cx="0" cy="0" r="5"></circle>
+        <circle class="cv5-dot cv5-dot-2" data-cv5-dot-2 cx="0" cy="0" r="5"></circle>
+        <circle class="cv5-dot cv5-dot-3" data-cv5-dot-3 cx="0" cy="0" r="5"></circle>
+      </svg>
+
+      <div class="cv5-brand-copy">
+        <span>Barcelona 2026</span>
+        <strong>Capital Mundial de l'Arquitectura</strong>
+      </div>
+    </div>
+
+    <div class="cv5-seed"></div>
+
+    <div class="cv5-timeline">
+      <span class="cv5-date cv5-date-left">12 de febrer</span>
+      <span class="cv5-date cv5-date-right">13 de desembre</span>
+      <span class="cv5-line"></span>
+    </div>
+
+    <div class="cv5-progress">
+      <div class="cv5-ring">
+        <svg viewBox="0 0 220 220" aria-hidden="true">
+          <circle class="cv5-ring-bg" cx="110" cy="110" r="92"></circle>
+          <circle class="cv5-ring-progress" cx="110" cy="110" r="92" data-cv5-circle></circle>
+        </svg>
+
+        <div class="cv5-number">
+          <strong data-cv5-number>0%</strong>
+          <span>dies transcorreguts</span>
+        </div>
+      </div>
+
+      <p>${progress.remainingDays > 0 ? `Falten ${progress.remainingDays} dies per acabar la Capitalitat` : "La Capitalitat ha finalitzat"}</p>
+    </div>
+  `;
+
+  document.body.appendChild(overlay);
+
+  const circle = overlay.querySelector("[data-cv5-circle]");
+  if (circle) {
+    const radius = Number(circle.getAttribute("r"));
+    const circumference = 2 * Math.PI * radius;
+    circle.style.strokeDasharray = `${circumference}`;
+    circle.style.strokeDashoffset = `${circumference}`;
+  }
+
+  overlay.addEventListener("click", event => {
+    if (event.target === overlay || event.target.closest(".cv5-close")) {
+      overlay.classList.add("is-closing");
+      window.setTimeout(() => overlay.remove(), 550);
+    }
+  });
+
+  requestAnimationFrame(() => {
+    overlay.classList.add("is-active");
+    animarPerimetreCapitalitatV5(overlay, progress);
+  });
+}
+
+function animarPerimetreCapitalitatV5(overlay, progress) {
+  const path1 = overlay.querySelector("[data-cv5-path-1]");
+  const path2 = overlay.querySelector("[data-cv5-path-2]");
+  const path3 = overlay.querySelector("[data-cv5-path-3]");
+
+  const dot1 = overlay.querySelector("[data-cv5-dot-1]");
+  const dot2 = overlay.querySelector("[data-cv5-dot-2]");
+  const dot3 = overlay.querySelector("[data-cv5-dot-3]");
+
+  const numberEl = overlay.querySelector("[data-cv5-number]");
+  const circleEl = overlay.querySelector("[data-cv5-circle]");
+
+  const len1 = path1.getTotalLength();
+  const len2 = path2.getTotalLength();
+  const len3 = path3.getTotalLength();
+
+  prepararPath(path1, len1);
+  prepararPath(path2, len2);
+  prepararPath(path3, len3);
+
+  posicionarDot(path1, dot1, 0, len1);
+  posicionarDot(path2, dot2, 0, len2);
+  posicionarDot(path3, dot3, 0, len3);
+
+  const start = performance.now();
+  const duration = 3400;
+  let copyShown = false;
+
+  function frame(now) {
+    const t = Math.min(1, (now - start) / duration);
+    const eased = 1 - Math.pow(1 - t, 2.2);
+
+    pintarPath(path1, len1, eased);
+    pintarPath(path2, len2, Math.min(1, eased * 1.08));
+    pintarPath(path3, len3, Math.min(1, eased * 1.12));
+
+    posicionarDot(path1, dot1, eased, len1);
+    posicionarDot(path2, dot2, Math.min(1, eased * 1.08), len2);
+    posicionarDot(path3, dot3, Math.min(1, eased * 1.12), len3);
+
+    if (!copyShown && t > 0.74) {
+      overlay.classList.add("is-copy-visible");
+      copyShown = true;
+    }
+
+    if (t < 1) {
+      requestAnimationFrame(frame);
+    } else {
+      window.setTimeout(() => {
+        overlay.classList.add("is-copy-leaving");
+
+        window.setTimeout(() => {
+          fusionarPuntsCapitalitatV5(overlay, [dot1, dot2, dot3], { x: 318, y: 376 }, () => {
+            overlay.classList.add("is-seed-visible");
+
+            window.setTimeout(() => {
+              overlay.classList.add("is-timeline-start");
+            }, 360);
+
+            window.setTimeout(() => {
+              overlay.classList.add("is-progress-visible");
+            }, 2700);
+
+            window.setTimeout(() => {
+              animarPercentatgeCapitalitatV5(numberEl, circleEl, progress.percent, 1650);
+            }, 3020);
+          });
+        }, 620);
+      }, 900);
+    }
+  }
+
+  requestAnimationFrame(frame);
+}
+
+function fusionarPuntsCapitalitatV5(overlay, dots, target, onComplete) {
+  const startPoints = dots.map(dot => ({
+    dot,
+    x: Number(dot.getAttribute("cx")),
+    y: Number(dot.getAttribute("cy"))
+  }));
+
+  const start = performance.now();
+  const duration = 1100;
+
+  overlay.classList.add("is-merging");
+
+  function frame(now) {
+    const t = Math.min(1, (now - start) / duration);
+    const eased = 1 - Math.pow(1 - t, 3);
+
+    startPoints.forEach(({ dot, x, y }, index) => {
+      const delay = index * 0.06;
+      const localT = Math.max(0, Math.min(1, (eased - delay) / (1 - delay)));
+      const nx = x + (target.x - x) * localT;
+      const ny = y + (target.y - y) * localT;
+
+      dot.setAttribute("cx", nx.toFixed(2));
+      dot.setAttribute("cy", ny.toFixed(2));
+
+      if (localT > 0.72) {
+        dot.style.opacity = String(1 - (localT - 0.72) / 0.28);
+      }
+    });
+
+    if (t < 1) {
+      requestAnimationFrame(frame);
+    } else {
+      startPoints.forEach(({ dot }) => {
+        dot.style.opacity = "0";
+      });
+
+      overlay.classList.add("is-logo-fading");
+
+      window.setTimeout(() => {
+        if (typeof onComplete === "function") onComplete();
+      }, 220);
+    }
+  }
+
+  requestAnimationFrame(frame);
+}
