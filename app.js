@@ -76,7 +76,6 @@ async function carregarDades() {
     }
 
     APP_DATA = await response.json();
-
     renderitzarDades(APP_DATA);
 
     status.textContent =
@@ -95,8 +94,18 @@ function renderitzarDades(data) {
   COLUMN_KEYS = data.columnKeys || summary.columnesExportades || {};
   const rows = data.rows || [];
 
+  AUTOGESTIONADES = rows.filter(row => valorEsTrue(row[COLUMN_KEYS.gestio]));
+
+  const totalCharts = generarResumGrafiques(rows);
+  const autoCharts = generarResumGrafiques(AUTOGESTIONADES);
+
   posarText("kpi-total-passis", summary.totalPassis || rows.length || 0);
-  posarText("kpi-passis-importants", summary.passisGestio || 0);
+  posarText("kpi-passis-importants", summary.passisGestio || AUTOGESTIONADES.length || 0);
+
+  // TOTAL PASSIS: totes les files
+  renderitzarBarChart("chart-tipus-entrada", totalCharts.tipusEntrada);
+  renderitzarBarChart("chart-modalitat", totalCharts.modalitat);
+  renderitzarBarChart("chart-responsable", totalCharts.responsable);
 
   renderitzarAreaChartMesos(
     "chart-any-complet",
@@ -104,19 +113,111 @@ function renderitzarDades(data) {
     "Totes les activitats"
   );
 
+  // ACTIVITATS AUTOGESTIONADES: només PRÒPIES = TRUE
+  renderitzarBarChart("chart-tipus-entrada-auto", autoCharts.tipusEntrada);
+  renderitzarBarChart("chart-modalitat-auto", autoCharts.modalitat);
+  renderitzarBarChart("chart-responsable-auto", autoCharts.responsable);
+
   renderitzarAreaChartMesos(
     "chart-any-gestio",
     objecteMesosAArray(summary.activitatsGestioPerMes),
     "Activitats gestionades per nosaltres"
   );
 
-  renderitzarBarChart("chart-tipus-entrada", summary.tipusEntrada || {});
-  renderitzarBarChart("chart-modalitat", summary.modalitat || {});
-  renderitzarBarChart("chart-responsable", summary.responsable || {});
-
-  AUTOGESTIONADES = rows.filter(row => valorEsTrue(row[COLUMN_KEYS.gestio]));
   renderitzarTaulaAutogestionades(AUTOGESTIONADES);
   activarCercadorAutogestionades();
+}
+
+function generarResumGrafiques(rows) {
+  return {
+    tipusEntrada: comptarTipusEntrada(rows),
+    modalitat: comptarModalitat(rows),
+    responsable: comptarResponsable(rows)
+  };
+}
+
+function comptarTipusEntrada(rows) {
+  const result = {
+    "Gratuïta": 0,
+    "Gratuïta amb inscripció prèvia": 0,
+    "De pagament": 0,
+    "Sense informació": 0
+  };
+
+  rows.forEach(row => {
+    const value = classificarTipusEntrada(row[COLUMN_KEYS.entrada]);
+    result[value]++;
+  });
+
+  return result;
+}
+
+function comptarModalitat(rows) {
+  const result = {
+    "A": 0,
+    "B": 0,
+    "C": 0,
+    "Sense modalitat": 0
+  };
+
+  rows.forEach(row => {
+    const value = String(row[COLUMN_KEYS.modalitat] || "").trim().toUpperCase();
+
+    if (["A", "B", "C"].includes(value)) {
+      result[value]++;
+    } else {
+      result["Sense modalitat"]++;
+    }
+  });
+
+  return result;
+}
+
+function comptarResponsable(rows) {
+  const result = {
+    "Marc": 0,
+    "Hotaru": 0,
+    "Laida": 0,
+    "Roger": 0,
+    "Cristian": 0,
+    "Neda": 0,
+    "Altres": 0,
+    "Sense responsable": 0
+  };
+
+  rows.forEach(row => {
+    const value = classificarResponsable(row[COLUMN_KEYS.responsable]);
+    result[value]++;
+  });
+
+  return result;
+}
+
+function classificarTipusEntrada(value) {
+  const text = normalitzarText(value);
+
+  if (!text) return "Sense informació";
+  if (text.includes("inscripcio")) return "Gratuïta amb inscripció prèvia";
+  if (text.includes("pagament") || text.includes("pago")) return "De pagament";
+  if (text.includes("gratuita") || text.includes("gratuit")) return "Gratuïta";
+
+  return "Sense informació";
+}
+
+function classificarResponsable(value) {
+  const text = normalitzarText(value);
+
+  if (!text) return "Sense responsable";
+
+  const responsables = ["Marc", "Hotaru", "Laida", "Roger", "Cristian", "Neda"];
+
+  for (const responsable of responsables) {
+    if (text.includes(normalitzarText(responsable))) {
+      return responsable;
+    }
+  }
+
+  return "Altres";
 }
 
 function activarCercadorAutogestionades() {
@@ -266,7 +367,6 @@ function prepararEspaisMapa(rows) {
   rows.forEach(row => {
     const espaiOriginal = String(row[COLUMN_KEYS.espai] || "").trim();
     if (!espaiOriginal) return;
-
     if (esDistricte(espaiOriginal)) return;
 
     const key = normalitzarText(espaiOriginal);
