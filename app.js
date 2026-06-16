@@ -3136,3 +3136,330 @@ mostrarExperienciaCapitalitatV5 = function() {
     }
   });
 })();
+
+/* === CAPITALITAT_MONTH_CHART_X_MONTHS_START === */
+
+/* ============================================================
+   GRÀFIC MENSUAL · X = MESOS / Y = NUMERACIÓ
+   Groc = passis
+   Blanc discontinu = categories per mes
+============================================================ */
+
+(() => {
+  const MONTHS_CA_FULL = [
+    "Gener", "Febrer", "Març", "Abril", "Maig", "Juny",
+    "Juliol", "Agost", "Setembre", "Octubre", "Novembre", "Desembre"
+  ];
+
+  const MONTHS_CA_SHORT = [
+    "GEN", "FEB", "MAR", "ABR", "MAI", "JUN",
+    "JUL", "AGO", "SET", "OCT", "NOV", "DES"
+  ];
+
+  function normValue(value) {
+    return String(value ?? "")
+      .replace(/\u00a0/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+  }
+
+  function normCategory(value) {
+    const v = normValue(value);
+    if (!v) return "Sense categoria";
+
+    const low = v.toLowerCase();
+
+    if (low === "rutes" || low === "ruta") return "Rutes";
+    if (low === "exposicio" || low === "exposició" || low === "exposicions") return "Exposicions";
+    if (low === "conferencia" || low === "conferència" || low === "conferències") return "Conferències";
+    if (low === "instal·lacio" || low === "instal·lació" || low === "instal·lacions") return "Instal·lacions";
+    if (low === "taller" || low === "tallers") return "Tallers";
+
+    return v;
+  }
+
+  function parseDateCA(value) {
+    const raw = normValue(value);
+    if (!raw) return null;
+
+    const match = raw.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})/);
+    if (!match) return null;
+
+    const day = Number(match[1]);
+    const month = Number(match[2]) - 1;
+    let year = Number(match[3]);
+
+    if (year < 100) year += 2000;
+    if (month < 0 || month > 11) return null;
+
+    return new Date(year, month, day);
+  }
+
+  function smoothPath(points) {
+    if (!points.length) return "";
+    if (points.length === 1) return `M ${points[0].x} ${points[0].y}`;
+
+    let d = `M ${points[0].x.toFixed(2)} ${points[0].y.toFixed(2)}`;
+
+    for (let i = 0; i < points.length - 1; i += 1) {
+      const p0 = points[i - 1] || points[i];
+      const p1 = points[i];
+      const p2 = points[i + 1];
+      const p3 = points[i + 2] || p2;
+
+      const cp1x = p1.x + (p2.x - p0.x) / 6;
+      const cp1y = p1.y + (p2.y - p0.y) / 6;
+      const cp2x = p2.x - (p3.x - p1.x) / 6;
+      const cp2y = p2.y - (p3.y - p1.y) / 6;
+
+      d += ` C ${cp1x.toFixed(2)} ${cp1y.toFixed(2)}, ${cp2x.toFixed(2)} ${cp2y.toFixed(2)}, ${p2.x.toFixed(2)} ${p2.y.toFixed(2)}`;
+    }
+
+    return d;
+  }
+
+  function findMonthChart() {
+    return (
+      document.getElementById("chart-any-complet") ||
+      document.getElementById("chart-mesos-total") ||
+      document.getElementById("chart-mesos")
+    );
+  }
+
+  async function loadCapitalitatRows() {
+    const response = await fetch("data/inscripcions.json?v=" + Date.now());
+    const data = await response.json();
+
+    return {
+      rows: Array.isArray(data.rows) ? data.rows : [],
+      keys: data.columnKeys || {}
+    };
+  }
+
+  function installTooltip(chartEl) {
+    let tooltip = document.querySelector(".cap-month-tooltip");
+
+    if (!tooltip) {
+      tooltip = document.createElement("div");
+      tooltip.className = "cap-month-tooltip";
+      document.body.appendChild(tooltip);
+    }
+
+    chartEl.querySelectorAll(".cap-month-point").forEach(point => {
+      point.addEventListener("mouseenter", () => {
+        tooltip.innerHTML = `
+          <strong>${point.dataset.value}</strong>
+          <span>${point.dataset.series}</span>
+          <em>${point.dataset.month}</em>
+        `;
+        tooltip.classList.add("is-visible");
+      });
+
+      point.addEventListener("mousemove", event => {
+        tooltip.style.left = `${event.clientX + 16}px`;
+        tooltip.style.top = `${event.clientY - 18}px`;
+      });
+
+      point.addEventListener("mouseleave", () => {
+        tooltip.classList.remove("is-visible");
+      });
+    });
+  }
+
+  async function renderMonthChartXMonths() {
+    const chartEl = findMonthChart();
+    if (!chartEl) return;
+
+    const { rows, keys } = await loadCapitalitatRows();
+
+    const dateKey = keys.dataInici || "data_inici";
+    const categoryKey = keys.categoria || "categoria";
+
+    const passisPerMes = Array.from({ length: 12 }, () => 0);
+    const categoriesPerMes = Array.from({ length: 12 }, () => new Set());
+
+    rows.forEach(row => {
+      const date = parseDateCA(row[dateKey]);
+      if (!date) return;
+
+      const monthIndex = date.getMonth();
+      passisPerMes[monthIndex] += 1;
+
+      const category = normCategory(row[categoryKey]);
+      if (category && category !== "Sense categoria") {
+        categoriesPerMes[monthIndex].add(category);
+      }
+    });
+
+    const categoriesCount = categoriesPerMes.map(set => set.size);
+
+    const totalPassis = rows.length;
+    const maxPassis = Math.max(1, ...passisPerMes);
+    const maxCategories = Math.max(1, ...categoriesCount);
+
+    const tickStep = maxPassis > 600 ? 500 : 100;
+    const maxY = Math.max(tickStep, Math.ceil(maxPassis / tickStep) * tickStep);
+
+    const width = 1080;
+    const height = 430;
+
+    const padLeft = 72;
+    const padRight = 42;
+    const padTop = 46;
+    const padBottom = 62;
+
+    const plotW = width - padLeft - padRight;
+    const plotH = height - padTop - padBottom;
+
+    const xStep = plotW / 11;
+    const bottomY = padTop + plotH;
+
+    const passPoints = passisPerMes.map((value, index) => ({
+      month: MONTHS_CA_FULL[index],
+      monthShort: MONTHS_CA_SHORT[index],
+      value,
+      x: padLeft + xStep * index,
+      y: bottomY - (value / maxY) * plotH
+    }));
+
+    // Línia blanca normalitzada visualment perquè es pugui llegir al mateix gràfic.
+    // El tooltip mostra el valor real de categories.
+    const categoryPoints = categoriesCount.map((value, index) => ({
+      month: MONTHS_CA_FULL[index],
+      monthShort: MONTHS_CA_SHORT[index],
+      value,
+      x: padLeft + xStep * index,
+      y: bottomY - (value / maxCategories) * plotH * 0.72
+    }));
+
+    const passLine = smoothPath(passPoints);
+    const categoryLine = smoothPath(categoryPoints);
+
+    const areaPath = `
+      ${passLine}
+      L ${passPoints[passPoints.length - 1].x.toFixed(2)} ${bottomY}
+      L ${passPoints[0].x.toFixed(2)} ${bottomY}
+      Z
+    `;
+
+    const yTicks = [];
+    for (let v = 0; v <= maxY; v += tickStep) {
+      yTicks.push(v);
+    }
+
+    const peak = Math.max(...passisPerMes);
+    const peakIndex = passisPerMes.indexOf(peak);
+    const average = Math.round(totalPassis / 12);
+
+    chartEl.innerHTML = `
+      <div class="cap-month-chart-v2">
+        <div class="cap-month-v2-head">
+          <div class="cap-month-v2-kpis">
+            <div>
+              <strong>${totalPassis}</strong>
+              <span>PASSIS TOTALS</span>
+            </div>
+
+            <div>
+              <strong>${peak}</strong>
+              <span>PIC MENSUAL · ${MONTHS_CA_FULL[peakIndex].toUpperCase()}</span>
+            </div>
+
+            <div class="is-small">
+              <strong>${average}</strong>
+              <span>MITJANA / MES</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="cap-month-v2-svg-wrap">
+          <svg class="cap-month-v2-svg" viewBox="0 0 ${width} ${height}" preserveAspectRatio="none" aria-label="Passis per mes">
+            <defs>
+              <linearGradient id="capYellowLineV2" x1="0" x2="1" y1="0" y2="0">
+                <stop offset="0%" stop-color="rgba(255,228,92,0.34)" />
+                <stop offset="48%" stop-color="rgba(255,228,92,1)" />
+                <stop offset="100%" stop-color="rgba(255,228,92,0.72)" />
+              </linearGradient>
+
+              <linearGradient id="capYellowAreaV2" x1="0" x2="0" y1="0" y2="1">
+                <stop offset="0%" stop-color="rgba(255,228,92,0.30)" />
+                <stop offset="42%" stop-color="rgba(255,228,92,0.10)" />
+                <stop offset="100%" stop-color="rgba(255,228,92,0)" />
+              </linearGradient>
+            </defs>
+
+            ${yTicks.map(v => {
+              const y = bottomY - (v / maxY) * plotH;
+              return `
+                <line class="cap-month-v2-grid" x1="${padLeft}" y1="${y}" x2="${width - padRight}" y2="${y}" />
+                <text class="cap-month-v2-axis-y" x="${padLeft - 18}" y="${y + 4}" text-anchor="end">${v}</text>
+              `;
+            }).join("")}
+
+            ${passPoints.map(p => `
+              <text class="cap-month-v2-axis-x" x="${p.x}" y="${height - 22}" text-anchor="middle">${p.monthShort}</text>
+            `).join("")}
+
+            <path class="cap-month-v2-area" d="${areaPath}" />
+            <path class="cap-month-v2-line-white" d="${categoryLine}" />
+            <path class="cap-month-v2-line-yellow" d="${passLine}" />
+
+            ${categoryPoints.map(p => `
+              <g class="cap-month-point cap-month-point-categories"
+                 data-series="Categories diferents"
+                 data-month="${p.month}"
+                 data-value="${p.value}"
+                 transform="translate(${p.x}, ${p.y})">
+                <circle r="4.2"></circle>
+              </g>
+            `).join("")}
+
+            ${passPoints.map(p => `
+              <g class="cap-month-point cap-month-point-passes"
+                 data-series="Passis"
+                 data-month="${p.month}"
+                 data-value="${p.value}"
+                 transform="translate(${p.x}, ${p.y})">
+                <circle r="5.8"></circle>
+                <circle r="14"></circle>
+              </g>
+            `).join("")}
+          </svg>
+        </div>
+
+        <div class="cap-month-v2-legend">
+          <div>
+            <i class="is-yellow"></i>
+            <span><strong>Passis per mes</strong> · total de passis segons la data d’inici</span>
+          </div>
+
+          <div>
+            <i class="is-white"></i>
+            <span><strong>Categories diferents per mes</strong> · línia blanca discontínua</span>
+          </div>
+        </div>
+      </div>
+    `;
+
+    installTooltip(chartEl);
+  }
+
+  function scheduleMonthChartXMonths() {
+    setTimeout(renderMonthChartXMonths, 500);
+    setTimeout(renderMonthChartXMonths, 1400);
+  }
+
+  document.addEventListener("DOMContentLoaded", scheduleMonthChartXMonths);
+  window.addEventListener("load", scheduleMonthChartXMonths);
+
+  document.addEventListener("click", event => {
+    const target = event.target.closest("button, a, .nav-item, .sidebar-item");
+    if (!target) return;
+
+    const text = normValue(target.textContent).toLowerCase();
+
+    if (text.includes("total") || text.includes("passis")) {
+      scheduleMonthChartXMonths();
+    }
+  });
+})();
