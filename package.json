@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "dev": "npx --yes serve -s . -l 3000",
+    "dev": "npx --yes serve -s . -l 3000 --no-clipboard",
     "update:data": "node scripts/update-data.mjs"
   }
 }
