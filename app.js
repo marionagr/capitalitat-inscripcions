@@ -1315,3 +1315,142 @@ function mostrarIntroInicialCapitalitat() {
   }, 5050);
 }
 
+
+
+/* ============================================================
+   ANIMACIÓ ÚNICA FINAL · BARCELONA 2026
+   Llumeta → títol → línia → dates → percentatge
+============================================================ */
+
+function activarAnimacioLogoCapitalitat() {
+  const logoTrigger = document.querySelector(".brand-block") || document.querySelector(".brand-logo");
+
+  if (!logoTrigger) return;
+
+  logoTrigger.style.cursor = "pointer";
+  logoTrigger.setAttribute("title", "Veure progrés de la Capitalitat");
+
+  if (!logoTrigger.dataset.capitalitatFinalBound) {
+    logoTrigger.addEventListener("click", () => {
+      mostrarExperienciaCapitalitatFinal();
+    });
+
+    logoTrigger.dataset.capitalitatFinalBound = "1";
+  }
+}
+
+function activarIntroInicialCapitalitat() {
+  window.setTimeout(() => {
+    mostrarExperienciaCapitalitatFinal();
+  }, 650);
+}
+
+// Si alguna funció antiga crida aquests noms, també redirigim aquí.
+function mostrarAnimacioCapitalitat() {
+  mostrarExperienciaCapitalitatFinal();
+}
+
+function mostrarIntroInicialCapitalitat() {
+  mostrarExperienciaCapitalitatFinal();
+}
+
+function mostrarExperienciaCapitalitatFinal() {
+  document.querySelectorAll(
+    "#capitalitat-progress-overlay, #capitalitat-intro-overlay, #capitalitat-cinematic-overlay, #capitalitat-final-overlay"
+  ).forEach(element => element.remove());
+
+  const progress = calcularProgresCapitalitat();
+
+  const overlay = document.createElement("div");
+  overlay.id = "capitalitat-final-overlay";
+  overlay.className = "capitalitat-final-overlay";
+  overlay.setAttribute("aria-hidden", "true");
+
+  overlay.innerHTML = `
+    <button class="final-close" type="button" aria-label="Tancar animació">×</button>
+
+    <div class="final-light"></div>
+
+    <div class="final-title">
+      <span>Barcelona 2026</span>
+      <strong>Capital Mundial de l'Arquitectura</strong>
+    </div>
+
+    <div class="final-timeline">
+      <span class="final-date final-date-left">12 de febrer</span>
+      <span class="final-date final-date-right">13 de desembre</span>
+      <span class="final-line"></span>
+    </div>
+
+    <div class="final-progress">
+      <div class="final-ring">
+        <svg viewBox="0 0 220 220" aria-hidden="true">
+          <circle class="final-ring-bg" cx="110" cy="110" r="92"></circle>
+          <circle class="final-ring-progress" cx="110" cy="110" r="92" data-final-circle></circle>
+        </svg>
+
+        <div class="final-number">
+          <strong>${progress.percent}%</strong>
+          <span>dies transcorreguts</span>
+        </div>
+      </div>
+
+      <p>${progress.remainingDays > 0 ? `Falten ${progress.remainingDays} dies per acabar la Capitalitat` : "La Capitalitat ha finalitzat"}</p>
+    </div>
+  `;
+
+  document.body.appendChild(overlay);
+
+  const circle = overlay.querySelector("[data-final-circle]");
+
+  if (circle) {
+    const radius = Number(circle.getAttribute("r"));
+    const circumference = 2 * Math.PI * radius;
+    circle.style.strokeDasharray = `${circumference}`;
+    circle.style.strokeDashoffset = `${circumference}`;
+  }
+
+  overlay.addEventListener("click", event => {
+    if (event.target === overlay || event.target.closest(".final-close")) {
+      overlay.classList.add("is-closing");
+      window.setTimeout(() => overlay.remove(), 550);
+    }
+  });
+
+  requestAnimationFrame(() => {
+    overlay.classList.add("is-active");
+  });
+
+  // Primer apareix el percentatge. Després s'omple la rodona.
+  window.setTimeout(() => {
+    if (!circle) return;
+
+    const radius = Number(circle.getAttribute("r"));
+    const circumference = 2 * Math.PI * radius;
+    const offset = circumference - (progress.percent / 100) * circumference;
+
+    circle.style.strokeDashoffset = `${offset}`;
+  }, 10300);
+}
+
+function calcularProgresCapitalitat() {
+  const MS_DIA = 24 * 60 * 60 * 1000;
+
+  const inici = new Date(2026, 1, 12);
+  const final = new Date(2026, 11, 13);
+
+  const ara = new Date();
+  const avui = new Date(ara.getFullYear(), ara.getMonth(), ara.getDate());
+
+  const totalDies = Math.max(1, Math.round((final - inici) / MS_DIA));
+  const diesPassats = Math.round((avui - inici) / MS_DIA);
+  const remainingDays = Math.max(0, Math.ceil((final - avui) / MS_DIA));
+
+  const percent = Math.min(100, Math.max(0, Math.round((diesPassats / totalDies) * 100)));
+
+  return {
+    percent,
+    remainingDays
+  };
+}
+
