@@ -2023,51 +2023,51 @@ function mostrarExperienciaCapitalitatV5() {
   const progress = calcularProgresCapitalitat();
 
   const outerPath = `
-    M 92 92
-    L 168 18
-    H 258
-    L 318 78
-    L 378 18
-    H 468
-    L 545 92
-    V 274
-    L 470 348
-    H 545
-    V 438
+    M 92 96
+    L 170 22
+    H 266
+    L 320 76
+    L 374 22
     H 470
-    L 545 514
-    V 635
-    L 468 712
-    H 378
-    L 318 652
+    L 548 98
+    V 270
+    L 470 348
+    H 548
+    V 446
+    H 470
+    L 548 524
+    V 636
+    L 470 714
+    H 374
+    L 320 660
     V 532
-    L 258 592
+    L 266 586
     H 92
-    V 486
-    L 162 416
+    V 500
+    L 164 428
     H 92
-    V 300
-    L 162 230
+    V 324
+    L 164 252
     H 92
     Z
   `;
 
   const centerPath = `
-    M 318 292
-    L 402 376
-    L 318 460
-    L 234 376
+    M 320 298
+    L 394 372
+    L 320 446
+    L 246 372
     Z
   `;
 
   const innerPath = `
-    M 238 250
-    L 318 170
-    V 290
+    M 214 248
+    L 320 142
+    V 284
     Z
-    M 238 548
-    L 318 468
-    V 588
+    M 214 496
+    L 320 390
+    V 532
     Z
   `;
 
@@ -2200,7 +2200,7 @@ function animarPerimetreCapitalitatV5(overlay, progress) {
         overlay.classList.add("is-copy-leaving");
 
         window.setTimeout(() => {
-          fusionarPuntsCapitalitatV5(overlay, [dot1, dot2, dot3], { x: 318, y: 376 }, () => {
+          fusionarPuntsCapitalitatV5(overlay, [dot1, dot2, dot3], { x: 320, y: 372 }, () => {
             overlay.classList.add("is-seed-visible");
 
             window.setTimeout(() => {

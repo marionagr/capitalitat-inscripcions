@@ -4571,3 +4571,25 @@ tr:hover td {
     transform: translate(0, -50%) scale(0.98) !important;
   }
 }
+
+/* === CAPITALITAT_V5_PATH_REFINEMENT === */
+
+.cv5-path-base {
+  stroke-width: 1.45 !important;
+  stroke: rgba(255, 228, 92, 0.07) !important;
+}
+
+.cv5-path-draw {
+  stroke-width: 1.95 !important;
+  filter:
+    drop-shadow(0 0 6px rgba(255, 228, 92, 0.78))
+    drop-shadow(0 0 16px rgba(255, 228, 92, 0.28))
+    drop-shadow(0 0 34px rgba(255, 228, 92, 0.10)) !important;
+}
+
+.cv5-dot {
+  filter:
+    drop-shadow(0 0 8px rgba(255, 228, 92, 1))
+    drop-shadow(0 0 18px rgba(255, 228, 92, 0.62))
+    drop-shadow(0 0 34px rgba(255, 228, 92, 0.18)) !important;
+}
