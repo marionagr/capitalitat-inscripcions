@@ -3463,3 +3463,536 @@ mostrarExperienciaCapitalitatV5 = function() {
     }
   });
 })();
+
+/* === CAPITALITAT_MONTH_CLICK_DASHBOARD_START === */
+
+/* ============================================================
+   GRÀFIC MENSUAL · MESOS CLICABLES + DASHBOARD PER MES
+============================================================ */
+
+(() => {
+  const MONTHS_FULL = [
+    "Gener", "Febrer", "Març", "Abril", "Maig", "Juny",
+    "Juliol", "Agost", "Setembre", "Octubre", "Novembre", "Desembre"
+  ];
+
+  const MONTHS_SHORT = [
+    "GEN", "FEB", "MAR", "ABR", "MAI", "JUN",
+    "JUL", "AGO", "SET", "OCT", "NOV", "DES"
+  ];
+
+  function html(value) {
+    return String(value ?? "")
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#039;");
+  }
+
+  function norm(value) {
+    return String(value ?? "")
+      .replace(/\u00a0/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+  }
+
+  function normCategory(value) {
+    const v = norm(value);
+    if (!v) return "Sense categoria";
+
+    const low = v.toLowerCase();
+
+    if (low === "rutes" || low === "ruta") return "Rutes";
+    if (low === "exposicio" || low === "exposició" || low === "exposicions") return "Exposicions";
+    if (low === "conferencia" || low === "conferència" || low === "conferències") return "Conferències";
+    if (low === "instal·lacio" || low === "instal·lació" || low === "instal·lacions") return "Instal·lacions";
+    if (low === "taller" || low === "tallers") return "Tallers";
+
+    return v;
+  }
+
+  function normEntrada(value) {
+    const v = norm(value);
+    if (!v) return "Sense informació";
+
+    const low = v.toLowerCase();
+
+    if (low.includes("inscrip")) return "Gratuïta amb inscripció prèvia";
+    if (low.includes("pagament")) return "De pagament";
+    if (low === "gratuïta" || low === "gratuita" || low === "gratuït" || low === "gratuit") return "Gratuïta";
+
+    return v;
+  }
+
+  function parseDate(value) {
+    const raw = norm(value);
+    if (!raw) return null;
+
+    const match = raw.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})/);
+    if (!match) return null;
+
+    const day = Number(match[1]);
+    const month = Number(match[2]) - 1;
+    let year = Number(match[3]);
+
+    if (year < 100) year += 2000;
+    if (month < 0 || month > 11) return null;
+
+    return new Date(year, month, day);
+  }
+
+  function countBy(rows, key, normalizer = norm) {
+    const map = new Map();
+
+    rows.forEach(row => {
+      const label = normalizer(row[key]);
+      map.set(label, (map.get(label) || 0) + 1);
+    });
+
+    return [...map.entries()]
+      .map(([label, value]) => ({ label, value }))
+      .sort((a, b) => b.value - a.value || a.label.localeCompare(b.label, "ca"));
+  }
+
+  function smoothPath(points) {
+    if (!points.length) return "";
+    if (points.length === 1) return `M ${points[0].x} ${points[0].y}`;
+
+    let d = `M ${points[0].x.toFixed(2)} ${points[0].y.toFixed(2)}`;
+
+    for (let i = 0; i < points.length - 1; i += 1) {
+      const p0 = points[i - 1] || points[i];
+      const p1 = points[i];
+      const p2 = points[i + 1];
+      const p3 = points[i + 2] || p2;
+
+      const cp1x = p1.x + (p2.x - p0.x) / 6;
+      const cp1y = p1.y + (p2.y - p0.y) / 6;
+      const cp2x = p2.x - (p3.x - p1.x) / 6;
+      const cp2y = p2.y - (p3.y - p1.y) / 6;
+
+      d += ` C ${cp1x.toFixed(2)} ${cp1y.toFixed(2)}, ${cp2x.toFixed(2)} ${cp2y.toFixed(2)}, ${p2.x.toFixed(2)} ${p2.y.toFixed(2)}`;
+    }
+
+    return d;
+  }
+
+  async function loadRows() {
+    const response = await fetch("data/inscripcions.json?v=" + Date.now());
+    const data = await response.json();
+
+    return {
+      rows: Array.isArray(data.rows) ? data.rows : [],
+      keys: data.columnKeys || {}
+    };
+  }
+
+  function findMonthChart() {
+    return (
+      document.getElementById("chart-any-complet") ||
+      document.getElementById("chart-mesos-total") ||
+      document.getElementById("chart-mesos")
+    );
+  }
+
+  function installTooltip(chartEl) {
+    let tooltip = document.querySelector(".cap-month-tooltip");
+
+    if (!tooltip) {
+      tooltip = document.createElement("div");
+      tooltip.className = "cap-month-tooltip";
+      document.body.appendChild(tooltip);
+    }
+
+    chartEl.querySelectorAll(".cap-month-point").forEach(point => {
+      point.addEventListener("mouseenter", () => {
+        tooltip.innerHTML = `
+          <strong>${html(point.dataset.value)}</strong>
+          <span>${html(point.dataset.series)}</span>
+          <em>${html(point.dataset.month)}</em>
+        `;
+        tooltip.classList.add("is-visible");
+      });
+
+      point.addEventListener("mousemove", event => {
+        tooltip.style.left = `${event.clientX + 16}px`;
+        tooltip.style.top = `${event.clientY - 18}px`;
+      });
+
+      point.addEventListener("mouseleave", () => {
+        tooltip.classList.remove("is-visible");
+      });
+    });
+  }
+
+  function radialChart(title, items, emptyText) {
+    const data = items.slice(0, 9);
+    const size = 330;
+    const cx = 165;
+    const cy = 165;
+    const radius = 104;
+    const max = Math.max(1, ...data.map(item => item.value));
+
+    if (!data.length) {
+      return `
+        <div class="cap-month-radial-card">
+          <h4>${html(title)}</h4>
+          <div class="cap-month-empty">${html(emptyText)}</div>
+        </div>
+      `;
+    }
+
+    const points = data.map((item, index) => {
+      const angle = (-90 + (360 / data.length) * index) * Math.PI / 180;
+      const r = 22 + (item.value / max) * radius;
+      const x = cx + Math.cos(angle) * r;
+      const y = cy + Math.sin(angle) * r;
+
+      const lx = cx + Math.cos(angle) * (radius + 42);
+      const ly = cy + Math.sin(angle) * (radius + 42);
+
+      return {
+        ...item,
+        x,
+        y,
+        lx,
+        ly,
+        angle
+      };
+    });
+
+    const polygon = points.map(p => `${p.x.toFixed(2)},${p.y.toFixed(2)}`).join(" ");
+
+    return `
+      <div class="cap-month-radial-card">
+        <h4>${html(title)}</h4>
+
+        <svg class="cap-month-radial-svg" viewBox="0 0 ${size} ${size}" aria-hidden="true">
+          ${[0.25, 0.5, 0.75, 1].map(scale => `
+            <circle class="cap-month-radial-grid" cx="${cx}" cy="${cy}" r="${radius * scale}" />
+          `).join("")}
+
+          ${points.map(p => `
+            <line class="cap-month-radial-axis" x1="${cx}" y1="${cy}" x2="${p.lx}" y2="${p.ly}" />
+          `).join("")}
+
+          <polygon class="cap-month-radial-fill" points="${polygon}" />
+          <polyline class="cap-month-radial-line" points="${polygon} ${points[0].x.toFixed(2)},${points[0].y.toFixed(2)}" />
+
+          ${points.map(p => `
+            <circle class="cap-month-radial-point" cx="${p.x}" cy="${p.y}" r="4.7">
+              <title>${html(p.label)}: ${p.value}</title>
+            </circle>
+          `).join("")}
+
+          ${points.map(p => {
+            const shortLabel = p.label.length > 14 ? p.label.slice(0, 13) + "…" : p.label;
+            const anchor = p.lx > cx + 8 ? "start" : p.lx < cx - 8 ? "end" : "middle";
+            return `
+              <text class="cap-month-radial-label"
+                    x="${p.lx}"
+                    y="${p.ly + 4}"
+                    text-anchor="${anchor}">
+                ${html(shortLabel)}
+              </text>
+            `;
+          }).join("")}
+        </svg>
+
+        <div class="cap-month-radial-list">
+          ${data.slice(0, 5).map(item => `
+            <div>
+              <span>${html(item.label)}</span>
+              <strong>${item.value}</strong>
+            </div>
+          `).join("")}
+        </div>
+      </div>
+    `;
+  }
+
+  function renderMonthDashboard(chartEl, monthIndex, rows, keys) {
+    const dateKey = keys.dataInici || "data_inici";
+    const categoryKey = keys.categoria || "categoria";
+    const districtKey = keys.districte || "districte";
+    const modalitatKey = keys.modalitat || "modalitat";
+    const entradaKey = keys.entrada || "entrada";
+    const responsableKey = keys.responsable || "encarregada";
+
+    const monthRows = rows.filter(row => {
+      const date = parseDate(row[dateKey]);
+      return date && date.getMonth() === monthIndex;
+    });
+
+    const total = monthRows.length;
+
+    const categories = countBy(monthRows, categoryKey, normCategory);
+    const districtes = countBy(monthRows, districtKey, norm);
+    const modalitats = countBy(monthRows, modalitatKey, norm);
+    const entrades = countBy(monthRows, entradaKey, normEntrada);
+    const responsables = countBy(monthRows, responsableKey, norm);
+
+    const mainModalitat = modalitats[0]?.label || "—";
+    const mainEntrada = entrades[0]?.label || "—";
+    const mainResponsable = responsables[0]?.label || "—";
+
+    const dashboard = chartEl.querySelector("[data-cap-month-dashboard]");
+    if (!dashboard) return;
+
+    chartEl.querySelectorAll(".cap-month-v3-month-tab").forEach(tab => {
+      tab.classList.toggle("is-selected", Number(tab.dataset.monthIndex) === monthIndex);
+    });
+
+    dashboard.innerHTML = `
+      <div class="cap-month-detail-card">
+        <div class="cap-month-detail-head">
+          <div>
+            <span>Dashboard mensual</span>
+            <h3>${html(MONTHS_FULL[monthIndex])}</h3>
+          </div>
+
+          <button class="cap-month-detail-close" type="button" data-cap-month-close>×</button>
+        </div>
+
+        <div class="cap-month-detail-kpis">
+          <div>
+            <strong>${total}</strong>
+            <span>Passis del mes</span>
+          </div>
+
+          <div>
+            <strong>${categories.length}</strong>
+            <span>Categories diferents</span>
+          </div>
+
+          <div>
+            <strong>${districtes.length}</strong>
+            <span>Districtes diferents</span>
+          </div>
+
+          <div>
+            <strong>${html(mainModalitat)}</strong>
+            <span>Modalitat principal</span>
+          </div>
+
+          <div>
+            <strong>${html(mainEntrada)}</strong>
+            <span>Entrada principal</span>
+          </div>
+
+          <div>
+            <strong>${html(mainResponsable)}</strong>
+            <span>Encarregada principal</span>
+          </div>
+        </div>
+
+        <div class="cap-month-detail-main">
+          ${radialChart("Categories", categories, "Sense categories aquest mes")}
+          ${radialChart("Districtes", districtes, "Sense districtes aquest mes")}
+        </div>
+
+        <div class="cap-month-detail-bottom">
+          <div>
+            <h4>Modalitats</h4>
+            <div class="cap-month-pills">
+              ${modalitats.map(item => `
+                <span>${html(item.label)} <strong>${item.value}</strong></span>
+              `).join("") || "<em>Sense dades</em>"}
+            </div>
+          </div>
+
+          <div>
+            <h4>Tipus d’entrada</h4>
+            <div class="cap-month-pills">
+              ${entrades.map(item => `
+                <span>${html(item.label)} <strong>${item.value}</strong></span>
+              `).join("") || "<em>Sense dades</em>"}
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    const closeBtn = dashboard.querySelector("[data-cap-month-close]");
+    if (closeBtn) {
+      closeBtn.addEventListener("click", () => {
+        dashboard.innerHTML = "";
+        chartEl.querySelectorAll(".cap-month-v3-month-tab").forEach(tab => tab.classList.remove("is-selected"));
+      });
+    }
+  }
+
+  async function renderMonthChartClickable() {
+    const chartEl = findMonthChart();
+    if (!chartEl) return;
+
+    const { rows, keys } = await loadRows();
+
+    const dateKey = keys.dataInici || "data_inici";
+
+    const passisPerMes = Array.from({ length: 12 }, () => 0);
+
+    rows.forEach(row => {
+      const date = parseDate(row[dateKey]);
+      if (!date) return;
+      passisPerMes[date.getMonth()] += 1;
+    });
+
+    const totalPassis = rows.length;
+    const maxPassis = Math.max(1, ...passisPerMes);
+
+    const tickStep = maxPassis > 600 ? 500 : 100;
+    const maxY = Math.max(tickStep, Math.ceil(maxPassis / tickStep) * tickStep);
+
+    const width = 1080;
+    const height = 430;
+
+    const padLeft = 72;
+    const padRight = 42;
+    const padTop = 46;
+    const padBottom = 62;
+
+    const plotW = width - padLeft - padRight;
+    const plotH = height - padTop - padBottom;
+
+    const xStep = plotW / 11;
+    const bottomY = padTop + plotH;
+
+    const points = passisPerMes.map((value, index) => ({
+      month: MONTHS_FULL[index],
+      monthShort: MONTHS_SHORT[index],
+      value,
+      x: padLeft + xStep * index,
+      y: bottomY - (value / maxY) * plotH
+    }));
+
+    const line = smoothPath(points);
+
+    const area = `
+      ${line}
+      L ${points[points.length - 1].x.toFixed(2)} ${bottomY}
+      L ${points[0].x.toFixed(2)} ${bottomY}
+      Z
+    `;
+
+    const yTicks = [];
+    for (let v = 0; v <= maxY; v += tickStep) {
+      yTicks.push(v);
+    }
+
+    const peak = Math.max(...passisPerMes);
+    const peakIndex = passisPerMes.indexOf(peak);
+    const average = Math.round(totalPassis / 12);
+
+    chartEl.innerHTML = `
+      <div class="cap-month-chart-v3">
+        <div class="cap-month-v3-head">
+          <div class="cap-month-v3-kpis">
+            <div>
+              <strong>${totalPassis}</strong>
+              <span>PASSIS TOTALS</span>
+            </div>
+
+            <div>
+              <strong>${peak}</strong>
+              <span>PIC MENSUAL · ${MONTHS_FULL[peakIndex].toUpperCase()}</span>
+            </div>
+
+            <div class="is-small">
+              <strong>${average}</strong>
+              <span>MITJANA / MES</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="cap-month-v3-svg-wrap">
+          <svg class="cap-month-v3-svg" viewBox="0 0 ${width} ${height}" preserveAspectRatio="none" aria-label="Passis per mes">
+            <defs>
+              <linearGradient id="capYellowLineV3" x1="0" x2="1" y1="0" y2="0">
+                <stop offset="0%" stop-color="rgba(255,228,92,0.34)" />
+                <stop offset="48%" stop-color="rgba(255,228,92,1)" />
+                <stop offset="100%" stop-color="rgba(255,228,92,0.72)" />
+              </linearGradient>
+
+              <linearGradient id="capYellowAreaV3" x1="0" x2="0" y1="0" y2="1">
+                <stop offset="0%" stop-color="rgba(255,228,92,0.34)" />
+                <stop offset="45%" stop-color="rgba(255,228,92,0.12)" />
+                <stop offset="100%" stop-color="rgba(255,228,92,0)" />
+              </linearGradient>
+            </defs>
+
+            ${yTicks.map(v => {
+              const y = bottomY - (v / maxY) * plotH;
+              return `
+                <line class="cap-month-v3-grid" x1="${padLeft}" y1="${y}" x2="${width - padRight}" y2="${y}" />
+                <text class="cap-month-v3-axis-y" x="${padLeft - 18}" y="${y + 4}" text-anchor="end">${v}</text>
+              `;
+            }).join("")}
+
+            <path class="cap-month-v3-area" d="${area}" />
+            <path class="cap-month-v3-line-yellow" d="${line}" />
+
+            ${points.map(p => `
+              <g class="cap-month-point cap-month-point-passes"
+                 data-series="Passis"
+                 data-month="${p.month}"
+                 data-value="${p.value}"
+                 transform="translate(${p.x}, ${p.y})">
+                <circle r="5.8"></circle>
+                <circle r="14"></circle>
+              </g>
+            `).join("")}
+
+            ${points.map((p, index) => `
+              <g class="cap-month-v3-month-tab"
+                 data-month-index="${index}"
+                 transform="translate(${p.x}, ${height - 24})">
+                <rect x="-26" y="-17" width="52" height="30" rx="15"></rect>
+                <text text-anchor="middle" y="4">${p.monthShort}</text>
+              </g>
+            `).join("")}
+          </svg>
+        </div>
+
+        <div class="cap-month-v3-legend">
+          <div>
+            <i></i>
+            <span><strong>Passis per mes</strong> · clica un mes per veure el dashboard mensual</span>
+          </div>
+        </div>
+
+        <div class="cap-month-dashboard-mount" data-cap-month-dashboard></div>
+      </div>
+    `;
+
+    installTooltip(chartEl);
+
+    chartEl.querySelectorAll(".cap-month-v3-month-tab").forEach(tab => {
+      tab.addEventListener("click", () => {
+        const monthIndex = Number(tab.dataset.monthIndex);
+        renderMonthDashboard(chartEl, monthIndex, rows, keys);
+      });
+    });
+  }
+
+  function scheduleClickableMonthChart() {
+    setTimeout(renderMonthChartClickable, 900);
+    setTimeout(renderMonthChartClickable, 2200);
+    setTimeout(renderMonthChartClickable, 3600);
+  }
+
+  document.addEventListener("DOMContentLoaded", scheduleClickableMonthChart);
+  window.addEventListener("load", scheduleClickableMonthChart);
+
+  document.addEventListener("click", event => {
+    const target = event.target.closest("button, a, .nav-item, .sidebar-item");
+    if (!target) return;
+
+    const text = norm(target.textContent).toLowerCase();
+
+    if (text.includes("total") || text.includes("passis")) {
+      scheduleClickableMonthChart();
+    }
+  });
+})();

@@ -5828,3 +5828,438 @@ tr:hover td {
     gap: 12px;
   }
 }
+
+/* === CAPITALITAT_MONTH_CLICK_DASHBOARD_STYLE === */
+
+.cap-month-chart-v3 {
+  width: 100%;
+  padding: 28px 30px 24px;
+  border-radius: 30px;
+  background:
+    radial-gradient(circle at 50% 42%, rgba(255,228,92,0.06), transparent 38%),
+    linear-gradient(180deg, rgba(255,255,255,0.025), rgba(255,255,255,0.01)),
+    rgba(14,14,16,0.96);
+  border: 1px solid rgba(255,255,255,0.065);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.035),
+    0 22px 60px rgba(0,0,0,0.30);
+}
+
+.cap-month-v3-head {
+  margin-bottom: 18px;
+}
+
+.cap-month-v3-kpis {
+  display: flex;
+  gap: 34px;
+  flex-wrap: wrap;
+  align-items: flex-end;
+}
+
+.cap-month-v3-kpis strong {
+  display: block;
+  color: #fff;
+  font-size: 54px;
+  line-height: 0.92;
+  font-weight: 700;
+  letter-spacing: -0.065em;
+}
+
+.cap-month-v3-kpis span {
+  display: block;
+  margin-top: 8px;
+  color: rgba(255,255,255,0.56);
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.cap-month-v3-kpis .is-small strong {
+  color: #ffe45c;
+  font-size: 36px;
+}
+
+.cap-month-v3-svg-wrap {
+  width: 100%;
+  height: 420px;
+}
+
+.cap-month-v3-svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.cap-month-v3-grid {
+  stroke: rgba(255,255,255,0.075);
+  stroke-width: 1;
+}
+
+.cap-month-v3-axis-y {
+  fill: rgba(255,255,255,0.50);
+  font-size: 12px;
+}
+
+.cap-month-v3-area {
+  fill: url(#capYellowAreaV3);
+}
+
+.cap-month-v3-line-yellow {
+  fill: none;
+  stroke: url(#capYellowLineV3);
+  stroke-width: 4.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  filter:
+    drop-shadow(0 0 9px rgba(255,228,92,0.55))
+    drop-shadow(0 0 28px rgba(255,228,92,0.18));
+}
+
+.cap-month-point-passes {
+  cursor: pointer;
+}
+
+.cap-month-point-passes circle:first-child {
+  fill: #ffe45c;
+  stroke: rgba(12,12,12,0.9);
+  stroke-width: 1.5;
+  filter:
+    drop-shadow(0 0 8px rgba(255,228,92,0.95))
+    drop-shadow(0 0 18px rgba(255,228,92,0.24));
+}
+
+.cap-month-point-passes circle:last-child {
+  fill: transparent;
+  stroke: transparent;
+}
+
+.cap-month-v3-month-tab {
+  cursor: pointer;
+}
+
+.cap-month-v3-month-tab rect {
+  fill: rgba(255,255,255,0.035);
+  stroke: rgba(255,255,255,0.08);
+  transition:
+    fill 0.18s ease,
+    stroke 0.18s ease,
+    filter 0.18s ease;
+}
+
+.cap-month-v3-month-tab text {
+  fill: rgba(255,255,255,0.62);
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  pointer-events: none;
+  transition: fill 0.18s ease;
+}
+
+.cap-month-v3-month-tab:hover rect,
+.cap-month-v3-month-tab.is-selected rect {
+  fill: rgba(255,228,92,0.10);
+  stroke: rgba(255,228,92,0.55);
+  filter: drop-shadow(0 0 12px rgba(255,228,92,0.18));
+}
+
+.cap-month-v3-month-tab:hover text,
+.cap-month-v3-month-tab.is-selected text {
+  fill: #ffe45c;
+}
+
+.cap-month-v3-legend {
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+  margin-top: 18px;
+  padding-top: 18px;
+  border-top: 1px solid rgba(255,255,255,0.065);
+}
+
+.cap-month-v3-legend div {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  color: rgba(255,255,255,0.56);
+  font-size: 13px;
+}
+
+.cap-month-v3-legend strong {
+  color: rgba(255,255,255,0.90);
+  font-weight: 600;
+}
+
+.cap-month-v3-legend i {
+  display: inline-block;
+  width: 42px;
+  height: 0;
+  border-top: 3px solid #ffe45c;
+  border-radius: 99px;
+  box-shadow: 0 0 14px rgba(255,228,92,0.30);
+}
+
+/* Dashboard mensual */
+.cap-month-dashboard-mount {
+  margin-top: 22px;
+}
+
+.cap-month-detail-card {
+  padding: 24px;
+  border-radius: 28px;
+  background:
+    radial-gradient(circle at 50% 38%, rgba(255,228,92,0.045), transparent 40%),
+    rgba(255,255,255,0.028);
+  border: 1px solid rgba(255,255,255,0.075);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.035),
+    0 16px 40px rgba(0,0,0,0.18);
+}
+
+.cap-month-detail-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 22px;
+}
+
+.cap-month-detail-head span {
+  display: block;
+  color: rgba(255,255,255,0.48);
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+
+.cap-month-detail-head h3 {
+  margin: 0;
+  color: #fff;
+  font-size: 34px;
+  line-height: 1;
+  letter-spacing: -0.06em;
+}
+
+.cap-month-detail-close {
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.04);
+  color: rgba(255,255,255,0.72);
+  font-size: 24px;
+  cursor: pointer;
+}
+
+.cap-month-detail-kpis {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 22px;
+}
+
+.cap-month-detail-kpis div {
+  min-width: 0;
+  padding: 16px;
+  border-radius: 18px;
+  background: rgba(0,0,0,0.20);
+  border: 1px solid rgba(255,255,255,0.055);
+}
+
+.cap-month-detail-kpis strong {
+  display: block;
+  color: #ffe45c;
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: -0.05em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cap-month-detail-kpis span {
+  display: block;
+  margin-top: 8px;
+  color: rgba(255,255,255,0.48);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.cap-month-detail-main {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.cap-month-radial-card {
+  padding: 18px;
+  border-radius: 24px;
+  background: rgba(0,0,0,0.18);
+  border: 1px solid rgba(255,255,255,0.055);
+}
+
+.cap-month-radial-card h4 {
+  margin: 0 0 12px;
+  color: rgba(255,255,255,0.90);
+  font-size: 16px;
+  letter-spacing: -0.03em;
+}
+
+.cap-month-radial-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 360px;
+}
+
+.cap-month-radial-grid {
+  fill: none;
+  stroke: rgba(255,255,255,0.07);
+  stroke-width: 1;
+}
+
+.cap-month-radial-axis {
+  stroke: rgba(255,255,255,0.045);
+  stroke-width: 1;
+}
+
+.cap-month-radial-fill {
+  fill: rgba(255,228,92,0.12);
+  stroke: none;
+}
+
+.cap-month-radial-line {
+  fill: none;
+  stroke: #ffe45c;
+  stroke-width: 2.4;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+  filter:
+    drop-shadow(0 0 8px rgba(255,228,92,0.45))
+    drop-shadow(0 0 18px rgba(255,228,92,0.14));
+}
+
+.cap-month-radial-point {
+  fill: #ffe45c;
+  stroke: rgba(12,12,12,0.92);
+  stroke-width: 1.2;
+}
+
+.cap-month-radial-label {
+  fill: rgba(255,255,255,0.58);
+  font-size: 10.5px;
+}
+
+.cap-month-radial-list {
+  display: grid;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.cap-month-radial-list div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  color: rgba(255,255,255,0.62);
+  font-size: 12px;
+}
+
+.cap-month-radial-list span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cap-month-radial-list strong {
+  color: #ffe45c;
+}
+
+.cap-month-detail-bottom {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+  margin-top: 18px;
+}
+
+.cap-month-detail-bottom > div {
+  padding: 18px;
+  border-radius: 22px;
+  background: rgba(0,0,0,0.14);
+  border: 1px solid rgba(255,255,255,0.05);
+}
+
+.cap-month-detail-bottom h4 {
+  margin: 0 0 12px;
+  color: rgba(255,255,255,0.86);
+  font-size: 15px;
+}
+
+.cap-month-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.cap-month-pills span {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 10px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.045);
+  border: 1px solid rgba(255,255,255,0.07);
+  color: rgba(255,255,255,0.70);
+  font-size: 12px;
+}
+
+.cap-month-pills strong {
+  color: #ffe45c;
+}
+
+.cap-month-empty {
+  min-height: 280px;
+  display: grid;
+  place-items: center;
+  color: rgba(255,255,255,0.45);
+  font-size: 13px;
+}
+
+@media (max-width: 1250px) {
+  .cap-month-detail-kpis {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 860px) {
+  .cap-month-detail-main,
+  .cap-month-detail-bottom {
+    grid-template-columns: 1fr;
+  }
+
+  .cap-month-detail-kpis {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 620px) {
+  .cap-month-chart-v3 {
+    padding: 22px 18px;
+  }
+
+  .cap-month-v3-svg-wrap {
+    height: 360px;
+  }
+
+  .cap-month-v3-kpis strong {
+    font-size: 40px;
+  }
+
+  .cap-month-v3-kpis .is-small strong {
+    font-size: 30px;
+  }
+
+  .cap-month-detail-kpis {
+    grid-template-columns: 1fr;
+  }
+}
