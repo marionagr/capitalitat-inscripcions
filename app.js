@@ -28,8 +28,8 @@ const DISTRICTES_EXCLOSOS = [
 ];
 
 let APP_DATA = null;
-let AUTOGESTIONADES = [];
 let COLUMN_KEYS = {};
+let AUTOGESTIONADES = [];
 
 let mapInstance = null;
 let mapInitialised = false;
@@ -41,12 +41,6 @@ let PRO_CALENDAR_YEAR = 2026;
 let PRO_CALENDAR_READY = false;
 let PRO_CALENDAR_LOOKUP = new Map();
 let PRO_CALENDAR_MODE = "all";
-
-
-let CALENDAR_ROWS = [];
-let CALENDAR_DATE = null;
-let CALENDAR_EVENT_LOOKUP = new Map();
-let calendarListenersInitialised = false;
 
 document.addEventListener("DOMContentLoaded", () => {
   activarNavegacio();
@@ -73,6 +67,10 @@ function activarNavegacio() {
           if (mapInstance) mapInstance.invalidateSize();
         }, 200);
       }
+
+      if (viewId === "view-calendari" && APP_DATA) {
+        renderProfessionalCalendar();
+      }
     });
   });
 }
@@ -90,6 +88,7 @@ async function carregarDades() {
     }
 
     APP_DATA = await response.json();
+
     renderitzarDades(APP_DATA);
 
     status.textContent =
@@ -108,7 +107,7 @@ function renderitzarDades(data) {
   COLUMN_KEYS = data.columnKeys || summary.columnesExportades || {};
   const rows = data.rows || [];
 
-  AUTOGESTIONADES = rows.filter(row => valorEsTrue(getCalendarValue(row, "gestio")));
+  AUTOGESTIONADES = rows.filter(row => valorEsTrue(getValue(row, "gestio")));
 
   const totalCharts = generarResumGrafiques(rows);
   const autoCharts = generarResumGrafiques(AUTOGESTIONADES);
@@ -116,7 +115,8 @@ function renderitzarDades(data) {
   posarText("kpi-total-passis", summary.totalPassis || rows.length || 0);
   posarText("kpi-passis-importants", summary.passisGestio || AUTOGESTIONADES.length || 0);
 
-  // TOTAL PASSIS: totes les files
+  renderitzarBarChart("chart-categoria", totalCharts.categoria);
+  renderitzarBarChart("chart-districte", totalCharts.districte);
   renderitzarBarChart("chart-tipus-entrada", totalCharts.tipusEntrada);
   renderitzarBarChart("chart-modalitat", totalCharts.modalitat);
   renderitzarBarChart("chart-responsable", totalCharts.responsable);
@@ -127,7 +127,6 @@ function renderitzarDades(data) {
     "Totes les activitats"
   );
 
-  // ACTIVITATS AUTOGESTIONADES: només PRÒPIES = TRUE
   renderitzarBarChart("chart-tipus-entrada-auto", autoCharts.tipusEntrada);
   renderitzarBarChart("chart-modalitat-auto", autoCharts.modalitat);
   renderitzarBarChart("chart-responsable-auto", autoCharts.responsable);
@@ -138,25 +137,154 @@ function renderitzarDades(data) {
     "Activitats gestionades per nosaltres"
   );
 
-  initializeProfessionalCalendar(rows, AUTOGESTIONADES);
-
+  inicialitzarCalendari(rows, AUTOGESTIONADES);
   renderitzarTaulaAutogestionades(AUTOGESTIONADES);
   activarCercadorAutogestionades();
 
-  console.log("CALENDARI DEBUG", {
-    totalFiles: rows.length,
+  console.log("DEBUG DADES", {
+    totalRows: rows.length,
     autogestionades: AUTOGESTIONADES.length,
     columnKeys: COLUMN_KEYS,
-    primeresDates: rows.slice(0, 10).map(row => getCalendarValue(row, "dataInici"))
+    totalCharts
   });
 }
 
+/* =========================
+   VALORS I COLUMNES
+========================= */
+
+function getKeys(logicalKey) {
+  const aliases = {
+    idIntern: [COLUMN_KEYS.idIntern, "id_intern", "id intern", "id"],
+    responsable: [COLUMN_KEYS.responsable, "encarregada", "responsable"],
+    gestio: [COLUMN_KEYS.gestio, "propies", "pròpies", "propis", "gestio"],
+    titol: [COLUMN_KEYS.titol, "titol_activitat_cat", "títol activitat cat", "titol activitat cat", "titol"],
+    modalitat: [COLUMN_KEYS.modalitat, "modalitat"],
+    dataInici: [COLUMN_KEYS.dataInici, "data_inici", "data_inici_", "data inici", "data inici_"],
+    horaInici: [COLUMN_KEYS.horaInici, "hora_inici", "hora inici"],
+    categoria: [COLUMN_KEYS.categoria, "categoria"],
+    districte: [COLUMN_KEYS.districte, "districte", "distrito"],
+    espai: [COLUMN_KEYS.espai, "espai_on_es_desenvolupara_l_activitat", "espai on es desenvoluparà l'activitat", "espai"],
+    entrada: [COLUMN_KEYS.entrada, "entrada", "tipus_entrada", "tipus entrada"],
+    enllacInscripcions: [COLUMN_KEYS.enllacInscripcions, "enllac_inscripcions", "enllaç_inscripcions", "enllac inscripcions", "enllaç inscripcions"]
+  };
+
+  return aliases[logicalKey] || [COLUMN_KEYS[logicalKey]];
+}
+
+function getValue(row, logicalKey) {
+  const keys = getKeys(logicalKey);
+
+  for (const key of keys) {
+    if (!key) continue;
+
+    if (Object.prototype.hasOwnProperty.call(row, key)) {
+      return String(row[key] || "").trim();
+    }
+  }
+
+  const wanted = keys.map(normalitzarText).filter(Boolean);
+
+  for (const realKey of Object.keys(row)) {
+    if (wanted.includes(normalitzarText(realKey))) {
+      return String(row[realKey] || "").trim();
+    }
+  }
+
+  return "";
+}
+
+/* =========================
+   GRÀFIQUES
+========================= */
+
 function generarResumGrafiques(rows) {
   return {
+    categoria: comptarCategoria(rows),
+    districte: comptarDistricte(rows),
     tipusEntrada: comptarTipusEntrada(rows),
     modalitat: comptarModalitat(rows),
     responsable: comptarResponsable(rows)
   };
+}
+
+function comptarCategoria(rows) {
+  const result = {
+    "Exposicions": 0,
+    "Rutes": 0,
+    "Debats i conferències": 0,
+    "Tallers": 0,
+    "Cultura Contemporània": 0,
+    "Educació": 0,
+    "Visites guiades": 0,
+    "Altres": 0,
+    "Sense categoria": 0
+  };
+
+  rows.forEach(row => {
+    const value = classificarCategoria(getValue(row, "categoria"));
+    result[value]++;
+  });
+
+  return result;
+}
+
+function classificarCategoria(value) {
+  const text = normalitzarText(value);
+
+  if (!text) return "Sense categoria";
+  if (text.includes("exposicio")) return "Exposicions";
+  if (text.includes("ruta") || text.includes("itinerari")) return "Rutes";
+  if (text.includes("debat") || text.includes("conferencia") || text.includes("conferencies") || text.includes("xerrada")) return "Debats i conferències";
+  if (text.includes("taller") || text.includes("workshop")) return "Tallers";
+  if (text.includes("cultura contemporania") || text.includes("contemporania")) return "Cultura Contemporània";
+  if (text.includes("educacio") || text.includes("educatiu") || text.includes("escola")) return "Educació";
+  if (text.includes("visita guiada") || text.includes("visites guiades") || text.includes("visita")) return "Visites guiades";
+
+  return "Altres";
+}
+
+function comptarDistricte(rows) {
+  const result = {
+    "Eixample": 0,
+    "Les Corts": 0,
+    "Sants-Montjuïc": 0,
+    "Nou Barris": 0,
+    "Horta-Guinardó": 0,
+    "Sant Martí": 0,
+    "Sarrià-Sant Gervasi": 0,
+    "Sant Andreu": 0,
+    "Gràcia": 0,
+    "Ciutat Vella": 0,
+    "Fora BCN": 0,
+    "Sense districte": 0
+  };
+
+  rows.forEach(row => {
+    const value = classificarDistricte(getValue(row, "districte"));
+    result[value]++;
+  });
+
+  return result;
+}
+
+function classificarDistricte(value) {
+  const text = normalitzarText(value);
+
+  if (!text) return "Sense districte";
+  if (text.includes("eixample")) return "Eixample";
+  if (text.includes("corts")) return "Les Corts";
+  if (text.includes("sants") || text.includes("montjuic")) return "Sants-Montjuïc";
+  if (text.includes("nou barris")) return "Nou Barris";
+  if (text.includes("horta") || text.includes("guinardo")) return "Horta-Guinardó";
+  if (text.includes("sant marti")) return "Sant Martí";
+  if (text.includes("sarria") || text.includes("gervasi")) return "Sarrià-Sant Gervasi";
+  if (text.includes("sant andreu")) return "Sant Andreu";
+  if (text.includes("gracia")) return "Gràcia";
+  if (text.includes("ciutat vella")) return "Ciutat Vella";
+  if (text.includes("fora") || text.includes("metropolita")) return "Fora BCN";
+
+  return "Fora BCN";
 }
 
 function comptarTipusEntrada(rows) {
@@ -168,11 +296,22 @@ function comptarTipusEntrada(rows) {
   };
 
   rows.forEach(row => {
-    const value = classificarTipusEntrada(row[COLUMN_KEYS.entrada]);
+    const value = classificarTipusEntrada(getValue(row, "entrada"));
     result[value]++;
   });
 
   return result;
+}
+
+function classificarTipusEntrada(value) {
+  const text = normalitzarText(value);
+
+  if (!text) return "Sense informació";
+  if (text.includes("inscripcio")) return "Gratuïta amb inscripció prèvia";
+  if (text.includes("pagament") || text.includes("pago")) return "De pagament";
+  if (text.includes("gratuita") || text.includes("gratuit")) return "Gratuïta";
+
+  return "Sense informació";
 }
 
 function comptarModalitat(rows) {
@@ -184,7 +323,7 @@ function comptarModalitat(rows) {
   };
 
   rows.forEach(row => {
-    const value = String(row[COLUMN_KEYS.modalitat] || "").trim().toUpperCase();
+    const value = String(getValue(row, "modalitat") || "").trim().toUpperCase();
 
     if (["A", "B", "C"].includes(value)) {
       result[value]++;
@@ -209,22 +348,11 @@ function comptarResponsable(rows) {
   };
 
   rows.forEach(row => {
-    const value = classificarResponsable(row[COLUMN_KEYS.responsable]);
+    const value = classificarResponsable(getValue(row, "responsable"));
     result[value]++;
   });
 
   return result;
-}
-
-function classificarTipusEntrada(value) {
-  const text = normalitzarText(value);
-
-  if (!text) return "Sense informació";
-  if (text.includes("inscripcio")) return "Gratuïta amb inscripció prèvia";
-  if (text.includes("pagament") || text.includes("pago")) return "De pagament";
-  if (text.includes("gratuita") || text.includes("gratuit")) return "Gratuïta";
-
-  return "Sense informació";
 }
 
 function classificarResponsable(value) {
@@ -243,510 +371,39 @@ function classificarResponsable(value) {
   return "Altres";
 }
 
-function activarCercadorAutogestionades() {
-  const input = document.getElementById("search-autogestionades");
-  if (!input) return;
+function renderitzarBarChart(containerId, objecte) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
 
-  input.addEventListener("input", () => {
-    const query = normalitzarText(input.value);
+  const entries = Object.entries(objecte);
 
-    const filtrades = AUTOGESTIONADES.filter(row => {
-      const text = [
-        row[COLUMN_KEYS.idIntern],
-        row[COLUMN_KEYS.responsable],
-        row[COLUMN_KEYS.titol],
-        row[COLUMN_KEYS.dataInici],
-        row[COLUMN_KEYS.categoria],
-        row[COLUMN_KEYS.espai]
-      ].map(normalitzarText).join(" ");
-
-      return text.includes(query);
-    });
-
-    renderitzarTaulaAutogestionades(filtrades);
-  });
-}
-
-function renderitzarTaulaAutogestionades(rows) {
-  const tbody = document.getElementById("taula-autogestionades-body");
-  const counter = document.getElementById("autogestionades-count");
-
-  if (!tbody) return;
-
-  if (counter) {
-    counter.textContent = `${rows.length} activitats`;
-  }
-
-  if (!rows.length) {
-    tbody.innerHTML = `<tr><td colspan="7">No s'han trobat activitats autogestionades.</td></tr>`;
+  if (!entries.length) {
+    container.innerHTML = "<p>No hi ha dades disponibles.</p>";
     return;
   }
 
-  tbody.innerHTML = rows.map(row => {
-    const enllac = String(row[COLUMN_KEYS.enllacInscripcions] || "").trim();
-    const linkCell = enllac
-      ? `<a class="link-pill" href="${escaparAtribut(enllac)}" target="_blank" rel="noopener noreferrer">Obrir enllaç</a>`
-      : `<span class="warning-pill">Falta enllaç</span>`;
+  const total = entries.reduce((sum, [, value]) => sum + Number(value || 0), 0);
+  const max = Math.max(...entries.map(([, value]) => Number(value || 0)), 1);
+
+  container.innerHTML = entries.map(([label, valor]) => {
+    valor = Number(valor || 0);
+    const width = valor > 0 ? Math.max((valor / max) * 100, 3) : 0;
+    const percent = total > 0 ? Math.round((valor / total) * 100) : 0;
 
     return `
-      <tr>
-        <td>${escaparHTML(row[COLUMN_KEYS.idIntern])}</td>
-        <td>${escaparHTML(row[COLUMN_KEYS.responsable])}</td>
-        <td class="title-cell">${escaparHTML(row[COLUMN_KEYS.titol])}</td>
-        <td>${escaparHTML(row[COLUMN_KEYS.dataInici])}</td>
-        <td>${escaparHTML(row[COLUMN_KEYS.categoria])}</td>
-        <td>${escaparHTML(row[COLUMN_KEYS.espai])}</td>
-        <td>${linkCell}</td>
-      </tr>
+      <div class="bar-row">
+        <div class="bar-info">
+          <span>${escaparHTML(label)}</span>
+          <strong>${valor}</strong>
+        </div>
+        <div class="bar-track">
+          <div class="bar-fill" style="width: ${width}%"></div>
+        </div>
+        <div class="bar-percent">${percent}%</div>
+      </div>
     `;
   }).join("");
 }
-
-async function renderitzarMapaAutogestionades() {
-  const mapStatus = document.getElementById("map-status");
-  const mapCounter = document.getElementById("map-counter");
-  const mapEl = document.getElementById("autogestionades-map");
-
-  if (!mapEl) return;
-
-  if (!mapInstance) {
-    mapInstance = L.map("autogestionades-map", {
-      zoomControl: true
-    }).setView([41.3874, 2.1686], 12);
-
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-      attribution: '&copy; OpenStreetMap contributors'
-    }).addTo(mapInstance);
-  }
-
-  if (mapInitialised) {
-    setTimeout(() => mapInstance.invalidateSize(), 150);
-    return;
-  }
-
-  mapStatus.textContent = "Localitzant espais...";
-  mapCounter.textContent = "Preparant punts...";
-  mapInitialised = true;
-
-  const espais = prepararEspaisMapa(AUTOGESTIONADES);
-
-  if (!espais.length) {
-    mapStatus.textContent = "No s'han trobat espais vàlids per representar.";
-    mapCounter.textContent = "0 espais";
-    return;
-  }
-
-  const bounds = [];
-  let trobats = 0;
-  let noTrobats = 0;
-
-  for (let i = 0; i < espais.length; i++) {
-    const espai = espais[i];
-    mapStatus.textContent = `Localitzant espais... ${i + 1}/${espais.length}`;
-
-    const coords = await geocodificarEspai(espai.nom);
-
-    if (coords) {
-      trobats++;
-
-      const marker = L.marker([coords.lat, coords.lng]).addTo(mapInstance);
-
-      const activitatsHtml = espai.activitats
-        .slice(0, 5)
-        .map(item => `<li>${escaparHTML(item.titol)} <span>(${escaparHTML(item.data)})</span></li>`)
-        .join("");
-
-      marker.bindPopup(`
-        <div class="map-popup">
-          <strong>${escaparHTML(espai.nom)}</strong>
-          <p>${espai.total} activitats autogestionades</p>
-          <ul>${activitatsHtml}</ul>
-        </div>
-      `);
-
-      bounds.push([coords.lat, coords.lng]);
-    } else {
-      noTrobats++;
-    }
-  }
-
-  if (bounds.length) {
-    mapInstance.fitBounds(bounds, { padding: [40, 40] });
-  } else {
-    mapInstance.setView([41.3874, 2.1686], 12);
-  }
-
-  mapCounter.textContent = `${trobats} espais localitzats`;
-  mapStatus.textContent = noTrobats
-    ? `${noTrobats} espais no s'han pogut localitzar automàticament.`
-    : "Mapa preparat correctament.";
-
-  setTimeout(() => mapInstance.invalidateSize(), 150);
-}
-
-function prepararEspaisMapa(rows) {
-  const grouped = new Map();
-
-  rows.forEach(row => {
-    const espaiOriginal = String(row[COLUMN_KEYS.espai] || "").trim();
-    if (!espaiOriginal) return;
-    if (esDistricte(espaiOriginal)) return;
-
-    const key = normalitzarText(espaiOriginal);
-
-    if (!grouped.has(key)) {
-      grouped.set(key, {
-        nom: espaiOriginal,
-        total: 0,
-        activitats: []
-      });
-    }
-
-    const entry = grouped.get(key);
-    entry.total += 1;
-    entry.activitats.push({
-      titol: row[COLUMN_KEYS.titol] || "Sense títol",
-      data: row[COLUMN_KEYS.dataInici] || ""
-    });
-  });
-
-  return [...grouped.values()];
-}
-
-function esDistricte(value) {
-  const text = normalitzarText(value);
-  return DISTRICTES_EXCLOSOS.includes(text);
-}
-
-async function geocodificarEspai(nomEspai) {
-  const cacheKey = `geo_${normalitzarText(nomEspai)}`;
-  const cache = carregarGeocache();
-
-  if (cache[cacheKey]) {
-    return cache[cacheKey];
-  }
-
-  const query = encodeURIComponent(`${nomEspai}, Barcelona, Spain`);
-  const url = `https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&q=${query}`;
-
-  try {
-    const response = await fetch(url, {
-      headers: {
-        "Accept": "application/json"
-      }
-    });
-
-    if (!response.ok) {
-      return null;
-    }
-
-    const results = await response.json();
-
-    if (!results.length) {
-      return null;
-    }
-
-    const coords = {
-      lat: Number(results[0].lat),
-      lng: Number(results[0].lon)
-    };
-
-    cache[cacheKey] = coords;
-    guardarGeocache(cache);
-
-    await sleep(250);
-    return coords;
-  } catch (error) {
-    console.error("Error geocodificant espai:", nomEspai, error);
-    return null;
-  }
-}
-
-function carregarGeocache() {
-  try {
-    return JSON.parse(localStorage.getItem("capitalitat_geocache_v1") || "{}");
-  } catch {
-    return {};
-  }
-}
-
-function guardarGeocache(cache) {
-  localStorage.setItem("capitalitat_geocache_v1", JSON.stringify(cache));
-}
-
-function sleep(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
-
-
-function inicialitzarCalendari(rows) {
-  configurarControlsCalendari();
-
-  const dates = rows
-    .map(row => parseDataCalendari(row[COLUMN_KEYS.dataInici]))
-    .filter(Boolean);
-
-  const avui = new Date();
-
-  if (!CALENDAR_DATE) {
-    const teActivitatsAquestMes = dates.some(date =>
-      date.getFullYear() === avui.getFullYear() &&
-      date.getMonth() === avui.getMonth()
-    );
-
-    if (teActivitatsAquestMes) {
-      CALENDAR_DATE = new Date(avui.getFullYear(), avui.getMonth(), 1);
-    } else if (dates.length) {
-      dates.sort((a, b) => a - b);
-      CALENDAR_DATE = new Date(dates[0].getFullYear(), dates[0].getMonth(), 1);
-    } else {
-      CALENDAR_DATE = new Date(avui.getFullYear(), avui.getMonth(), 1);
-    }
-  }
-
-  renderitzarCalendariActual();
-}
-
-function configurarControlsCalendari() {
-  if (calendarListenersInitialised) return;
-
-  const prev = document.getElementById("calendar-prev");
-  const next = document.getElementById("calendar-next");
-  const grid = document.getElementById("calendar-grid");
-
-  if (prev) {
-    prev.addEventListener("click", () => {
-      CALENDAR_DATE = new Date(CALENDAR_DATE.getFullYear(), CALENDAR_DATE.getMonth() - 1, 1);
-      renderitzarCalendariActual();
-    });
-  }
-
-  if (next) {
-    next.addEventListener("click", () => {
-      CALENDAR_DATE = new Date(CALENDAR_DATE.getFullYear(), CALENDAR_DATE.getMonth() + 1, 1);
-      renderitzarCalendariActual();
-    });
-  }
-
-  if (grid) {
-    grid.addEventListener("click", event => {
-      const button = event.target.closest("[data-calendar-event]");
-      if (!button) return;
-
-      const eventId = button.dataset.calendarEvent;
-      const row = CALENDAR_EVENT_LOOKUP.get(eventId);
-
-      if (row) {
-        renderitzarDetallCalendari(row);
-      }
-    });
-  }
-
-  calendarListenersInitialised = true;
-}
-
-function renderitzarCalendariActual() {
-  const title = document.getElementById("calendar-title");
-  const subtitle = document.getElementById("calendar-subtitle");
-  const grid = document.getElementById("calendar-grid");
-
-  if (!grid || !CALENDAR_DATE) return;
-
-  const any = CALENDAR_DATE.getFullYear();
-  const mes = CALENDAR_DATE.getMonth();
-
-  const monthLabel = CALENDAR_DATE.toLocaleDateString("ca-ES", {
-    month: "long",
-    year: "numeric"
-  });
-
-  if (title) {
-    title.textContent = monthLabel.charAt(0).toUpperCase() + monthLabel.slice(1);
-  }
-
-  const activitatsMes = obtenirActivitatsCalendari(any, mes);
-
-  if (subtitle) {
-    subtitle.textContent = `${activitatsMes.length} activitats amb data d'inici aquest mes`;
-  }
-
-  CALENDAR_EVENT_LOOKUP = new Map();
-
-  const primerDiaMes = new Date(any, mes, 1);
-  const ultimDiaMes = new Date(any, mes + 1, 0);
-  const diesMes = ultimDiaMes.getDate();
-
-  const offsetDilluns = (primerDiaMes.getDay() + 6) % 7;
-  const totalCells = Math.ceil((offsetDilluns + diesMes) / 7) * 7;
-
-  const activitatsPerDia = new Map();
-
-  activitatsMes.forEach((item, index) => {
-    const dia = item.date.getDate();
-
-    if (!activitatsPerDia.has(dia)) {
-      activitatsPerDia.set(dia, []);
-    }
-
-    const eventId = `cal-${item.row.__fila || index}-${index}`;
-    CALENDAR_EVENT_LOOKUP.set(eventId, item.row);
-
-    activitatsPerDia.get(dia).push({
-      eventId,
-      row: item.row
-    });
-  });
-
-  let cells = "";
-
-  for (let i = 0; i < totalCells; i++) {
-    const dayNumber = i - offsetDilluns + 1;
-    const isOutside = dayNumber < 1 || dayNumber > diesMes;
-    const avui = new Date();
-    const isToday =
-      !isOutside &&
-      avui.getFullYear() === any &&
-      avui.getMonth() === mes &&
-      avui.getDate() === dayNumber;
-
-    if (isOutside) {
-      cells += `<div class="calendar-day calendar-day-empty"></div>`;
-      continue;
-    }
-
-    const events = activitatsPerDia.get(dayNumber) || [];
-    const visibleEvents = events.slice(0, 4);
-    const hiddenCount = Math.max(events.length - visibleEvents.length, 0);
-
-    const eventsHtml = visibleEvents.map(event => {
-      const row = event.row;
-      const id = row[COLUMN_KEYS.idIntern] || "";
-      const titol = row[COLUMN_KEYS.titol] || "Sense títol";
-
-      return `
-        <button class="calendar-event" type="button" data-calendar-event="${escaparAtribut(event.eventId)}">
-          <span>${escaparHTML(id)}</span>
-          <strong>${escaparHTML(titol)}</strong>
-        </button>
-      `;
-    }).join("");
-
-    cells += `
-      <div class="calendar-day ${isToday ? "calendar-day-today" : ""}">
-        <div class="calendar-day-number">${dayNumber}</div>
-        <div class="calendar-events">
-          ${eventsHtml}
-          ${hiddenCount ? `<div class="calendar-more">+${hiddenCount} activitats més</div>` : ""}
-        </div>
-      </div>
-    `;
-  }
-
-  grid.innerHTML = cells;
-}
-
-function obtenirActivitatsCalendari(any, mes) {
-  return CALENDAR_ROWS
-    .map(row => {
-      const date = parseDataCalendari(row[COLUMN_KEYS.dataInici]);
-      return { row, date };
-    })
-    .filter(item =>
-      item.date &&
-      item.date.getFullYear() === any &&
-      item.date.getMonth() === mes
-    )
-    .sort((a, b) => {
-      const dateDiff = a.date - b.date;
-      if (dateDiff !== 0) return dateDiff;
-
-      return String(a.row[COLUMN_KEYS.horaInici] || "").localeCompare(
-        String(b.row[COLUMN_KEYS.horaInici] || "")
-      );
-    });
-}
-
-function renderitzarDetallCalendari(row) {
-  const detail = document.getElementById("calendar-detail");
-  if (!detail) return;
-
-  const enllac = String(row[COLUMN_KEYS.enllacInscripcions] || "").trim();
-
-  const linkHtml = enllac
-    ? `<a class="detail-link" href="${escaparAtribut(enllac)}" target="_blank" rel="noopener noreferrer">Obrir enllaç d'inscripcions</a>`
-    : `<span class="warning-pill">Falta enllaç d'inscripcions</span>`;
-
-  detail.innerHTML = `
-    <span class="detail-eyebrow">Detall activitat</span>
-    <h3>${escaparHTML(row[COLUMN_KEYS.titol] || "Sense títol")}</h3>
-
-    <div class="detail-list">
-      ${detailItem("ID intern", row[COLUMN_KEYS.idIntern])}
-      ${detailItem("Encarregada", row[COLUMN_KEYS.responsable])}
-      ${detailItem("Modalitat", row[COLUMN_KEYS.modalitat])}
-      ${detailItem("Data inici", row[COLUMN_KEYS.dataInici])}
-      ${detailItem("Hora inici", row[COLUMN_KEYS.horaInici])}
-      ${detailItem("Categoria", row[COLUMN_KEYS.categoria])}
-      ${detailItem("Espai", row[COLUMN_KEYS.espai])}
-    </div>
-
-    <div class="detail-actions">
-      ${linkHtml}
-    </div>
-  `;
-}
-
-function detailItem(label, value) {
-  return `
-    <div class="detail-item">
-      <span>${escaparHTML(label)}</span>
-      <strong>${escaparHTML(value || "—")}</strong>
-    </div>
-  `;
-}
-
-function parseDataCalendari(value) {
-  const text = String(value || "").trim();
-
-  if (!text) return null;
-
-  const formatDMY = text.match(/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{2,4})/);
-  if (formatDMY) {
-    const dia = Number(formatDMY[1]);
-    const mes = Number(formatDMY[2]) - 1;
-    let any = Number(formatDMY[3]);
-
-    if (any < 100) any += 2000;
-
-    const date = new Date(any, mes, dia);
-
-    if (!Number.isNaN(date.getTime())) {
-      return date;
-    }
-  }
-
-  const formatYMD = text.match(/^(\d{4})[\/\-.](\d{1,2})[\/\-.](\d{1,2})/);
-  if (formatYMD) {
-    const any = Number(formatYMD[1]);
-    const mes = Number(formatYMD[2]) - 1;
-    const dia = Number(formatYMD[3]);
-
-    const date = new Date(any, mes, dia);
-
-    if (!Number.isNaN(date.getTime())) {
-      return date;
-    }
-  }
-
-  const date = new Date(text);
-
-  if (!Number.isNaN(date.getTime())) {
-    return date;
-  }
-
-  return null;
-}
-
 
 function objecteMesosAArray(objecte) {
   if (!objecte) return new Array(12).fill(0);
@@ -831,49 +488,554 @@ function renderitzarAreaChartMesos(containerId, valors, subtitol) {
 
       ${verticalGrid}
       ${horizontalGrid}
-
       <path d="${areaPath}" fill="url(#${uid}AreaGradient)" filter="url(#${uid}Glow)" />
       <path d="${linePath}" fill="none" stroke="url(#${uid}LineGradient)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" filter="url(#${uid}Glow)" />
-
       ${dots}
       ${xLabels}
     </svg>
   `;
 }
 
-function renderitzarBarChart(containerId, objecte) {
-  const container = document.getElementById(containerId);
-  if (!container) return;
+/* =========================
+   AUTOGESTIONADES TAULA
+========================= */
 
-  const entries = Object.entries(objecte);
+function activarCercadorAutogestionades() {
+  const input = document.getElementById("search-autogestionades");
+  if (!input || input.dataset.bound) return;
 
-  if (!entries.length) {
-    container.innerHTML = "<p>No hi ha dades disponibles.</p>";
+  input.addEventListener("input", () => {
+    const query = normalitzarText(input.value);
+
+    const filtrades = AUTOGESTIONADES.filter(row => {
+      const text = [
+        getValue(row, "idIntern"),
+        getValue(row, "responsable"),
+        getValue(row, "titol"),
+        getValue(row, "dataInici"),
+        getValue(row, "categoria"),
+        getValue(row, "espai")
+      ].map(normalitzarText).join(" ");
+
+      return text.includes(query);
+    });
+
+    renderitzarTaulaAutogestionades(filtrades);
+  });
+
+  input.dataset.bound = "1";
+}
+
+function renderitzarTaulaAutogestionades(rows) {
+  const tbody = document.getElementById("taula-autogestionades-body");
+  const counter = document.getElementById("autogestionades-count");
+
+  if (!tbody) return;
+
+  if (counter) {
+    counter.textContent = `${rows.length} activitats`;
+  }
+
+  if (!rows.length) {
+    tbody.innerHTML = `<tr><td colspan="7">No s'han trobat activitats autogestionades.</td></tr>`;
     return;
   }
 
-  const total = entries.reduce((sum, [, value]) => sum + Number(value || 0), 0);
-  const max = Math.max(...entries.map(([, value]) => Number(value || 0)), 1);
-
-  container.innerHTML = entries.map(([label, valor]) => {
-    valor = Number(valor || 0);
-    const width = valor > 0 ? Math.max((valor / max) * 100, 3) : 0;
-    const percent = total > 0 ? Math.round((valor / total) * 100) : 0;
+  tbody.innerHTML = rows.map(row => {
+    const enllac = getValue(row, "enllacInscripcions");
+    const linkCell = enllac
+      ? `<a class="link-pill" href="${escaparAtribut(enllac)}" target="_blank" rel="noopener noreferrer">Obrir enllaç</a>`
+      : `<span class="warning-pill">Falta enllaç</span>`;
 
     return `
-      <div class="bar-row">
-        <div class="bar-info">
-          <span>${escaparHTML(label)}</span>
-          <strong>${valor}</strong>
-        </div>
-        <div class="bar-track">
-          <div class="bar-fill" style="width: ${width}%"></div>
-        </div>
-        <div class="bar-percent">${percent}%</div>
-      </div>
+      <tr>
+        <td>${escaparHTML(getValue(row, "idIntern"))}</td>
+        <td>${escaparHTML(getValue(row, "responsable"))}</td>
+        <td class="title-cell">${escaparHTML(getValue(row, "titol"))}</td>
+        <td>${escaparHTML(getValue(row, "dataInici"))}</td>
+        <td>${escaparHTML(getValue(row, "categoria"))}</td>
+        <td>${escaparHTML(getValue(row, "espai"))}</td>
+        <td>${linkCell}</td>
+      </tr>
     `;
   }).join("");
 }
+
+/* =========================
+   CALENDARI
+========================= */
+
+function inicialitzarCalendari(allRows, autoRows) {
+  PRO_CALENDAR_ROWS = allRows || [];
+  PRO_CALENDAR_AUTOGESTIONADES = autoRows || [];
+
+  const firstDate = PRO_CALENDAR_ROWS
+    .map(row => parseCalendarDate(getValue(row, "dataInici")))
+    .filter(Boolean)
+    .sort((a, b) => a - b)[0];
+
+  if (!PRO_CALENDAR_READY) {
+    if (firstDate) {
+      PRO_CALENDAR_YEAR = firstDate.getFullYear();
+      PRO_CALENDAR_MONTH = firstDate.getMonth();
+    }
+
+    setupProfessionalCalendarEvents();
+    PRO_CALENDAR_READY = true;
+  }
+
+  renderProfessionalCalendar();
+}
+
+function setupProfessionalCalendarEvents() {
+  const prev = document.getElementById("pro-calendar-prev");
+  const next = document.getElementById("pro-calendar-next");
+  const months = document.getElementById("pro-calendar-months");
+  const grid = document.getElementById("pro-calendar-grid");
+  const modeToggle = document.getElementById("calendar-mode-toggle");
+
+  if (prev && !prev.dataset.bound) {
+    prev.addEventListener("click", () => {
+      PRO_CALENDAR_MONTH--;
+      if (PRO_CALENDAR_MONTH < 0) {
+        PRO_CALENDAR_MONTH = 11;
+        PRO_CALENDAR_YEAR--;
+      }
+      renderProfessionalCalendar();
+    });
+    prev.dataset.bound = "1";
+  }
+
+  if (next && !next.dataset.bound) {
+    next.addEventListener("click", () => {
+      PRO_CALENDAR_MONTH++;
+      if (PRO_CALENDAR_MONTH > 11) {
+        PRO_CALENDAR_MONTH = 0;
+        PRO_CALENDAR_YEAR++;
+      }
+      renderProfessionalCalendar();
+    });
+    next.dataset.bound = "1";
+  }
+
+  if (months && !months.dataset.bound) {
+    months.addEventListener("click", event => {
+      const button = event.target.closest("[data-month]");
+      if (!button) return;
+
+      PRO_CALENDAR_MONTH = Number(button.dataset.month);
+      renderProfessionalCalendar();
+    });
+    months.dataset.bound = "1";
+  }
+
+  if (grid && !grid.dataset.bound) {
+    grid.addEventListener("click", event => {
+      const button = event.target.closest("[data-calendar-event]");
+      if (!button) return;
+
+      const row = PRO_CALENDAR_LOOKUP.get(button.dataset.calendarEvent);
+      if (row) renderProfessionalCalendarDetail(row);
+    });
+    grid.dataset.bound = "1";
+  }
+
+  if (modeToggle && !modeToggle.dataset.bound) {
+    modeToggle.addEventListener("click", event => {
+      const button = event.target.closest("[data-calendar-mode]");
+      if (!button) return;
+
+      PRO_CALENDAR_MODE = button.dataset.calendarMode;
+
+      const dates = getProfessionalCalendarWorkingRows()
+        .map(row => parseCalendarDate(getValue(row, "dataInici")))
+        .filter(Boolean)
+        .sort((a, b) => a - b);
+
+      if (dates.length) {
+        PRO_CALENDAR_YEAR = dates[0].getFullYear();
+        PRO_CALENDAR_MONTH = dates[0].getMonth();
+      }
+
+      renderProfessionalCalendar();
+    });
+    modeToggle.dataset.bound = "1";
+  }
+}
+
+function getProfessionalCalendarWorkingRows() {
+  return PRO_CALENDAR_MODE === "auto"
+    ? PRO_CALENDAR_AUTOGESTIONADES
+    : PRO_CALENDAR_ROWS;
+}
+
+function renderProfessionalCalendar() {
+  const grid = document.getElementById("pro-calendar-grid");
+  const title = document.getElementById("pro-calendar-title");
+  const subtitle = document.getElementById("pro-calendar-subtitle");
+  const months = document.getElementById("pro-calendar-months");
+  const modeToggle = document.getElementById("calendar-mode-toggle");
+
+  if (!grid) return;
+
+  const monthDate = new Date(PRO_CALENDAR_YEAR, PRO_CALENDAR_MONTH, 1);
+  const monthName = monthDate.toLocaleDateString("ca-ES", {
+    month: "long",
+    year: "numeric"
+  });
+
+  if (title) {
+    title.textContent = monthName.charAt(0).toUpperCase() + monthName.slice(1);
+  }
+
+  if (months) {
+    months.querySelectorAll("[data-month]").forEach(button => {
+      button.classList.toggle("active", Number(button.dataset.month) === PRO_CALENDAR_MONTH);
+    });
+  }
+
+  if (modeToggle) {
+    modeToggle.querySelectorAll("[data-calendar-mode]").forEach(button => {
+      button.classList.toggle("active", button.dataset.calendarMode === PRO_CALENDAR_MODE);
+    });
+  }
+
+  const workingRows = getProfessionalCalendarWorkingRows();
+  const events = getProfessionalCalendarEvents(PRO_CALENDAR_YEAR, PRO_CALENDAR_MONTH);
+
+  if (subtitle) {
+    const labelMode = PRO_CALENDAR_MODE === "auto" ? "autogestionades" : "totals";
+    subtitle.textContent = `${events.length} activitats ${labelMode} aquest mes · ${workingRows.length} activitats en total`;
+  }
+
+  PRO_CALENDAR_LOOKUP = new Map();
+
+  const firstDay = new Date(PRO_CALENDAR_YEAR, PRO_CALENDAR_MONTH, 1);
+  const lastDay = new Date(PRO_CALENDAR_YEAR, PRO_CALENDAR_MONTH + 1, 0);
+  const daysInMonth = lastDay.getDate();
+  const mondayOffset = (firstDay.getDay() + 6) % 7;
+  const totalCells = Math.ceil((mondayOffset + daysInMonth) / 7) * 7;
+
+  const eventsByDay = new Map();
+
+  events.forEach((eventItem, index) => {
+    const day = eventItem.date.getDate();
+
+    if (!eventsByDay.has(day)) eventsByDay.set(day, []);
+
+    const eventId = `event-${eventItem.row.__fila || index}-${index}`;
+    PRO_CALENDAR_LOOKUP.set(eventId, eventItem.row);
+
+    eventsByDay.get(day).push({
+      id: eventId,
+      row: eventItem.row
+    });
+  });
+
+  let html = "";
+
+  for (let cell = 0; cell < totalCells; cell++) {
+    const day = cell - mondayOffset + 1;
+
+    if (day < 1 || day > daysInMonth) {
+      html += `<div class="pro-calendar-day is-empty"></div>`;
+      continue;
+    }
+
+    const dayEvents = eventsByDay.get(day) || [];
+    const visibleEvents = dayEvents.slice(0, 4);
+    const moreCount = Math.max(dayEvents.length - visibleEvents.length, 0);
+
+    const eventsHtml = visibleEvents.map(item => {
+      const idIntern = getValue(item.row, "idIntern") || "";
+      const titol = getValue(item.row, "titol") || "Sense títol";
+
+      return `
+        <button class="pro-calendar-event" type="button" data-calendar-event="${escaparAtribut(item.id)}">
+          <span>${escaparHTML(idIntern)}</span>
+          <strong>${escaparHTML(titol)}</strong>
+        </button>
+      `;
+    }).join("");
+
+    html += `
+      <div class="pro-calendar-day">
+        <div class="pro-calendar-day-number">${day}</div>
+        <div class="pro-calendar-events">
+          ${eventsHtml}
+          ${moreCount ? `<div class="pro-calendar-more">+${moreCount} activitats més</div>` : ""}
+        </div>
+      </div>
+    `;
+  }
+
+  grid.innerHTML = html;
+}
+
+function getProfessionalCalendarEvents(year, month) {
+  const workingRows = getProfessionalCalendarWorkingRows();
+
+  return workingRows
+    .map(row => ({
+      row,
+      date: parseCalendarDate(getValue(row, "dataInici"))
+    }))
+    .filter(item =>
+      item.date &&
+      item.date.getFullYear() === year &&
+      item.date.getMonth() === month
+    )
+    .sort((a, b) => {
+      const dateDiff = a.date - b.date;
+      if (dateDiff !== 0) return dateDiff;
+
+      return String(getValue(a.row, "horaInici")).localeCompare(
+        String(getValue(b.row, "horaInici"))
+      );
+    });
+}
+
+function renderProfessionalCalendarDetail(row) {
+  const detail = document.getElementById("pro-calendar-detail");
+  if (!detail) return;
+
+  const enllac = getValue(row, "enllacInscripcions");
+
+  const linkHtml = enllac
+    ? `<a class="detail-link" href="${escaparAtribut(enllac)}" target="_blank" rel="noopener noreferrer">Obrir enllaç d'inscripcions</a>`
+    : `<span class="warning-pill">Falta enllaç d'inscripcions</span>`;
+
+  detail.innerHTML = `
+    <span class="detail-eyebrow">Detall activitat</span>
+    <h3>${escaparHTML(getValue(row, "titol") || "Sense títol")}</h3>
+
+    <div class="detail-list">
+      ${detailItem("ID intern", getValue(row, "idIntern"))}
+      ${detailItem("Encarregada", getValue(row, "responsable"))}
+      ${detailItem("Títol activitat", getValue(row, "titol"))}
+      ${detailItem("Modalitat", getValue(row, "modalitat"))}
+      ${detailItem("Data inici", getValue(row, "dataInici"))}
+      ${detailItem("Hora inici", getValue(row, "horaInici"))}
+      ${detailItem("Categoria", getValue(row, "categoria"))}
+      ${detailItem("Espai", getValue(row, "espai"))}
+    </div>
+
+    <div class="detail-actions">
+      ${linkHtml}
+    </div>
+  `;
+}
+
+function detailItem(label, value) {
+  return `
+    <div class="detail-item">
+      <span>${escaparHTML(label)}</span>
+      <strong>${escaparHTML(value || "—")}</strong>
+    </div>
+  `;
+}
+
+function parseCalendarDate(value) {
+  const text = String(value || "").trim();
+
+  if (!text) return null;
+
+  const dmy = text.match(/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{2,4})/);
+  if (dmy) {
+    const day = Number(dmy[1]);
+    const month = Number(dmy[2]) - 1;
+    let year = Number(dmy[3]);
+
+    if (year < 100) year += 2000;
+
+    const date = new Date(year, month, day);
+    if (!Number.isNaN(date.getTime())) return date;
+  }
+
+  const ymd = text.match(/^(\d{4})[\/\-.](\d{1,2})[\/\-.](\d{1,2})/);
+  if (ymd) {
+    const year = Number(ymd[1]);
+    const month = Number(ymd[2]) - 1;
+    const day = Number(ymd[3]);
+
+    const date = new Date(year, month, day);
+    if (!Number.isNaN(date.getTime())) return date;
+  }
+
+  const parsed = new Date(text);
+  if (!Number.isNaN(parsed.getTime())) return parsed;
+
+  return null;
+}
+
+/* =========================
+   MAPA
+========================= */
+
+async function renderitzarMapaAutogestionades() {
+  const mapStatus = document.getElementById("map-status");
+  const mapCounter = document.getElementById("map-counter");
+  const mapEl = document.getElementById("autogestionades-map");
+
+  if (!mapEl || typeof L === "undefined") return;
+
+  if (!mapInstance) {
+    mapInstance = L.map("autogestionades-map", {
+      zoomControl: true
+    }).setView([41.3874, 2.1686], 12);
+
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(mapInstance);
+  }
+
+  if (mapInitialised) {
+    setTimeout(() => mapInstance.invalidateSize(), 150);
+    return;
+  }
+
+  mapStatus.textContent = "Localitzant espais...";
+  mapCounter.textContent = "Preparant punts...";
+  mapInitialised = true;
+
+  const espais = prepararEspaisMapa(AUTOGESTIONADES);
+
+  if (!espais.length) {
+    mapStatus.textContent = "No s'han trobat espais vàlids per representar.";
+    mapCounter.textContent = "0 espais";
+    return;
+  }
+
+  const bounds = [];
+  let trobats = 0;
+  let noTrobats = 0;
+
+  for (let i = 0; i < espais.length; i++) {
+    const espai = espais[i];
+    mapStatus.textContent = `Localitzant espais... ${i + 1}/${espais.length}`;
+
+    const coords = await geocodificarEspai(espai.nom);
+
+    if (coords) {
+      trobats++;
+
+      const marker = L.marker([coords.lat, coords.lng]).addTo(mapInstance);
+
+      const activitatsHtml = espai.activitats
+        .slice(0, 5)
+        .map(item => `<li>${escaparHTML(item.titol)} <span>(${escaparHTML(item.data)})</span></li>`)
+        .join("");
+
+      marker.bindPopup(`
+        <div class="map-popup">
+          <strong>${escaparHTML(espai.nom)}</strong>
+          <p>${espai.total} activitats autogestionades</p>
+          <ul>${activitatsHtml}</ul>
+        </div>
+      `);
+
+      bounds.push([coords.lat, coords.lng]);
+    } else {
+      noTrobats++;
+    }
+  }
+
+  if (bounds.length) {
+    mapInstance.fitBounds(bounds, { padding: [40, 40] });
+  }
+
+  mapCounter.textContent = `${trobats} espais localitzats`;
+  mapStatus.textContent = noTrobats
+    ? `${noTrobats} espais no s'han pogut localitzar automàticament.`
+    : "Mapa preparat correctament.";
+
+  setTimeout(() => mapInstance.invalidateSize(), 150);
+}
+
+function prepararEspaisMapa(rows) {
+  const grouped = new Map();
+
+  rows.forEach(row => {
+    const espaiOriginal = getValue(row, "espai");
+    if (!espaiOriginal) return;
+    if (esDistricte(espaiOriginal)) return;
+
+    const key = normalitzarText(espaiOriginal);
+
+    if (!grouped.has(key)) {
+      grouped.set(key, {
+        nom: espaiOriginal,
+        total: 0,
+        activitats: []
+      });
+    }
+
+    const entry = grouped.get(key);
+    entry.total += 1;
+    entry.activitats.push({
+      titol: getValue(row, "titol") || "Sense títol",
+      data: getValue(row, "dataInici") || ""
+    });
+  });
+
+  return [...grouped.values()];
+}
+
+function esDistricte(value) {
+  return DISTRICTES_EXCLOSOS.includes(normalitzarText(value));
+}
+
+async function geocodificarEspai(nomEspai) {
+  const cacheKey = `geo_${normalitzarText(nomEspai)}`;
+  const cache = carregarGeocache();
+
+  if (cache[cacheKey]) {
+    return cache[cacheKey];
+  }
+
+  const query = encodeURIComponent(`${nomEspai}, Barcelona, Spain`);
+  const url = `https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&q=${query}`;
+
+  try {
+    const response = await fetch(url, {
+      headers: { "Accept": "application/json" }
+    });
+
+    if (!response.ok) return null;
+
+    const results = await response.json();
+    if (!results.length) return null;
+
+    const coords = {
+      lat: Number(results[0].lat),
+      lng: Number(results[0].lon)
+    };
+
+    cache[cacheKey] = coords;
+    guardarGeocache(cache);
+
+    await sleep(250);
+    return coords;
+  } catch {
+    return null;
+  }
+}
+
+function carregarGeocache() {
+  try {
+    return JSON.parse(localStorage.getItem("capitalitat_geocache_v1") || "{}");
+  } catch {
+    return {};
+  }
+}
+
+function guardarGeocache(cache) {
+  localStorage.setItem("capitalitat_geocache_v1", JSON.stringify(cache));
+}
+
+/* =========================
+   HELPERS
+========================= */
 
 function valorEsTrue(value) {
   const text = normalitzarText(value);
@@ -935,773 +1097,6 @@ function escaparAtribut(value) {
   return escaparHTML(value).replaceAll("`", "&#096;");
 }
 
-
-function initializeProfessionalCalendar(allRows, autoRows) {
-  PRO_CALENDAR_ROWS = allRows || [];
-  PRO_CALENDAR_AUTOGESTIONADES = autoRows || [];
-
-  const sourceRows = PRO_CALENDAR_ROWS.length ? PRO_CALENDAR_ROWS : PRO_CALENDAR_AUTOGESTIONADES;
-
-  const firstDate = sourceRows
-    .map(row => parseCalendarDate(row[COLUMN_KEYS.dataInici]))
-    .filter(Boolean)
-    .sort((a, b) => a - b)[0];
-
-  if (!PRO_CALENDAR_READY) {
-    if (firstDate) {
-      PRO_CALENDAR_YEAR = firstDate.getFullYear();
-      PRO_CALENDAR_MONTH = firstDate.getMonth();
-    }
-    setupProfessionalCalendarEvents();
-    PRO_CALENDAR_READY = true;
-  }
-
-  renderProfessionalCalendar();
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
 }
-
-function setupProfessionalCalendarEvents() {
-  const prev = document.getElementById("pro-calendar-prev");
-  const next = document.getElementById("pro-calendar-next");
-  const months = document.getElementById("pro-calendar-months");
-  const grid = document.getElementById("pro-calendar-grid");
-  const modeToggle = document.getElementById("calendar-mode-toggle");
-
-  if (prev && !prev.dataset.bound) {
-    prev.addEventListener("click", () => {
-      PRO_CALENDAR_MONTH--;
-      if (PRO_CALENDAR_MONTH < 0) {
-        PRO_CALENDAR_MONTH = 11;
-        PRO_CALENDAR_YEAR--;
-      }
-      renderProfessionalCalendar();
-    });
-    prev.dataset.bound = "1";
-  }
-
-  if (next && !next.dataset.bound) {
-    next.addEventListener("click", () => {
-      PRO_CALENDAR_MONTH++;
-      if (PRO_CALENDAR_MONTH > 11) {
-        PRO_CALENDAR_MONTH = 0;
-        PRO_CALENDAR_YEAR++;
-      }
-      renderProfessionalCalendar();
-    });
-    next.dataset.bound = "1";
-  }
-
-  if (months && !months.dataset.bound) {
-    months.addEventListener("click", event => {
-      const button = event.target.closest("[data-month]");
-      if (!button) return;
-
-      PRO_CALENDAR_MONTH = Number(button.dataset.month);
-      renderProfessionalCalendar();
-    });
-    months.dataset.bound = "1";
-  }
-
-  if (grid && !grid.dataset.bound) {
-    grid.addEventListener("click", event => {
-      const button = event.target.closest("[data-calendar-event]");
-      if (!button) return;
-
-      const row = PRO_CALENDAR_LOOKUP.get(button.dataset.calendarEvent);
-      if (row) {
-        renderProfessionalCalendarDetail(row);
-      }
-    });
-    grid.dataset.bound = "1";
-  }
-
-  if (modeToggle && !modeToggle.dataset.bound) {
-    modeToggle.addEventListener("click", event => {
-      const button = event.target.closest("[data-calendar-mode]");
-      if (!button) return;
-
-      PRO_CALENDAR_MODE = button.dataset.calendarMode;
-      renderProfessionalCalendar();
-    });
-    modeToggle.dataset.bound = "1";
-  }
-}
-
-function getProfessionalCalendarWorkingRows() {
-  return PRO_CALENDAR_MODE === "auto"
-    ? PRO_CALENDAR_AUTOGESTIONADES
-    : PRO_CALENDAR_ROWS;
-}
-
-function renderProfessionalCalendar() {
-  const grid = document.getElementById("pro-calendar-grid");
-  const title = document.getElementById("pro-calendar-title");
-  const subtitle = document.getElementById("pro-calendar-subtitle");
-  const months = document.getElementById("pro-calendar-months");
-  const modeToggle = document.getElementById("calendar-mode-toggle");
-
-  if (!grid) return;
-
-  const monthDate = new Date(PRO_CALENDAR_YEAR, PRO_CALENDAR_MONTH, 1);
-  const monthName = monthDate.toLocaleDateString("ca-ES", {
-    month: "long",
-    year: "numeric"
-  });
-
-  if (title) {
-    title.textContent = monthName.charAt(0).toUpperCase() + monthName.slice(1);
-  }
-
-  if (months) {
-    months.querySelectorAll("[data-month]").forEach(button => {
-      button.classList.toggle("active", Number(button.dataset.month) === PRO_CALENDAR_MONTH);
-    });
-  }
-
-  if (modeToggle) {
-    modeToggle.querySelectorAll("[data-calendar-mode]").forEach(button => {
-      button.classList.toggle("active", button.dataset.calendarMode === PRO_CALENDAR_MODE);
-    });
-  }
-
-  const events = getProfessionalCalendarEvents(PRO_CALENDAR_YEAR, PRO_CALENDAR_MONTH);
-
-  if (subtitle) {
-    const labelMode = PRO_CALENDAR_MODE === "auto" ? "autogestionades" : "totals";
-    subtitle.textContent = `${events.length} activitats ${labelMode} aquest mes`;
-  }
-
-  PRO_CALENDAR_LOOKUP = new Map();
-
-  const firstDay = new Date(PRO_CALENDAR_YEAR, PRO_CALENDAR_MONTH, 1);
-  const lastDay = new Date(PRO_CALENDAR_YEAR, PRO_CALENDAR_MONTH + 1, 0);
-  const daysInMonth = lastDay.getDate();
-
-  const mondayOffset = (firstDay.getDay() + 6) % 7;
-  const totalCells = Math.ceil((mondayOffset + daysInMonth) / 7) * 7;
-
-  const eventsByDay = new Map();
-
-  events.forEach((eventItem, index) => {
-    const day = eventItem.date.getDate();
-
-    if (!eventsByDay.has(day)) {
-      eventsByDay.set(day, []);
-    }
-
-    const eventId = `event-${eventItem.row.__fila || index}-${index}`;
-    PRO_CALENDAR_LOOKUP.set(eventId, eventItem.row);
-
-    eventsByDay.get(day).push({
-      id: eventId,
-      row: eventItem.row
-    });
-  });
-
-  let html = "";
-
-  for (let cell = 0; cell < totalCells; cell++) {
-    const day = cell - mondayOffset + 1;
-
-    if (day < 1 || day > daysInMonth) {
-      html += `<div class="pro-calendar-day is-empty"></div>`;
-      continue;
-    }
-
-    const dayEvents = eventsByDay.get(day) || [];
-    const visibleEvents = dayEvents.slice(0, 4);
-    const moreCount = Math.max(dayEvents.length - visibleEvents.length, 0);
-
-    const eventsHtml = visibleEvents.map(item => {
-      const idIntern = item.row[COLUMN_KEYS.idIntern] || "";
-      const titol = item.row[COLUMN_KEYS.titol] || "Sense títol";
-
-      return `
-        <button class="pro-calendar-event" type="button" data-calendar-event="${escaparAtribut(item.id)}">
-          <span>${escaparHTML(idIntern)}</span>
-          <strong>${escaparHTML(titol)}</strong>
-        </button>
-      `;
-    }).join("");
-
-    html += `
-      <div class="pro-calendar-day">
-        <div class="pro-calendar-day-number">${day}</div>
-        <div class="pro-calendar-events">
-          ${eventsHtml}
-          ${moreCount ? `<div class="pro-calendar-more">+${moreCount} activitats més</div>` : ""}
-        </div>
-      </div>
-    `;
-  }
-
-  grid.innerHTML = html;
-}
-
-function getProfessionalCalendarEvents(year, month) {
-  const workingRows = getProfessionalCalendarWorkingRows();
-
-  return workingRows
-    .map(row => {
-      return {
-        row,
-        date: parseCalendarDate(row[COLUMN_KEYS.dataInici])
-      };
-    })
-    .filter(item => {
-      return (
-        item.date &&
-        item.date.getFullYear() === year &&
-        item.date.getMonth() === month
-      );
-    })
-    .sort((a, b) => {
-      const dateDiff = a.date - b.date;
-      if (dateDiff !== 0) return dateDiff;
-
-      return String(a.row[COLUMN_KEYS.horaInici] || "").localeCompare(
-        String(b.row[COLUMN_KEYS.horaInici] || "")
-      );
-    });
-}
-
-function renderProfessionalCalendarDetail(row) {
-  const detail = document.getElementById("pro-calendar-detail");
-  if (!detail) return;
-
-  const enllac = String(row[COLUMN_KEYS.enllacInscripcions] || "").trim();
-
-  const linkHtml = enllac
-    ? `<a class="detail-link" href="${escaparAtribut(enllac)}" target="_blank" rel="noopener noreferrer">Obrir enllaç d'inscripcions</a>`
-    : `<span class="warning-pill">Falta enllaç d'inscripcions</span>`;
-
-  detail.innerHTML = `
-    <span class="detail-eyebrow">Detall activitat</span>
-    <h3>${escaparHTML(row[COLUMN_KEYS.titol] || "Sense títol")}</h3>
-
-    <div class="detail-list">
-      ${detailItem("ID intern", row[COLUMN_KEYS.idIntern])}
-      ${detailItem("Encarregada", row[COLUMN_KEYS.responsable])}
-      ${detailItem("Títol activitat", row[COLUMN_KEYS.titol])}
-      ${detailItem("Modalitat", row[COLUMN_KEYS.modalitat])}
-      ${detailItem("Data inici", row[COLUMN_KEYS.dataInici])}
-      ${detailItem("Hora inici", row[COLUMN_KEYS.horaInici])}
-      ${detailItem("Categoria", row[COLUMN_KEYS.categoria])}
-      ${detailItem("Espai", row[COLUMN_KEYS.espai])}
-    </div>
-
-    <div class="detail-actions">
-      ${linkHtml}
-    </div>
-  `;
-}
-
-function detailItem(label, value) {
-  return `
-    <div class="detail-item">
-      <span>${escaparHTML(label)}</span>
-      <strong>${escaparHTML(value || "—")}</strong>
-    </div>
-  `;
-}
-
-function parseCalendarDate(value) {
-  const text = String(value || "").trim();
-
-  if (!text) return null;
-
-  const dmy = text.match(/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{2,4})/);
-  if (dmy) {
-    const day = Number(dmy[1]);
-    const month = Number(dmy[2]) - 1;
-    let year = Number(dmy[3]);
-    if (year < 100) year += 2000;
-
-    const date = new Date(year, month, day);
-    if (!Number.isNaN(date.getTime())) return date;
-  }
-
-  const ymd = text.match(/^(\d{4})[\/\-.](\d{1,2})[\/\-.](\d{1,2})/);
-  if (ymd) {
-    const year = Number(ymd[1]);
-    const month = Number(ymd[2]) - 1;
-    const day = Number(ymd[3]);
-
-    const date = new Date(year, month, day);
-    if (!Number.isNaN(date.getTime())) return date;
-  }
-
-  const date = new Date(text);
-  if (!Number.isNaN(date.getTime())) return date;
-
-  return null;
-}
-
-
-/* ============================================================
-   CALENDARI ROBUST FINAL
-   Llegeix totes les activitats i autogestionades segons DATA INICI_
-============================================================ */
-
-function getCalendarKey(logicalKey) {
-  const aliases = {
-    idIntern: [
-      COLUMN_KEYS.idIntern,
-      "id_intern",
-      "id intern",
-      "id_intern_",
-      "id"
-    ],
-    responsable: [
-      COLUMN_KEYS.responsable,
-      "encarregada",
-      "responsable"
-    ],
-    gestio: [
-      COLUMN_KEYS.gestio,
-      "propies",
-      "propis",
-      "pròpies",
-      "propies_",
-      "gestio"
-    ],
-    titol: [
-      COLUMN_KEYS.titol,
-      "titol_activitat_cat",
-      "titol activitat cat",
-      "títol activitat cat",
-      "titol",
-      "activitat"
-    ],
-    modalitat: [
-      COLUMN_KEYS.modalitat,
-      "modalitat",
-      "modalidad"
-    ],
-    dataInici: [
-      COLUMN_KEYS.dataInici,
-      "data_inici",
-      "data_inici_",
-      "data inici",
-      "data inici_",
-      "fecha_inicio",
-      "fecha inicio"
-    ],
-    horaInici: [
-      COLUMN_KEYS.horaInici,
-      "hora_inici",
-      "hora inici",
-      "hora_inici_"
-    ],
-    categoria: [
-      COLUMN_KEYS.categoria,
-      "categoria",
-      "category"
-    ],
-    espai: [
-      COLUMN_KEYS.espai,
-      "espai_on_es_desenvolupara_l_activitat",
-      "espai on es desenvolupara l'activitat",
-      "espai on es desenvoluparà l'activitat",
-      "espai",
-      "espacio"
-    ],
-    entrada: [
-      COLUMN_KEYS.entrada,
-      "entrada",
-      "tipus_entrada",
-      "tipus entrada"
-    ],
-    enllacInscripcions: [
-      COLUMN_KEYS.enllacInscripcions,
-      "enllac_inscripcions",
-      "enllaç_inscripcions",
-      "enllac inscripcions",
-      "enllaç inscripcions",
-      "link_inscripcions"
-    ]
-  };
-
-  return aliases[logicalKey] || [COLUMN_KEYS[logicalKey]];
-}
-
-function getCalendarValue(row, logicalKey) {
-  const keys = getCalendarKey(logicalKey);
-
-  for (const key of keys) {
-    if (!key) continue;
-
-    if (Object.prototype.hasOwnProperty.call(row, key)) {
-      return String(row[key] || "").trim();
-    }
-  }
-
-  // Últim recurs: buscar per normalització entre totes les claus del JSON
-  const wanted = keys.map(normalitzarText).filter(Boolean);
-
-  for (const realKey of Object.keys(row)) {
-    const realNorm = normalitzarText(realKey);
-
-    if (wanted.includes(realNorm)) {
-      return String(row[realKey] || "").trim();
-    }
-  }
-
-  return "";
-}
-
-function initializeProfessionalCalendar(allRows, autoRows) {
-  PRO_CALENDAR_ROWS = allRows || [];
-  PRO_CALENDAR_AUTOGESTIONADES = autoRows || [];
-
-  const workingRows = getProfessionalCalendarWorkingRows();
-  const parsedDates = workingRows
-    .map(row => parseCalendarDate(getCalendarValue(row, "dataInici")))
-    .filter(Boolean)
-    .sort((a, b) => a - b);
-
-  if (!PRO_CALENDAR_READY) {
-    if (parsedDates.length) {
-      PRO_CALENDAR_YEAR = parsedDates[0].getFullYear();
-      PRO_CALENDAR_MONTH = parsedDates[0].getMonth();
-    } else {
-      PRO_CALENDAR_YEAR = 2026;
-      PRO_CALENDAR_MONTH = 0;
-    }
-
-    setupProfessionalCalendarEvents();
-    PRO_CALENDAR_READY = true;
-  }
-
-  renderProfessionalCalendar();
-
-  console.log("CALENDAR INIT", {
-    mode: PRO_CALENDAR_MODE,
-    totalRows: PRO_CALENDAR_ROWS.length,
-    autoRows: PRO_CALENDAR_AUTOGESTIONADES.length,
-    parsedDates: parsedDates.length,
-    currentYear: PRO_CALENDAR_YEAR,
-    currentMonth: PRO_CALENDAR_MONTH
-  });
-}
-
-function setupProfessionalCalendarEvents() {
-  const prev = document.getElementById("pro-calendar-prev");
-  const next = document.getElementById("pro-calendar-next");
-  const months = document.getElementById("pro-calendar-months");
-  const grid = document.getElementById("pro-calendar-grid");
-  const modeToggle = document.getElementById("calendar-mode-toggle");
-
-  if (prev && !prev.dataset.bound) {
-    prev.addEventListener("click", () => {
-      PRO_CALENDAR_MONTH--;
-
-      if (PRO_CALENDAR_MONTH < 0) {
-        PRO_CALENDAR_MONTH = 11;
-        PRO_CALENDAR_YEAR--;
-      }
-
-      renderProfessionalCalendar();
-    });
-
-    prev.dataset.bound = "1";
-  }
-
-  if (next && !next.dataset.bound) {
-    next.addEventListener("click", () => {
-      PRO_CALENDAR_MONTH++;
-
-      if (PRO_CALENDAR_MONTH > 11) {
-        PRO_CALENDAR_MONTH = 0;
-        PRO_CALENDAR_YEAR++;
-      }
-
-      renderProfessionalCalendar();
-    });
-
-    next.dataset.bound = "1";
-  }
-
-  if (months && !months.dataset.bound) {
-    months.addEventListener("click", event => {
-      const button = event.target.closest("[data-month]");
-      if (!button) return;
-
-      PRO_CALENDAR_MONTH = Number(button.dataset.month);
-      renderProfessionalCalendar();
-    });
-
-    months.dataset.bound = "1";
-  }
-
-  if (grid && !grid.dataset.bound) {
-    grid.addEventListener("click", event => {
-      const button = event.target.closest("[data-calendar-event]");
-      if (!button) return;
-
-      const row = PRO_CALENDAR_LOOKUP.get(button.dataset.calendarEvent);
-
-      if (row) {
-        renderProfessionalCalendarDetail(row);
-      }
-    });
-
-    grid.dataset.bound = "1";
-  }
-
-  if (modeToggle && !modeToggle.dataset.bound) {
-    modeToggle.addEventListener("click", event => {
-      const button = event.target.closest("[data-calendar-mode]");
-      if (!button) return;
-
-      PRO_CALENDAR_MODE = button.dataset.calendarMode;
-
-      // Quan canviem entre totes/autogestionades, anem al primer mes amb activitat d’aquest mode
-      const dates = getProfessionalCalendarWorkingRows()
-        .map(row => parseCalendarDate(getCalendarValue(row, "dataInici")))
-        .filter(Boolean)
-        .sort((a, b) => a - b);
-
-      if (dates.length) {
-        PRO_CALENDAR_YEAR = dates[0].getFullYear();
-        PRO_CALENDAR_MONTH = dates[0].getMonth();
-      }
-
-      renderProfessionalCalendar();
-    });
-
-    modeToggle.dataset.bound = "1";
-  }
-}
-
-function getProfessionalCalendarWorkingRows() {
-  return PRO_CALENDAR_MODE === "auto"
-    ? PRO_CALENDAR_AUTOGESTIONADES
-    : PRO_CALENDAR_ROWS;
-}
-
-function renderProfessionalCalendar() {
-  const grid = document.getElementById("pro-calendar-grid");
-  const title = document.getElementById("pro-calendar-title");
-  const subtitle = document.getElementById("pro-calendar-subtitle");
-  const months = document.getElementById("pro-calendar-months");
-  const modeToggle = document.getElementById("calendar-mode-toggle");
-
-  if (!grid) return;
-
-  const monthDate = new Date(PRO_CALENDAR_YEAR, PRO_CALENDAR_MONTH, 1);
-  const monthName = monthDate.toLocaleDateString("ca-ES", {
-    month: "long",
-    year: "numeric"
-  });
-
-  if (title) {
-    title.textContent = monthName.charAt(0).toUpperCase() + monthName.slice(1);
-  }
-
-  if (months) {
-    months.querySelectorAll("[data-month]").forEach(button => {
-      button.classList.toggle("active", Number(button.dataset.month) === PRO_CALENDAR_MONTH);
-    });
-  }
-
-  if (modeToggle) {
-    modeToggle.querySelectorAll("[data-calendar-mode]").forEach(button => {
-      button.classList.toggle("active", button.dataset.calendarMode === PRO_CALENDAR_MODE);
-    });
-  }
-
-  const workingRows = getProfessionalCalendarWorkingRows();
-  const events = getProfessionalCalendarEvents(PRO_CALENDAR_YEAR, PRO_CALENDAR_MONTH);
-
-  if (subtitle) {
-    const labelMode = PRO_CALENDAR_MODE === "auto" ? "autogestionades" : "totals";
-    subtitle.textContent = `${events.length} activitats ${labelMode} aquest mes · ${workingRows.length} activitats en total`;
-  }
-
-  PRO_CALENDAR_LOOKUP = new Map();
-
-  const firstDay = new Date(PRO_CALENDAR_YEAR, PRO_CALENDAR_MONTH, 1);
-  const lastDay = new Date(PRO_CALENDAR_YEAR, PRO_CALENDAR_MONTH + 1, 0);
-  const daysInMonth = lastDay.getDate();
-
-  const mondayOffset = (firstDay.getDay() + 6) % 7;
-  const totalCells = Math.ceil((mondayOffset + daysInMonth) / 7) * 7;
-
-  const eventsByDay = new Map();
-
-  events.forEach((eventItem, index) => {
-    const day = eventItem.date.getDate();
-
-    if (!eventsByDay.has(day)) {
-      eventsByDay.set(day, []);
-    }
-
-    const eventId = `event-${eventItem.row.__fila || index}-${index}`;
-    PRO_CALENDAR_LOOKUP.set(eventId, eventItem.row);
-
-    eventsByDay.get(day).push({
-      id: eventId,
-      row: eventItem.row
-    });
-  });
-
-  let html = "";
-
-  for (let cell = 0; cell < totalCells; cell++) {
-    const day = cell - mondayOffset + 1;
-
-    if (day < 1 || day > daysInMonth) {
-      html += `<div class="pro-calendar-day is-empty"></div>`;
-      continue;
-    }
-
-    const dayEvents = eventsByDay.get(day) || [];
-    const visibleEvents = dayEvents.slice(0, 4);
-    const moreCount = Math.max(dayEvents.length - visibleEvents.length, 0);
-
-    const eventsHtml = visibleEvents.map(item => {
-      const idIntern = getCalendarValue(item.row, "idIntern") || "";
-      const titol = getCalendarValue(item.row, "titol") || "Sense títol";
-
-      return `
-        <button class="pro-calendar-event" type="button" data-calendar-event="${escaparAtribut(item.id)}">
-          <span>${escaparHTML(idIntern)}</span>
-          <strong>${escaparHTML(titol)}</strong>
-        </button>
-      `;
-    }).join("");
-
-    html += `
-      <div class="pro-calendar-day">
-        <div class="pro-calendar-day-number">${day}</div>
-        <div class="pro-calendar-events">
-          ${eventsHtml}
-          ${moreCount ? `<div class="pro-calendar-more">+${moreCount} activitats més</div>` : ""}
-        </div>
-      </div>
-    `;
-  }
-
-  grid.innerHTML = html;
-
-  console.log("CALENDAR RENDER", {
-    mode: PRO_CALENDAR_MODE,
-    year: PRO_CALENDAR_YEAR,
-    month: PRO_CALENDAR_MONTH + 1,
-    workingRows: workingRows.length,
-    eventsThisMonth: events.length
-  });
-}
-
-function getProfessionalCalendarEvents(year, month) {
-  const workingRows = getProfessionalCalendarWorkingRows();
-
-  return workingRows
-    .map(row => {
-      return {
-        row,
-        date: parseCalendarDate(getCalendarValue(row, "dataInici"))
-      };
-    })
-    .filter(item => {
-      return (
-        item.date &&
-        item.date.getFullYear() === year &&
-        item.date.getMonth() === month
-      );
-    })
-    .sort((a, b) => {
-      const dateDiff = a.date - b.date;
-      if (dateDiff !== 0) return dateDiff;
-
-      return String(getCalendarValue(a.row, "horaInici")).localeCompare(
-        String(getCalendarValue(b.row, "horaInici"))
-      );
-    });
-}
-
-function renderProfessionalCalendarDetail(row) {
-  const detail = document.getElementById("pro-calendar-detail");
-  if (!detail) return;
-
-  const enllac = getCalendarValue(row, "enllacInscripcions");
-
-  const linkHtml = enllac
-    ? `<a class="detail-link" href="${escaparAtribut(enllac)}" target="_blank" rel="noopener noreferrer">Obrir enllaç d'inscripcions</a>`
-    : `<span class="warning-pill">Falta enllaç d'inscripcions</span>`;
-
-  detail.innerHTML = `
-    <span class="detail-eyebrow">Detall activitat</span>
-    <h3>${escaparHTML(getCalendarValue(row, "titol") || "Sense títol")}</h3>
-
-    <div class="detail-list">
-      ${detailItem("ID intern", getCalendarValue(row, "idIntern"))}
-      ${detailItem("Encarregada", getCalendarValue(row, "responsable"))}
-      ${detailItem("Títol activitat", getCalendarValue(row, "titol"))}
-      ${detailItem("Modalitat", getCalendarValue(row, "modalitat"))}
-      ${detailItem("Data inici", getCalendarValue(row, "dataInici"))}
-      ${detailItem("Hora inici", getCalendarValue(row, "horaInici"))}
-      ${detailItem("Categoria", getCalendarValue(row, "categoria"))}
-      ${detailItem("Espai", getCalendarValue(row, "espai"))}
-    </div>
-
-    <div class="detail-actions">
-      ${linkHtml}
-    </div>
-  `;
-}
-
-function detailItem(label, value) {
-  return `
-    <div class="detail-item">
-      <span>${escaparHTML(label)}</span>
-      <strong>${escaparHTML(value || "—")}</strong>
-    </div>
-  `;
-}
-
-function parseCalendarDate(value) {
-  const text = String(value || "").trim();
-
-  if (!text) return null;
-
-  // Format habitual: 16/06/2026, 16-06-2026, 16.06.2026
-  const dmy = text.match(/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{2,4})/);
-  if (dmy) {
-    const day = Number(dmy[1]);
-    const month = Number(dmy[2]) - 1;
-    let year = Number(dmy[3]);
-
-    if (year < 100) year += 2000;
-
-    const date = new Date(year, month, day);
-
-    if (!Number.isNaN(date.getTime())) {
-      return date;
-    }
-  }
-
-  // Format ISO: 2026-06-16
-  const ymd = text.match(/^(\d{4})[\/\-.](\d{1,2})[\/\-.](\d{1,2})/);
-  if (ymd) {
-    const year = Number(ymd[1]);
-    const month = Number(ymd[2]) - 1;
-    const day = Number(ymd[3]);
-
-    const date = new Date(year, month, day);
-
-    if (!Number.isNaN(date.getTime())) {
-      return date;
-    }
-  }
-
-  // Format Date text
-  const parsed = new Date(text);
-
-  if (!Number.isNaN(parsed.getTime())) {
-    return parsed;
-  }
-
-  return null;
-}
-
