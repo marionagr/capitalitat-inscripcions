@@ -2999,3 +2999,345 @@ tr:hover td {
     width: min(360px, 80vw);
   }
 }
+
+/* === CAPITALITAT_V4_REFINEMENTS_START === */
+
+/* ============================================================
+   REFINAMENT V4 · MÉS GLASS + COL·LAPSE MÉS MÀGIC
+============================================================ */
+
+/* Fons més profund, amb halo subtil central */
+.capitalitat-v4-overlay {
+  background:
+    radial-gradient(circle at 50% 45%, rgba(255, 228, 92, 0.10), transparent 24%),
+    radial-gradient(circle at 50% 52%, rgba(255, 255, 255, 0.055), transparent 34%),
+    radial-gradient(circle at 18% 18%, rgba(255, 228, 92, 0.055), transparent 26%),
+    rgba(0, 0, 0, 0.94) !important;
+}
+
+/* El logo respira una mica abans de col·lapsar */
+.capitalitat-v4-overlay.is-active .cv4-logo-stage {
+  animation:
+    cv4LogoInRefined 0.95s cubic-bezier(.22,1,.36,1) 0.15s forwards,
+    cv4LogoBreathRefined 1.4s ease-in-out 1.05s forwards,
+    cv4LogoCollapseRefined 1.25s cubic-bezier(.2,.92,.24,1) 2.95s forwards !important;
+}
+
+/* Capa de cristall diagonal sobre el logo */
+.cv4-logo-stage::before,
+.cv4-logo-stage::after {
+  content: "";
+  position: absolute;
+  inset: -8%;
+  z-index: 3;
+  mask-image: url("assets/logo-capitalitat.png");
+  -webkit-mask-image: url("assets/logo-capitalitat.png");
+  mask-repeat: no-repeat;
+  -webkit-mask-repeat: no-repeat;
+  mask-position: center;
+  -webkit-mask-position: center;
+  mask-size: contain;
+  -webkit-mask-size: contain;
+  pointer-events: none;
+}
+
+/* Reflex blanc tipus vidre */
+.cv4-logo-stage::before {
+  background:
+    linear-gradient(
+      125deg,
+      transparent 0%,
+      transparent 30%,
+      rgba(255,255,255,0.12) 39%,
+      rgba(255,255,255,0.58) 46%,
+      rgba(255,244,175,0.46) 52%,
+      transparent 64%,
+      transparent 100%
+    );
+  opacity: 0;
+  transform: translateX(-80%);
+  filter: blur(0.5px);
+}
+
+.capitalitat-v4-overlay.is-active .cv4-logo-stage::before {
+  animation: cv4LogoGlassReflection 1.7s cubic-bezier(.16,.84,.22,1) 0.75s forwards;
+}
+
+/* Aura suau darrere del logo */
+.cv4-logo-stage::after {
+  background: rgba(255, 228, 92, 0.35);
+  opacity: 0;
+  filter: blur(16px);
+  transform: scale(1.06);
+}
+
+.capitalitat-v4-overlay.is-active .cv4-logo-stage::after {
+  animation:
+    cv4LogoAuraIn 1.0s ease 0.25s forwards,
+    cv4LogoAuraPulse 1.5s ease-in-out 1.05s forwards,
+    cv4LogoAuraOut 0.8s ease 2.95s forwards;
+}
+
+/* Logo més cristal·lí */
+.cv4-logo-glass {
+  background:
+    linear-gradient(145deg,
+      rgba(255, 252, 210, 1) 0%,
+      rgba(255, 236, 105, 0.98) 24%,
+      rgba(255, 205, 26, 0.92) 52%,
+      rgba(255, 247, 184, 1) 76%,
+      rgba(255, 230, 92, 0.98) 100%) !important;
+  filter:
+    drop-shadow(0 0 8px rgba(255,228,92,0.42))
+    drop-shadow(0 0 26px rgba(255,228,92,0.24))
+    drop-shadow(0 0 60px rgba(255,228,92,0.12)) !important;
+}
+
+/* Glow exterior més elegant */
+.cv4-logo-glow {
+  background: rgba(255, 228, 92, 0.42) !important;
+  filter:
+    blur(14px)
+    drop-shadow(0 0 36px rgba(255,228,92,0.45))
+    drop-shadow(0 0 90px rgba(255,228,92,0.20)) !important;
+}
+
+/* Raig de llum més fi i més cinematogràfic */
+.cv4-logo-sweep {
+  background:
+    linear-gradient(
+      102deg,
+      transparent 0%,
+      transparent 36%,
+      rgba(255,255,255,0.08) 43%,
+      rgba(255,255,255,1) 48%,
+      rgba(255,247,190,1) 51%,
+      rgba(255,228,92,0.86) 55%,
+      rgba(255,255,255,0.14) 60%,
+      transparent 68%,
+      transparent 100%
+    ) !important;
+  filter:
+    drop-shadow(0 0 16px rgba(255,255,255,0.42))
+    drop-shadow(0 0 34px rgba(255,228,92,0.50))
+    drop-shadow(0 0 70px rgba(255,228,92,0.20)) !important;
+}
+
+/* El punt apareix com si absorbís el logo */
+.cv4-seed {
+  box-shadow:
+    0 0 18px rgba(255, 228, 92, 1),
+    0 0 52px rgba(255, 228, 92, 0.64),
+    0 0 120px rgba(255, 228, 92, 0.34) !important;
+}
+
+.cv4-seed::before {
+  content: "";
+  position: absolute;
+  inset: -20px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 228, 92, 0.38);
+  opacity: 0;
+  transform: scale(0.3);
+}
+
+.capitalitat-v4-overlay.is-active .cv4-seed::before {
+  animation: cv4SeedRipple 1.4s ease 3.78s forwards;
+}
+
+/* Quan neix la línia, que sembli que surt del punt */
+.cv4-line {
+  height: 1.2px !important;
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      rgba(255,255,255,0.78),
+      rgba(255,228,92,1),
+      rgba(255,255,255,0.78),
+      transparent
+    ) !important;
+  box-shadow:
+    0 0 20px rgba(255, 228, 92, 0.52),
+    0 0 54px rgba(255, 228, 92, 0.24) !important;
+}
+
+/* Dates una mica més fines i elegants */
+.cv4-date {
+  text-shadow:
+    0 0 16px rgba(255,255,255,0.16),
+    0 0 28px rgba(255,228,92,0.10);
+}
+
+/* Ring més glass */
+.cv4-ring {
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.14), rgba(255,255,255,0.035)),
+    radial-gradient(circle at 35% 20%, rgba(255,255,255,0.10), transparent 32%),
+    radial-gradient(circle at top, rgba(255, 228, 92, 0.16), transparent 50%) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.14),
+    inset 0 -1px 0 rgba(255,255,255,0.04),
+    0 34px 90px rgba(0,0,0,0.44),
+    0 0 90px rgba(255,228,92,0.14) !important;
+}
+
+/* KEYFRAMES REFINATS */
+
+@keyframes cv4LogoInRefined {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.91);
+    filter: blur(16px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+    filter: blur(0);
+  }
+}
+
+@keyframes cv4LogoBreathRefined {
+  0% {
+    transform: translate(-50%, -50%) scale(1);
+  }
+
+  45% {
+    transform: translate(-50%, -50%) scale(1.025);
+  }
+
+  100% {
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+/* Important: ara el logo col·lapsa exactament cap al punt central */
+@keyframes cv4LogoCollapseRefined {
+  0% {
+    top: 43%;
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+    filter: blur(0);
+  }
+
+  35% {
+    top: 43%;
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(0.78);
+    filter: blur(0.5px);
+  }
+
+  68% {
+    top: calc(50% + 84px);
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(0.18);
+    filter: blur(1.5px);
+  }
+
+  100% {
+    top: calc(50% + 84px);
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.035);
+    filter: blur(8px);
+  }
+}
+
+@keyframes cv4LogoGlassReflection {
+  0% {
+    opacity: 0;
+    transform: translateX(-95%) skewX(-8deg);
+  }
+
+  16% {
+    opacity: 0.9;
+  }
+
+  68% {
+    opacity: 0.85;
+  }
+
+  100% {
+    opacity: 0;
+    transform: translateX(95%) skewX(-8deg);
+  }
+}
+
+@keyframes cv4LogoAuraIn {
+  from {
+    opacity: 0;
+    transform: scale(0.98);
+  }
+
+  to {
+    opacity: 0.42;
+    transform: scale(1.04);
+  }
+}
+
+@keyframes cv4LogoAuraPulse {
+  0% {
+    opacity: 0.42;
+    transform: scale(1.04);
+  }
+
+  50% {
+    opacity: 0.70;
+    transform: scale(1.10);
+  }
+
+  100% {
+    opacity: 0.42;
+    transform: scale(1.04);
+  }
+}
+
+@keyframes cv4LogoAuraOut {
+  to {
+    opacity: 0;
+    transform: scale(0.20);
+    filter: blur(20px);
+  }
+}
+
+@keyframes cv4SeedRipple {
+  0% {
+    opacity: 0;
+    transform: scale(0.35);
+  }
+
+  20% {
+    opacity: 0.85;
+  }
+
+  100% {
+    opacity: 0;
+    transform: scale(2.8);
+  }
+}
+
+@media (max-width: 620px) {
+  @keyframes cv4LogoCollapseRefined {
+    0% {
+      top: 43%;
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1);
+      filter: blur(0);
+    }
+
+    68% {
+      top: calc(50% + 96px);
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(0.18);
+      filter: blur(1.5px);
+    }
+
+    100% {
+      top: calc(50% + 96px);
+      opacity: 0;
+      transform: translate(-50%, -50%) scale(0.035);
+      filter: blur(8px);
+    }
+  }
+}
+
