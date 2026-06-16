@@ -45,6 +45,7 @@ let PRO_CALENDAR_MODE = "all";
 document.addEventListener("DOMContentLoaded", () => {
   activarNavegacio();
   activarAnimacioLogoCapitalitat();
+  activarIntroInicialCapitalitat();
   carregarDades();
 });
 
@@ -1258,3 +1259,59 @@ function calcularProgresCapitalitat() {
     remainingDays
   };
 }
+
+
+/* =========================
+   INTRO AUTOMÀTICA CAPITALITAT
+========================= */
+
+function activarIntroInicialCapitalitat() {
+  // Petita pausa perquè la web acabi d'aparèixer abans de la intro
+  window.setTimeout(() => {
+    mostrarIntroInicialCapitalitat();
+  }, 450);
+}
+
+function mostrarIntroInicialCapitalitat() {
+  if (document.body.dataset.capitalitatIntroActive === "1") return;
+
+  document.body.dataset.capitalitatIntroActive = "1";
+
+  const intro = document.createElement("div");
+  intro.id = "capitalitat-intro-overlay";
+  intro.className = "capitalitat-intro-overlay";
+  intro.setAttribute("aria-hidden", "true");
+
+  intro.innerHTML = `
+    <div class="capitalitat-intro-light"></div>
+
+    <div class="capitalitat-intro-title">
+      <span>Barcelona 2026</span>
+      <strong>Capital Mundial de l'Arquitectura</strong>
+    </div>
+  `;
+
+  document.body.appendChild(intro);
+
+  requestAnimationFrame(() => {
+    intro.classList.add("is-active");
+  });
+
+  // Quan la llum arriba al centre, apareix el text
+  window.setTimeout(() => {
+    intro.classList.add("show-title");
+  }, 2550);
+
+  // Desapareix la intro
+  window.setTimeout(() => {
+    intro.classList.add("is-leaving");
+  }, 4300);
+
+  // S'elimina la intro i comença l'animació de la línia + percentatge
+  window.setTimeout(() => {
+    intro.remove();
+    document.body.dataset.capitalitatIntroActive = "0";
+    mostrarAnimacioCapitalitat();
+  }, 5050);
+}
+

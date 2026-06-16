@@ -1694,3 +1694,254 @@ tr:hover td {
   }
 }
 
+
+
+/* =========================================
+   INTRO AUTOMÀTICA · BARCELONA 2026
+========================================= */
+
+.capitalitat-intro-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  opacity: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 50% 50%, rgba(255, 228, 92, 0.08), transparent 28%),
+    radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.06), transparent 24%),
+    rgba(0, 0, 0, 0.86);
+  backdrop-filter: blur(26px);
+  -webkit-backdrop-filter: blur(26px);
+  transition: opacity 0.65s ease;
+}
+
+.capitalitat-intro-overlay.is-active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.capitalitat-intro-overlay.is-leaving {
+  opacity: 0;
+  transition: opacity 0.75s ease;
+}
+
+.capitalitat-intro-light {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 12px;
+  height: 12px;
+  border-radius: 999px;
+  background: #ffe45c;
+  box-shadow:
+    0 0 18px rgba(255, 228, 92, 0.95),
+    0 0 48px rgba(255, 228, 92, 0.55),
+    0 0 110px rgba(255, 228, 92, 0.28);
+  opacity: 0;
+  transform: translate(-10vw, 75vh) scale(0.75);
+}
+
+.capitalitat-intro-light::before {
+  content: "";
+  position: absolute;
+  width: 180px;
+  height: 1px;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 228, 92, 0.02),
+    rgba(255, 228, 92, 0.62)
+  );
+  filter: blur(1px);
+}
+
+.capitalitat-intro-light::after {
+  content: "";
+  position: absolute;
+  inset: -32px;
+  border-radius: 999px;
+  background: radial-gradient(circle, rgba(255, 228, 92, 0.22), transparent 62%);
+  filter: blur(8px);
+}
+
+.capitalitat-intro-overlay.is-active .capitalitat-intro-light {
+  animation: capitalitatIntroLightMove 3.05s cubic-bezier(.16, .84, .22, 1) forwards;
+}
+
+.capitalitat-intro-title {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  justify-items: center;
+  text-align: center;
+  opacity: 0;
+  transform: translateY(18px) scale(0.96);
+  filter: blur(16px);
+}
+
+.capitalitat-intro-overlay.show-title .capitalitat-intro-title {
+  animation: capitalitatIntroTitleIn 1.05s cubic-bezier(.22, 1, .36, 1) forwards;
+}
+
+.capitalitat-intro-title span {
+  display: block;
+  color: #ffffff;
+  font-size: clamp(52px, 8vw, 118px);
+  line-height: 0.9;
+  font-weight: 500;
+  letter-spacing: -0.08em;
+  text-shadow:
+    0 0 22px rgba(255, 255, 255, 0.12),
+    0 0 70px rgba(255, 228, 92, 0.14);
+}
+
+.capitalitat-intro-title strong {
+  display: block;
+  margin-top: 22px;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: clamp(15px, 1.7vw, 24px);
+  line-height: 1.25;
+  font-weight: 300;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+@keyframes capitalitatIntroLightMove {
+  0% {
+    opacity: 0;
+    transform: translate(-12vw, 72vh) scale(0.6);
+  }
+
+  10% {
+    opacity: 1;
+  }
+
+  32% {
+    transform: translate(28vw, 18vh) scale(0.82);
+  }
+
+  58% {
+    transform: translate(72vw, 66vh) scale(0.72);
+  }
+
+  82% {
+    opacity: 1;
+    transform: translate(50vw, 50vh) scale(1.15);
+  }
+
+  100% {
+    opacity: 0.95;
+    transform: translate(50vw, 50vh) scale(1.9);
+  }
+}
+
+@keyframes capitalitatIntroTitleIn {
+  0% {
+    opacity: 0;
+    transform: translateY(18px) scale(0.96);
+    filter: blur(16px);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0);
+  }
+}
+
+/* PUNT DE LLUM QUE VIATJA PER LA LÍNIA */
+.capitalitat-line {
+  position: relative;
+  overflow: visible;
+}
+
+.capitalitat-line::before,
+.capitalitat-line::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: #ffe45c;
+  opacity: 0;
+  box-shadow:
+    0 0 14px rgba(255, 228, 92, 0.95),
+    0 0 34px rgba(255, 228, 92, 0.55);
+}
+
+.capitalitat-line::before {
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.capitalitat-line::after {
+  right: 50%;
+  transform: translate(50%, -50%);
+}
+
+.capitalitat-overlay.is-active .capitalitat-line::before {
+  animation: capitalitatLineLightLeft 2.25s cubic-bezier(.18, .86, .22, 1) forwards;
+}
+
+.capitalitat-overlay.is-active .capitalitat-line::after {
+  animation: capitalitatLineLightRight 2.25s cubic-bezier(.18, .86, .22, 1) forwards;
+}
+
+@keyframes capitalitatLineLightLeft {
+  0% {
+    opacity: 0;
+    left: 50%;
+  }
+
+  12% {
+    opacity: 1;
+  }
+
+  82% {
+    opacity: 1;
+    left: 0%;
+  }
+
+  100% {
+    opacity: 0;
+    left: 0%;
+  }
+}
+
+@keyframes capitalitatLineLightRight {
+  0% {
+    opacity: 0;
+    right: 50%;
+  }
+
+  12% {
+    opacity: 1;
+  }
+
+  82% {
+    opacity: 1;
+    right: 0%;
+  }
+
+  100% {
+    opacity: 0;
+    right: 0%;
+  }
+}
+
+@media (max-width: 720px) {
+  .capitalitat-intro-title span {
+    font-size: clamp(44px, 14vw, 72px);
+  }
+
+  .capitalitat-intro-title strong {
+    max-width: 82vw;
+  }
+}
