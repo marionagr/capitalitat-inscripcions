@@ -2664,3 +2664,372 @@ mostrarExperienciaCapitalitatV5 = function() {
     }, 700);
   }, 18500);
 };
+
+/* === CAPITALITAT_TOTAL_CHARTS_FIX_START === */
+
+/* ============================================================
+   TOTAL PASSIS · 5 GRÀFIQUES EN FILA + DADES NORMALITZADES
+============================================================ */
+
+(() => {
+  let capitalitatRowsCache = null;
+  let capitalitatKeysCache = null;
+
+  const MONTHS_CA = [
+    "Gener", "Febrer", "Març", "Abril", "Maig", "Juny",
+    "Juliol", "Agost", "Setembre", "Octubre", "Novembre", "Desembre"
+  ];
+
+  function capNorm(value) {
+    return String(value ?? "")
+      .replace(/\u00a0/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+  }
+
+  function capNormCategory(value) {
+    const v = capNorm(value);
+
+    if (!v) return "Sense categoria";
+
+    const low = v.toLowerCase();
+
+    if (low === "rutes" || low === "ruta") return "Rutes";
+    if (low === "exposicio" || low === "exposició" || low === "exposicions") return "Exposicions";
+    if (low === "conferencia" || low === "conferència" || low === "conferències") return "Conferències";
+    if (low === "instal·lacio" || low === "instal·lació" || low === "instal·lacions") return "Instal·lacions";
+    if (low === "taller" || low === "tallers") return "Tallers";
+
+    return v;
+  }
+
+  function capNormEntrada(value) {
+    const v = capNorm(value);
+    if (!v) return "Sense informació";
+
+    const low = v.toLowerCase();
+
+    if (low.includes("inscrip")) return "Gratuïta amb inscripció prèvia";
+    if (low.includes("pagament")) return "De pagament";
+    if (low === "gratuïta" || low === "gratuita" || low === "gratuït" || low === "gratuit") return "Gratuïta";
+
+    return v;
+  }
+
+  function capCountBy(rows, key, normalizer = capNorm) {
+    const map = new Map();
+
+    rows.forEach(row => {
+      const label = normalizer(row[key]);
+      map.set(label, (map.get(label) || 0) + 1);
+    });
+
+    return [...map.entries()]
+      .map(([label, value]) => ({ label, value }))
+      .sort((a, b) => b.value - a.value || a.label.localeCompare(b.label, "ca"));
+  }
+
+  function capParseDate(value) {
+    const raw = capNorm(value);
+    if (!raw) return null;
+
+    const match = raw.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})/);
+    if (!match) return null;
+
+    const day = Number(match[1]);
+    const month = Number(match[2]) - 1;
+    let year = Number(match[3]);
+
+    if (year < 100) year += 2000;
+
+    if (!Number.isFinite(day) || !Number.isFinite(month) || !Number.isFinite(year)) return null;
+    if (month < 0 || month > 11) return null;
+
+    return new Date(year, month, day);
+  }
+
+  async function capLoadRows() {
+    if (capitalitatRowsCache && capitalitatKeysCache) {
+      return { rows: capitalitatRowsCache, keys: capitalitatKeysCache };
+    }
+
+    const response = await fetch("data/inscripcions.json?v=" + Date.now());
+    const data = await response.json();
+
+    capitalitatRowsCache = Array.isArray(data.rows) ? data.rows : [];
+    capitalitatKeysCache = data.columnKeys || {};
+
+    return {
+      rows: capitalitatRowsCache,
+      keys: capitalitatKeysCache
+    };
+  }
+
+  function capFindChart(idOptions) {
+    for (const id of idOptions) {
+      const el = document.getElementById(id);
+      if (el) return el;
+    }
+
+    return null;
+  }
+
+  function capFindCard(chartEl) {
+    if (!chartEl) return null;
+
+    return chartEl.closest(
+      ".chart-card, .dashboard-card, .glass-card, .panel, .card, .stat-card, .chart-panel"
+    ) || chartEl.parentElement;
+  }
+
+  function capInstallFiveChartRow() {
+    const charts = [
+      capFindChart(["chart-modalitat"]),
+      capFindChart(["chart-categoria"]),
+      capFindChart(["chart-districte"]),
+      capFindChart(["chart-responsable", "chart-encarregada"]),
+      capFindChart(["chart-tipus-entrada", "chart-entrada"])
+    ].filter(Boolean);
+
+    if (charts.length < 2) return;
+
+    const cards = charts.map(capFindCard).filter(Boolean);
+    if (!cards.length) return;
+
+    const firstCard = cards[0];
+
+    let wrapper = document.querySelector(".capitalitat-five-charts-row");
+    if (!wrapper) {
+      wrapper = document.createElement("div");
+      wrapper.className = "capitalitat-five-charts-row";
+      firstCard.parentElement.insertBefore(wrapper, firstCard);
+    }
+
+    cards.forEach(card => {
+      card.classList.add("capitalitat-five-chart-card");
+      wrapper.appendChild(card);
+    });
+  }
+
+  function capRenderLinearChart(chartEl, title, items, total) {
+    if (!chartEl) return;
+
+    const max = Math.max(1, ...items.map(item => item.value));
+
+    chartEl.innerHTML = `
+      <div class="cap-linear-chart">
+        <div class="cap-linear-head">
+          <strong>${title}</strong>
+          <span>${total} passis</span>
+        </div>
+
+        <div class="cap-linear-list">
+          ${items.map(item => {
+            const width = Math.max(3, Math.round((item.value / max) * 100));
+            return `
+              <div class="cap-linear-row" title="${item.label}: ${item.value} passis">
+                <div class="cap-linear-label">
+                  <span>${item.label}</span>
+                  <strong>${item.value}</strong>
+                </div>
+                <div class="cap-linear-track">
+                  <i style="width:${width}%"></i>
+                </div>
+              </div>
+            `;
+          }).join("")}
+        </div>
+      </div>
+    `;
+  }
+
+  function capRenderMonthChart(chartEl, rows, keys) {
+    if (!chartEl) return;
+
+    const dateKey = keys.dataInici || "data_inici";
+    const counts = Array.from({ length: 12 }, () => 0);
+
+    rows.forEach(row => {
+      const date = capParseDate(row[dateKey]);
+      if (!date) return;
+      counts[date.getMonth()] += 1;
+    });
+
+    const total = rows.length;
+    const max = Math.max(1, ...counts);
+
+    const width = 920;
+    const height = 260;
+    const padX = 48;
+    const padTop = 38;
+    const padBottom = 48;
+    const chartH = height - padTop - padBottom;
+    const step = (width - padX * 2) / 11;
+
+    const points = counts.map((value, index) => {
+      const x = padX + step * index;
+      const y = padTop + chartH - (value / max) * chartH;
+
+      return {
+        month: MONTHS_CA[index],
+        value,
+        x,
+        y
+      };
+    });
+
+    const lineD = points.map((p, i) => `${i === 0 ? "M" : "L"} ${p.x.toFixed(2)} ${p.y.toFixed(2)}`).join(" ");
+
+    chartEl.innerHTML = `
+      <div class="cap-month-chart">
+        <div class="cap-month-head">
+          <div>
+            <strong>Total passis per mes</strong>
+            <span>Distribució mensual segons la data d’inici</span>
+          </div>
+          <b>${total} passis</b>
+        </div>
+
+        <div class="cap-month-svg-wrap">
+          <svg class="cap-month-svg" viewBox="0 0 ${width} ${height}" preserveAspectRatio="none" aria-label="Total passis per mes">
+            <defs>
+              <linearGradient id="capMonthLineGradient" x1="0" x2="1" y1="0" y2="0">
+                <stop offset="0%" stop-color="rgba(255,228,92,0.2)" />
+                <stop offset="50%" stop-color="rgba(255,228,92,1)" />
+                <stop offset="100%" stop-color="rgba(255,228,92,0.2)" />
+              </linearGradient>
+            </defs>
+
+            ${[0, 0.25, 0.5, 0.75, 1].map(t => {
+              const y = padTop + chartH * t;
+              return `<line x1="${padX}" y1="${y}" x2="${width - padX}" y2="${y}" class="cap-month-grid" />`;
+            }).join("")}
+
+            <path d="${lineD}" class="cap-month-line" />
+
+            ${points.map((p, index) => `
+              <g class="cap-month-point"
+                 data-month="${p.month}"
+                 data-value="${p.value}"
+                 transform="translate(${p.x}, ${p.y})">
+                <circle r="6"></circle>
+                <circle r="14"></circle>
+              </g>
+
+              <text class="cap-month-label"
+                    x="${p.x}"
+                    y="${height - 18}"
+                    text-anchor="middle">${p.month.slice(0, 3)}</text>
+            `).join("")}
+          </svg>
+        </div>
+      </div>
+    `;
+
+    capInstallMonthTooltip(chartEl);
+  }
+
+  function capInstallMonthTooltip(chartEl) {
+    let tooltip = document.querySelector(".cap-month-tooltip");
+
+    if (!tooltip) {
+      tooltip = document.createElement("div");
+      tooltip.className = "cap-month-tooltip";
+      document.body.appendChild(tooltip);
+    }
+
+    chartEl.querySelectorAll(".cap-month-point").forEach(point => {
+      point.addEventListener("mouseenter", () => {
+        const month = point.dataset.month;
+        const value = point.dataset.value;
+        tooltip.innerHTML = `<strong>${value}</strong><span>${month} · passis</span>`;
+        tooltip.classList.add("is-visible");
+      });
+
+      point.addEventListener("mousemove", event => {
+        tooltip.style.left = `${event.clientX + 14}px`;
+        tooltip.style.top = `${event.clientY - 20}px`;
+      });
+
+      point.addEventListener("mouseleave", () => {
+        tooltip.classList.remove("is-visible");
+      });
+    });
+  }
+
+  async function capRenderTotalChartsFixed() {
+    try {
+      const { rows, keys } = await capLoadRows();
+
+      const total = rows.length;
+
+      capRenderLinearChart(
+        capFindChart(["chart-modalitat"]),
+        "Modalitat",
+        capCountBy(rows, keys.modalitat || "modalitat"),
+        total
+      );
+
+      capRenderLinearChart(
+        capFindChart(["chart-categoria"]),
+        "Categoria",
+        capCountBy(rows, keys.categoria || "categoria", capNormCategory),
+        total
+      );
+
+      capRenderLinearChart(
+        capFindChart(["chart-districte"]),
+        "Districte",
+        capCountBy(rows, keys.districte || "districte"),
+        total
+      );
+
+      capRenderLinearChart(
+        capFindChart(["chart-responsable", "chart-encarregada"]),
+        "Encarregada",
+        capCountBy(rows, keys.responsable || "encarregada"),
+        total
+      );
+
+      capRenderLinearChart(
+        capFindChart(["chart-tipus-entrada", "chart-entrada"]),
+        "Tipus d’entrada",
+        capCountBy(rows, keys.entrada || "entrada", capNormEntrada),
+        total
+      );
+
+      capRenderMonthChart(
+        capFindChart(["chart-any-complet", "chart-mesos-total", "chart-mesos"]),
+        rows,
+        keys
+      );
+
+      capInstallFiveChartRow();
+    } catch (error) {
+      console.error("Error renderitzant gràfiques totals corregides:", error);
+    }
+  }
+
+  function capScheduleTotalChartsFixed() {
+    window.setTimeout(capRenderTotalChartsFixed, 250);
+    window.setTimeout(capRenderTotalChartsFixed, 900);
+  }
+
+  document.addEventListener("DOMContentLoaded", capScheduleTotalChartsFixed);
+  window.addEventListener("load", capScheduleTotalChartsFixed);
+
+  document.addEventListener("click", event => {
+    const target = event.target.closest("button, a, .nav-item, .sidebar-item");
+    if (!target) return;
+
+    const txt = capNorm(target.textContent).toLowerCase();
+
+    if (
+      txt.includes("total passis") ||
+      txt.includes("passis") ||
+      txt.includes("total")
+    ) {
+      capScheduleTotalChartsFixed();
+    }
+  });
+})();

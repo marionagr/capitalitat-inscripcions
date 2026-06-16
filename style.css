@@ -4917,3 +4917,270 @@ tr:hover td {
     transform: translateY(12px) scale(1.04) !important;
   }
 }
+
+/* === CAPITALITAT_TOTAL_CHARTS_FIX_STYLE === */
+
+/* 5 gràfiques petites en una sola fila */
+.capitalitat-five-charts-row {
+  display: grid !important;
+  grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+  gap: 14px !important;
+  align-items: stretch !important;
+  width: 100% !important;
+  margin: 18px 0 18px !important;
+}
+
+.capitalitat-five-chart-card {
+  min-width: 0 !important;
+  height: auto !important;
+}
+
+/* Gràfica lineal compacta */
+.cap-linear-chart {
+  min-width: 0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.cap-linear-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: baseline;
+  margin-bottom: 2px;
+}
+
+.cap-linear-head strong {
+  color: rgba(255,255,255,0.94);
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+}
+
+.cap-linear-head span {
+  color: rgba(255,255,255,0.42);
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.cap-linear-list {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  max-height: 255px;
+  overflow: auto;
+  padding-right: 3px;
+}
+
+.cap-linear-list::-webkit-scrollbar {
+  width: 4px;
+}
+
+.cap-linear-list::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.16);
+  border-radius: 99px;
+}
+
+.cap-linear-row {
+  display: grid;
+  gap: 4px;
+}
+
+.cap-linear-label {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.cap-linear-label span {
+  min-width: 0;
+  color: rgba(255,255,255,0.72);
+  font-size: 11.5px;
+  line-height: 1.15;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cap-linear-label strong {
+  color: rgba(255,228,92,0.96);
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.cap-linear-track {
+  position: relative;
+  width: 100%;
+  height: 4px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.075);
+}
+
+.cap-linear-track i {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(255,228,92,0.34), rgba(255,228,92,1));
+  box-shadow:
+    0 0 10px rgba(255,228,92,0.38),
+    0 0 22px rgba(255,228,92,0.14);
+}
+
+/* Gràfic mensual total */
+.cap-month-chart {
+  width: 100%;
+  display: grid;
+  gap: 18px;
+}
+
+.cap-month-head {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.cap-month-head strong {
+  display: block;
+  color: rgba(255,255,255,0.94);
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: -0.04em;
+}
+
+.cap-month-head span {
+  display: block;
+  margin-top: 4px;
+  color: rgba(255,255,255,0.44);
+  font-size: 12px;
+}
+
+.cap-month-head b {
+  color: #ffe45c;
+  font-size: 22px;
+  font-weight: 650;
+  letter-spacing: -0.05em;
+  white-space: nowrap;
+  text-shadow: 0 0 18px rgba(255,228,92,0.18);
+}
+
+.cap-month-svg-wrap {
+  width: 100%;
+  height: 280px;
+}
+
+.cap-month-svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.cap-month-grid {
+  stroke: rgba(255,255,255,0.07);
+  stroke-width: 1;
+}
+
+.cap-month-line {
+  fill: none;
+  stroke: url(#capMonthLineGradient);
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  filter:
+    drop-shadow(0 0 10px rgba(255,228,92,0.32))
+    drop-shadow(0 0 26px rgba(255,228,92,0.12));
+}
+
+.cap-month-point {
+  cursor: pointer;
+}
+
+.cap-month-point circle:first-child {
+  fill: #ffe45c;
+  stroke: rgba(255,255,255,0.72);
+  stroke-width: 1.4;
+  filter:
+    drop-shadow(0 0 7px rgba(255,228,92,0.85))
+    drop-shadow(0 0 18px rgba(255,228,92,0.28));
+}
+
+.cap-month-point circle:last-child {
+  fill: transparent;
+  stroke: transparent;
+}
+
+.cap-month-label {
+  fill: rgba(255,255,255,0.48);
+  font-size: 12px;
+  letter-spacing: -0.03em;
+}
+
+.cap-month-tooltip {
+  position: fixed;
+  z-index: 30000;
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(4px);
+  padding: 10px 12px;
+  border-radius: 14px;
+  color: #fff;
+  background:
+    linear-gradient(180deg, rgba(20,20,20,0.96), rgba(8,8,8,0.92));
+  border: 1px solid rgba(255,228,92,0.22);
+  box-shadow:
+    0 18px 40px rgba(0,0,0,0.34),
+    0 0 24px rgba(255,228,92,0.14);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  transition:
+    opacity 0.12s ease,
+    transform 0.12s ease;
+}
+
+.cap-month-tooltip.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.cap-month-tooltip strong {
+  display: block;
+  color: #ffe45c;
+  font-size: 18px;
+  line-height: 1;
+  margin-bottom: 4px;
+}
+
+.cap-month-tooltip span {
+  display: block;
+  color: rgba(255,255,255,0.72);
+  font-size: 12px;
+}
+
+/* Responsive */
+@media (max-width: 1450px) {
+  .capitalitat-five-charts-row {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (max-width: 920px) {
+  .capitalitat-five-charts-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (max-width: 620px) {
+  .capitalitat-five-charts-row {
+    grid-template-columns: 1fr !important;
+  }
+
+  .cap-month-head {
+    align-items: start;
+    flex-direction: column;
+  }
+}
