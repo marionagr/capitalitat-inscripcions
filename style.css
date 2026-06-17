@@ -6665,3 +6665,448 @@ tr:hover td {
     grid-template-columns: 1fr !important;
   }
 }
+
+/* === CAPITALITAT_GLASS_THEME_V1 === */
+
+/* ============================================================
+   GLASS THEME · inspirat en la referència
+============================================================ */
+
+:root {
+  --glass-bg-main: #d9d9dd;
+  --glass-bg-soft: #e8e8eb;
+  --glass-card: rgba(255, 255, 255, 0.30);
+  --glass-card-strong: rgba(255, 255, 255, 0.42);
+  --glass-line: rgba(70, 70, 80, 0.16);
+  --glass-line-strong: rgba(70, 70, 80, 0.24);
+  --glass-text: #111214;
+  --glass-text-soft: rgba(17, 18, 20, 0.62);
+  --glass-shadow:
+    0 18px 40px rgba(40, 40, 50, 0.10),
+    0 6px 18px rgba(40, 40, 50, 0.08);
+  --glass-shadow-soft:
+    0 14px 30px rgba(40, 40, 50, 0.08),
+    0 4px 12px rgba(40, 40, 50, 0.06);
+  --glass-radius-xl: 30px;
+  --glass-radius-lg: 24px;
+  --glass-radius-md: 18px;
+}
+
+/* Base */
+html,
+body {
+  background:
+    radial-gradient(circle at top left, rgba(255,255,255,0.65), transparent 28%),
+    radial-gradient(circle at bottom right, rgba(190,200,220,0.20), transparent 30%),
+    linear-gradient(180deg, #dddddf 0%, #d2d2d7 100%) !important;
+  color: var(--glass-text) !important;
+}
+
+body * {
+  scrollbar-color: rgba(70,70,80,0.24) transparent;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 20% 15%, rgba(255,255,255,0.35), transparent 18%),
+    radial-gradient(circle at 75% 30%, rgba(173,198,255,0.15), transparent 16%),
+    radial-gradient(circle at 55% 70%, rgba(255,223,180,0.10), transparent 18%);
+  opacity: 0.9;
+  z-index: 0;
+}
+
+/* Contenidors principals */
+.app,
+.layout,
+main,
+.main-content,
+.page-content,
+.content,
+.view,
+section {
+  color: var(--glass-text) !important;
+}
+
+/* Sidebar / menú */
+.sidebar,
+aside,
+.left-sidebar,
+.menu-sidebar,
+nav {
+  background: rgba(255,255,255,0.12) !important;
+  border-right: 1px solid rgba(70,70,80,0.10) !important;
+  backdrop-filter: blur(26px) saturate(145%);
+  -webkit-backdrop-filter: blur(26px) saturate(145%);
+  box-shadow: inset -1px 0 0 rgba(255,255,255,0.20);
+}
+
+/* Logo capçalera esquerra */
+.sidebar img,
+.sidebar-logo,
+.brand-logo,
+.logo-wrap {
+  filter: none !important;
+}
+
+/* Títols */
+h1, h2, h3, h4, h5, h6,
+.hero-title,
+.section-title,
+.page-title {
+  color: var(--glass-text) !important;
+  text-shadow: none !important;
+}
+
+p, span, small, label, li, td, th, div {
+  color: inherit;
+}
+
+.subtitle,
+.muted,
+.section-subtitle,
+.hero-subtitle,
+.cap-month-detail-head span,
+.cap-annual-head span {
+  color: var(--glass-text-soft) !important;
+}
+
+/* Targetes generals */
+.card,
+.panel,
+.widget,
+.cap-annual-card,
+.cap-month-chart-v3,
+.cap-month-chart-v2,
+.cap-month-chart-premium,
+.cap-month-detail-card,
+.cap-month-radial-card,
+.capitalitat-five-chart-card,
+.cap-month-detail-bottom > div,
+.cap-annual-kpis div,
+.cap-month-detail-kpis div,
+.cap-annual-loading,
+.cap-calendar-tabs,
+table,
+thead,
+tbody,
+tr,
+.calendar-card,
+.map-card {
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.36), rgba(255,255,255,0.22)) !important;
+  border: 1px solid var(--glass-line) !important;
+  color: var(--glass-text) !important;
+  box-shadow: var(--glass-shadow) !important;
+  backdrop-filter: blur(22px) saturate(145%);
+  -webkit-backdrop-filter: blur(22px) saturate(145%);
+}
+
+/* Targetes amb efecte vidre més suau */
+.capitalitat-five-chart-card,
+.cap-month-radial-card,
+.cap-month-detail-bottom > div,
+.cap-annual-kpis div,
+.cap-month-detail-kpis div {
+  position: relative;
+  overflow: hidden;
+}
+
+.capitalitat-five-chart-card::after,
+.cap-month-radial-card::after,
+.cap-month-detail-card::after,
+.cap-annual-card::after,
+.cap-month-detail-bottom > div::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(135deg,
+      rgba(255,255,255,0.36) 0%,
+      rgba(255,255,255,0.08) 32%,
+      rgba(180,205,255,0.10) 50%,
+      rgba(255,225,185,0.08) 68%,
+      rgba(255,255,255,0.04) 100%);
+  opacity: 0.65;
+}
+
+/* Botons tipus iPhone glass */
+button,
+.nav-pill,
+.cap-calendar-tabs button,
+.cap-month-pills span,
+.cap-month-detail-close,
+input,
+select,
+textarea {
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.34), rgba(255,255,255,0.18)) !important;
+  border: 1px solid var(--glass-line-strong) !important;
+  color: var(--glass-text) !important;
+  box-shadow:
+    0 14px 24px rgba(40,40,50,0.10),
+    inset 0 1px 0 rgba(255,255,255,0.45),
+    inset 0 -1px 0 rgba(120,120,140,0.10) !important;
+  backdrop-filter: blur(18px) saturate(150%);
+  -webkit-backdrop-filter: blur(18px) saturate(150%);
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease,
+    border-color 0.18s ease,
+    background 0.18s ease;
+}
+
+button:hover,
+.nav-pill:hover,
+.cap-calendar-tabs button:hover,
+.cap-month-detail-close:hover {
+  transform: translateY(-1px);
+  box-shadow:
+    0 18px 28px rgba(40,40,50,0.12),
+    inset 0 1px 0 rgba(255,255,255,0.52),
+    0 0 0 1px rgba(255,255,255,0.18) !important;
+}
+
+button:active,
+.nav-pill:active {
+  transform: translateY(0);
+}
+
+/* Pastilles del menú esquerre */
+.nav-pill,
+.cap-calendar-tabs button {
+  border-radius: 999px !important;
+}
+
+.nav-pill {
+  position: relative;
+  overflow: hidden;
+}
+
+.nav-pill::before,
+.cap-calendar-tabs button::before,
+button::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(120deg,
+      rgba(255,255,255,0.32) 0%,
+      rgba(255,255,255,0.04) 30%,
+      rgba(180,210,255,0.18) 48%,
+      rgba(255,230,205,0.16) 58%,
+      rgba(255,255,255,0.04) 75%);
+  opacity: 0.85;
+}
+
+.nav-pill.active,
+.nav-pill.is-active,
+.cap-calendar-tabs button.is-active {
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.45), rgba(255,255,255,0.24)) !important;
+  border-color: rgba(90,90,110,0.24) !important;
+  color: #000 !important;
+  box-shadow:
+    0 18px 28px rgba(40,40,50,0.14),
+    inset 0 1px 0 rgba(255,255,255,0.55),
+    0 0 0 1px rgba(255,255,255,0.18) !important;
+}
+
+/* Textos interns de gràfics i widgets */
+.cap-linear-head strong,
+.cap-month-detail-head h3,
+.cap-annual-head h3,
+.cap-month-v3-kpis strong,
+.cap-month-v2-kpis strong,
+.cap-month-kpi strong,
+.cap-annual-kpis strong,
+.cap-month-detail-kpis strong,
+.cap-month-radial-card h4,
+.cap-month-v3-legend strong,
+.cap-month-v2-legend strong {
+  color: #0d0e10 !important;
+}
+
+.cap-linear-head span,
+.cap-month-v3-kpis span,
+.cap-month-v2-kpis span,
+.cap-month-kpi span,
+.cap-annual-kpis span,
+.cap-month-detail-kpis span,
+.cap-month-v3-legend span,
+.cap-month-v2-legend span,
+.cap-month-radial-list,
+.cap-month-radial-label,
+.cap-annual-head p,
+.cap-annual-legend,
+.cap-annual-category-label,
+.cap-annual-month-label,
+.cap-month-v3-axis-y,
+.cap-month-v2-axis-y,
+.cap-month-v2-axis-x {
+  color: rgba(17,18,20,0.62) !important;
+  fill: rgba(17,18,20,0.62) !important;
+}
+
+/* Taules */
+table {
+  border-collapse: separate !important;
+  border-spacing: 0;
+  overflow: hidden;
+  border-radius: 22px;
+}
+
+thead th {
+  background: rgba(255,255,255,0.24) !important;
+  color: var(--glass-text) !important;
+}
+
+tbody tr {
+  background: transparent !important;
+}
+
+tbody tr:not(:last-child) td {
+  border-bottom: 1px solid rgba(70,70,80,0.08) !important;
+}
+
+td, th {
+  color: var(--glass-text) !important;
+}
+
+/* Inputs */
+input,
+select,
+textarea {
+  border-radius: 18px !important;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: rgba(17,18,20,0.42) !important;
+}
+
+/* Línies i eixos dels gràfics */
+.cap-month-v3-grid,
+.cap-month-v2-grid,
+.cap-month-grid-vertical,
+.cap-annual-grid-line,
+.cap-annual-row-line,
+.cap-month-radial-grid,
+.cap-month-radial-axis {
+  stroke: rgba(40,40,50,0.10) !important;
+}
+
+.cap-month-v3-line-yellow,
+.cap-month-v2-line-yellow,
+.cap-month-line-passes {
+  stroke: rgba(40,40,50,0.88) !important;
+  filter:
+    drop-shadow(0 0 4px rgba(255,255,255,0.20))
+    drop-shadow(0 0 10px rgba(255,255,255,0.08)) !important;
+}
+
+.cap-month-v3-area,
+.cap-month-v2-area,
+.cap-month-radial-fill {
+  fill: rgba(120,130,150,0.12) !important;
+}
+
+.cap-month-point-passes circle:first-child,
+.cap-month-radial-point,
+.cap-annual-bubble {
+  fill: rgba(70,70,85,0.78) !important;
+  stroke: rgba(255,255,255,0.45) !important;
+}
+
+.cap-month-point-categories circle {
+  fill: rgba(255,255,255,0.88) !important;
+  stroke: rgba(80,80,90,0.25) !important;
+}
+
+/* Tooltips */
+.cap-month-tooltip,
+.cap-annual-tooltip {
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.62), rgba(255,255,255,0.36)) !important;
+  border: 1px solid rgba(80,80,90,0.15) !important;
+  color: var(--glass-text) !important;
+  box-shadow: var(--glass-shadow-soft) !important;
+  backdrop-filter: blur(18px) saturate(150%);
+  -webkit-backdrop-filter: blur(18px) saturate(150%);
+}
+
+.cap-month-tooltip strong,
+.cap-annual-tooltip strong {
+  color: #111214 !important;
+}
+
+.cap-month-tooltip span,
+.cap-month-tooltip em,
+.cap-annual-tooltip span,
+.cap-annual-tooltip em {
+  color: rgba(17,18,20,0.68) !important;
+}
+
+/* KPI blocks */
+.cap-annual-kpis strong,
+.cap-month-detail-kpis strong,
+.cap-month-v3-kpis strong,
+.cap-month-v2-kpis strong,
+.cap-month-kpi-small strong {
+  color: #111214 !important;
+}
+
+/* Pills inferiors */
+.cap-month-pills span {
+  color: #111214 !important;
+}
+
+.cap-month-pills strong {
+  color: rgba(17,18,20,0.66) !important;
+}
+
+/* Text general del dashboard */
+.cap-month-radial-list strong,
+.cap-month-radial-list span b,
+.cap-month-detail-bottom h4,
+.cap-annual-legend div,
+.cap-calendar-tabs button,
+.nav-pill,
+button {
+  color: #111214 !important;
+}
+
+/* Mapa i calendaris */
+.leaflet-container,
+.mapboxgl-map,
+iframe,
+.calendar-grid,
+.calendar-card,
+.cap-calendar-monthly-panel,
+.cap-calendar-annual-panel {
+  border-radius: 24px !important;
+  overflow: hidden;
+}
+
+/* Si encara hi ha restes de fons negre */
+.view,
+section,
+.main-panel,
+.content-panel {
+  background: transparent !important;
+}
+
+/* Responsive */
+@media (max-width: 860px) {
+  .cap-annual-card,
+  .cap-month-chart-v3,
+  .cap-month-detail-card,
+  .capitalitat-five-chart-card {
+    border-radius: 24px !important;
+  }
+}
