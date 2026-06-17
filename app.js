@@ -5058,3 +5058,327 @@ mostrarExperienciaCapitalitatV5 = function() {
   });
 })();
 
+
+
+
+/* === CAPITALITAT_YEAR_CHART_CLEAN_AND_MONTH_BARS === */
+(() => {
+  const CAP_MONTHS_FULL = [
+    "Gener","Febrer","Març","Abril","Maig","Juny",
+    "Juliol","Agost","Setembre","Octubre","Novembre","Desembre"
+  ];
+
+  const CAP_MONTHS_ABBR = [
+    "GEN","FEB","MAR","ABR","MAI","JUN",
+    "JUL","AGO","SET","OCT","NOV","DES"
+  ];
+
+  let capJsonCache = null;
+
+  function capNorm(value) {
+    return String(value ?? "")
+      .replace(/\u00a0/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+  }
+
+  function capSlug(value) {
+    return capNorm(value)
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "");
+  }
+
+  function capParseDate(value) {
+    const raw = capNorm(value);
+    const match = raw.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
+    if (!match) return null;
+    const d = new Date(Number(match[3]), Number(match[2]) - 1, Number(match[1]));
+    return Number.isNaN(d.getTime()) ? null : d;
+  }
+
+  function capCleanLabel(value, fallback) {
+    const txt = capNorm(value);
+    if (!txt) return fallback;
+
+    if (fallback.toLowerCase().includes("districte")) {
+      const m = txt.match(/^\d+\s+(.*)$/);
+      if (m) return capNorm(m[1]) || fallback;
+    }
+
+    return txt;
+  }
+
+  async function capGetJson() {
+    if (capJsonCache) return capJsonCache;
+    const res = await fetch(`data/inscripcions.json?t=${Date.now()}`);
+    if (!res.ok) throw new Error("No s'ha pogut carregar data/inscripcions.json");
+    capJsonCache = await res.json();
+    return capJsonCache;
+  }
+
+  function capFindYearCard() {
+    return document.querySelector("#cap-clean-year-card")
+      || document.querySelector(".cap-clean-year-card")
+      || Array.from(document.querySelectorAll("#view-total section, #view-total div, #view-total article"))
+           .find(el => capNorm(el.textContent).toLowerCase().includes("activitats al llarg de l'any"));
+  }
+
+  function capRemoveOldMonthDetail(card) {
+    if (!card) return;
+
+    // Eliminem el detall antic si existeix
+    card.querySelectorAll(
+      ".cap-clean-month-detail, .cap-month-detail, .month-detail, .cap-month-graphs-panel-old"
+    ).forEach(el => el.remove());
+
+    // També podem buidar blocs antics molt petits de llistes si hi són
+    card.querySelectorAll(".cap-old-month-breakdown").forEach(el => el.remove());
+  }
+
+  function capCleanYearChart(card) {
+    if (!card) return;
+    const svg = card.querySelector("svg");
+    if (!svg) return;
+
+    // 1) Treure línies grises de fons (paths secundaris)
+    const paths = Array.from(svg.querySelectorAll("path"));
+    if (paths.length > 1) {
+      const scored = paths.map(p => {
+        const cs = getComputedStyle(p);
+        const sw = parseFloat(cs.strokeWidth || p.getAttribute("stroke-width") || "0") || 0;
+        const d = p.getAttribute("d") || "";
+        return { p, score: sw * 1000 + d.length };
+      }).sort((a, b) => b.score - a.score);
+
+      const keepMain = scored[0] ? scored[0].p : null;
+
+      scored.forEach(({ p }) => {
+        if (p !== keepMain) {
+          p.style.display = "none";
+        } else {
+          p.style.stroke = "#202228";
+          p.style.fill = "none";
+          p.style.strokeWidth = "2";
+          p.style.strokeLinecap = "round";
+          p.style.strokeLinejoin = "round";
+        }
+      });
+    }
+
+    // 2) Treure línies grises horitzontals i decoratives
+    Array.from(svg.querySelectorAll("line")).forEach(line => {
+      const x1 = parseFloat(line.getAttribute("x1") || "0");
+      const x2 = parseFloat(line.getAttribute("x2") || "0");
+      const y1 = parseFloat(line.getAttribute("y1") || "0");
+      const y2 = parseFloat(line.getAttribute("y2") || "0");
+      const dash = line.getAttribute("stroke-dasharray") || "";
+      const horizontal = Math.abs(y1 - y2) < 0.5;
+      const vertical = Math.abs(x1 - x2) < 0.5;
+
+      // mantenim només la vertical discontínua del mes seleccionat
+      if (horizontal) {
+        line.style.display = "none";
+      } else if (vertical && dash) {
+        line.style.stroke = "rgba(32,34,40,0.35)";
+        line.style.strokeWidth = "1";
+      } else if (vertical) {
+        line.style.display = "none";
+      }
+    });
+
+    // 3) Punts més fins i negres
+    Array.from(svg.querySelectorAll("circle")).forEach(circle => {
+      circle.setAttribute("r", "2.6");
+      circle.style.fill = "#202228";
+      circle.style.stroke = "none";
+    });
+  }
+
+  function capBuildMonthDataset(rows, keys, monthIndex) {
+    const startKey = keys.dataInici || "data_inici";
+    const catKey = keys.categoria || "categoria";
+    const distKey = keys.districte || "districte";
+
+    const filtered = rows.filter(row => {
+      const d = capParseDate(row[startKey]);
+      return d && d.getMonth() === monthIndex;
+    });
+
+    const categories = {};
+    const districts = {};
+
+    filtered.forEach(row => {
+      const c = capCleanLabel(row[catKey], "Sense categoria");
+      const d = capCleanLabel(row[distKey], "Sense districte");
+
+      categories[c] = (categories[c] || 0) + 1;
+      districts[d] = (districts[d] || 0) + 1;
+    });
+
+    const catList = Object.entries(categories)
+      .sort((a, b) => b[1] - a[1])
+      .map(([label, value]) => ({ label, value }));
+
+    const distList = Object.entries(districts)
+      .sort((a, b) => b[1] - a[1])
+      .map(([label, value]) => ({ label, value }));
+
+    return {
+      monthIndex,
+      monthName: CAP_MONTHS_FULL[monthIndex],
+      total: filtered.length,
+      categories: catList,
+      districts: distList
+    };
+  }
+
+  function capVerticalBarsHTML(items, total) {
+    if (!items.length) {
+      return `<div class="cap-vbars-empty">Sense dades</div>`;
+    }
+
+    const max = Math.max(...items.map(i => i.value), 1);
+
+    return `
+      <div class="cap-vbars-wrap">
+        ${items.map(item => {
+          const h = Math.max(8, (item.value / max) * 120);
+          const pct = total ? ((item.value / total) * 100) : 0;
+          return `
+            <div class="cap-vbar-item" title="${item.label}: ${item.value}">
+              <div class="cap-vbar-value">${item.value}</div>
+              <div class="cap-vbar-track">
+                <div class="cap-vbar-fill" style="height:${h}px"></div>
+              </div>
+              <div class="cap-vbar-label">${item.label}</div>
+              <div class="cap-vbar-pct">${pct.toFixed(1).replace(".", ",")}%</div>
+            </div>
+          `;
+        }).join("")}
+      </div>
+    `;
+  }
+
+  async function capRenderMonthBars(monthIndex) {
+    const card = capFindYearCard();
+    if (!card) return;
+
+    const data = await capGetJson();
+    const rows = Array.isArray(data.rows) ? data.rows : [];
+    const keys = data.columnKeys || {};
+
+    capRemoveOldMonthDetail(card);
+
+    card.querySelectorAll("#cap-month-graphs-panel").forEach(el => el.remove());
+
+    const dataset = capBuildMonthDataset(rows, keys, monthIndex);
+
+    const panel = document.createElement("div");
+    panel.id = "cap-month-graphs-panel";
+    panel.className = "cap-month-graphs-panel";
+    panel.innerHTML = `
+      <div class="cap-month-panel-head">
+        <div>
+          <h4>${dataset.monthName}</h4>
+          <p>${dataset.total} passis aquest mes</p>
+        </div>
+      </div>
+
+      <div class="cap-month-graphs-grid">
+        <section class="cap-month-graph-card">
+          <div class="cap-month-graph-top">
+            <h5>Categories</h5>
+            <span>${dataset.categories.length} opcions</span>
+          </div>
+          ${capVerticalBarsHTML(dataset.categories, dataset.total)}
+        </section>
+
+        <section class="cap-month-graph-card">
+          <div class="cap-month-graph-top">
+            <h5>Districtes</h5>
+            <span>${dataset.districts.length} opcions</span>
+          </div>
+          ${capVerticalBarsHTML(dataset.districts, dataset.total)}
+        </section>
+      </div>
+    `;
+
+    card.appendChild(panel);
+  }
+
+  function capBindMonthClicks() {
+    const card = capFindYearCard();
+    if (!card) return;
+    const svg = card.querySelector("svg");
+    if (!svg) return;
+
+    const texts = Array.from(svg.querySelectorAll("text"));
+
+    texts.forEach(textEl => {
+      const raw = capNorm(textEl.textContent).toUpperCase();
+      const idx = CAP_MONTHS_ABBR.indexOf(raw);
+      if (idx === -1) return;
+
+      if (textEl.dataset.capBound === "1") return;
+      textEl.dataset.capBound = "1";
+      textEl.style.cursor = "pointer";
+
+      textEl.addEventListener("click", (e) => {
+        e.preventDefault();
+        capRenderMonthBars(idx);
+      });
+    });
+
+    // Per defecte: mes vigent
+    const nowIdx = new Date().getMonth();
+    capRenderMonthBars(nowIdx);
+  }
+
+  function capForceBlackSmallCharts() {
+    document.querySelectorAll(
+      '#chart-modalitat .bar-fill, #chart-categoria .bar-fill, #chart-districte .bar-fill, #chart-encarregada .bar-fill, #chart-tipus-entrada .bar-fill,' +
+      '#chart-modalitat-auto .bar-fill, #chart-categoria-auto .bar-fill, #chart-districte-auto .bar-fill, #chart-encarregada-auto .bar-fill, #chart-tipus-entrada-auto .bar-fill,' +
+      '[id^="chart-"] .bar-fill, [id^="chart-"] .chart-bar-fill, [id^="chart-"] .cap-bar-fill, [id^="chart-"] .progress-fill'
+    ).forEach(el => {
+      el.style.background = "#202228";
+      el.style.borderColor = "#202228";
+    });
+  }
+
+  function capRunYearUpgrade() {
+    setTimeout(() => {
+      const card = capFindYearCard();
+      capCleanYearChart(card);
+      capBindMonthClicks();
+      capForceBlackSmallCharts();
+    }, 250);
+
+    setTimeout(() => {
+      const card = capFindYearCard();
+      capCleanYearChart(card);
+      capBindMonthClicks();
+      capForceBlackSmallCharts();
+    }, 1000);
+
+    setTimeout(() => {
+      const card = capFindYearCard();
+      capCleanYearChart(card);
+      capBindMonthClicks();
+      capForceBlackSmallCharts();
+    }, 2200);
+  }
+
+  document.addEventListener("DOMContentLoaded", capRunYearUpgrade);
+  window.addEventListener("load", capRunYearUpgrade);
+
+  document.addEventListener("click", (e) => {
+    const btn = e.target.closest("button, .nav-pill, [data-view]");
+    if (!btn) return;
+    const txt = capNorm(btn.textContent).toLowerCase();
+    if (txt.includes("total") || txt.includes("passis")) {
+      capRunYearUpgrade();
+    }
+  });
+})();
+
