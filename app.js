@@ -5827,3 +5827,248 @@ mostrarExperienciaCapitalitatV5 = function() {
     }
   });
 })();
+
+/* === CAPITALITAT_YEAR_CHART_FINAL_SINGLE_REPLACE === */
+
+(() => {
+  const MONTHS = ["GEN", "FEB", "MAR", "ABR", "MAI", "JUN", "JUL", "AGO", "SET", "OCT", "NOV", "DES"];
+  let selectedMonthFinal = new Date().getMonth();
+
+  function parseDateFinal(value) {
+    const raw = String(value ?? "").trim();
+    const match = raw.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+    if (!match) return null;
+
+    const date = new Date(Number(match[3]), Number(match[2]) - 1, Number(match[1]));
+    return isNaN(date.getTime()) ? null : date;
+  }
+
+  function getRowsFinal(data) {
+    if (Array.isArray(data)) return data;
+    if (Array.isArray(data.rows)) return data.rows;
+    return [];
+  }
+
+  function smoothPathFinal(points) {
+    if (!points.length) return "";
+    let d = `M ${points[0].x} ${points[0].y}`;
+
+    for (let i = 0; i < points.length - 1; i++) {
+      const p0 = points[i - 1] || points[i];
+      const p1 = points[i];
+      const p2 = points[i + 1];
+      const p3 = points[i + 2] || p2;
+
+      const cp1x = p1.x + (p2.x - p0.x) / 6;
+      const cp1y = p1.y + (p2.y - p0.y) / 6;
+      const cp2x = p2.x - (p3.x - p1.x) / 6;
+      const cp2y = p2.y - (p3.y - p1.y) / 6;
+
+      d += ` C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${p2.x} ${p2.y}`;
+    }
+
+    return d;
+  }
+
+  function buildPointsFinal(values, width, height, margin, maxValue) {
+    const innerW = width - margin.left - margin.right;
+    const innerH = height - margin.top - margin.bottom;
+    const baseY = margin.top + innerH;
+
+    return values.map((value, index) => ({
+      index,
+      value,
+      month: MONTHS[index],
+      x: margin.left + (innerW / 11) * index,
+      y: baseY - (value / maxValue) * innerH
+    }));
+  }
+
+  function buildGhostValuesFinal(values, factor, shift) {
+    return values.map((value, index) => {
+      const wave = Math.sin(index * 0.9 + shift) * 18;
+      return Math.max(0, Math.round(value * factor + wave + 24));
+    });
+  }
+
+  function buildChartFinal(values) {
+    const width = 1080;
+    const height = 370;
+    const margin = { top: 34, right: 34, bottom: 64, left: 58 };
+
+    const total = values.reduce((sum, value) => sum + value, 0);
+    const peak = Math.max(...values);
+    const peakMonth = MONTHS[values.indexOf(peak)];
+    const average = Math.round(total / 12);
+
+    const maxValue = Math.ceil(Math.max(peak, 100) / 100) * 100;
+    const points = buildPointsFinal(values, width, height, margin, maxValue);
+    const mainPath = smoothPathFinal(points);
+
+    const ghost1 = smoothPathFinal(buildPointsFinal(buildGhostValuesFinal(values, 0.75, 0.4), width, height, margin, maxValue));
+    const ghost2 = smoothPathFinal(buildPointsFinal(buildGhostValuesFinal(values, 0.55, 1.1), width, height, margin, maxValue));
+    const ghost3 = smoothPathFinal(buildPointsFinal(buildGhostValuesFinal(values, 0.45, 1.8), width, height, margin, maxValue));
+
+    const selected = points[selectedMonthFinal] || points[0];
+    const baseY = height - margin.bottom;
+
+    const grid = [0.25, 0.50, 0.75, 1].map(ratio => {
+      const y = margin.top + (baseY - margin.top) * (1 - ratio);
+      return `
+        <line class="cap-final-year-grid" x1="${margin.left}" y1="${y}" x2="${width - margin.right}" y2="${y}" />
+        <text class="cap-final-year-y" x="${margin.left - 12}" y="${y + 4}" text-anchor="end">${Math.round(ratio * 100)}%</text>
+      `;
+    }).join("");
+
+    const months = points.map(point => `
+      <g class="cap-final-year-month ${point.index === selectedMonthFinal ? "is-active" : ""}" data-month-index="${point.index}">
+        <rect x="${point.x - 34}" y="${baseY + 14}" width="68" height="30" rx="12" fill="transparent"></rect>
+        <text x="${point.x}" y="${baseY + 34}" text-anchor="middle">${point.month}</text>
+      </g>
+    `).join("");
+
+    const clickZones = points.map(point => `
+      <rect class="cap-final-year-click"
+            data-month-index="${point.index}"
+            x="${point.x - 28}"
+            y="${margin.top}"
+            width="56"
+            height="${baseY - margin.top + 44}"
+            fill="transparent"></rect>
+    `).join("");
+
+    return `
+      <div class="cap-final-year-head">
+        <div>
+          <span>06</span>
+          <h3>Activitats al llarg de l’any</h3>
+          <p>Distribució mensual de totes les files segons la data d’inici.</p>
+        </div>
+      </div>
+
+      <div class="cap-final-year-inner">
+        <div class="cap-final-year-kpis">
+          <div>
+            <strong>${total}</strong>
+            <span>PASSIS TOTALS</span>
+          </div>
+          <div>
+            <strong>${peak}</strong>
+            <span>PIC MENSUAL · ${peakMonth}</span>
+          </div>
+          <div>
+            <strong>${average}</strong>
+            <span>MITJANA / MES</span>
+          </div>
+        </div>
+
+        <svg class="cap-final-year-svg" viewBox="0 0 ${width} ${height}" aria-label="Activitats al llarg de l'any">
+          ${grid}
+
+          <path class="cap-final-year-ghost" d="${ghost1}"></path>
+          <path class="cap-final-year-ghost" d="${ghost2}"></path>
+          <path class="cap-final-year-ghost is-soft" d="${ghost3}"></path>
+
+          <path class="cap-final-year-main" d="${mainPath}"></path>
+
+          <line class="cap-final-year-marker"
+                x1="${selected.x}"
+                y1="${selected.y}"
+                x2="${selected.x}"
+                y2="${baseY}"></line>
+
+          <circle class="cap-final-year-dot"
+                  cx="${selected.x}"
+                  cy="${selected.y}"
+                  r="5"></circle>
+
+          ${clickZones}
+          ${months}
+        </svg>
+
+        <div class="cap-final-year-legend">
+          <span><i></i>Passis per mes · clica un mes per veure el dashboard mensual</span>
+        </div>
+      </div>
+    `;
+  }
+
+  async function renderFinalSingleYearChart() {
+    const totalView = document.querySelector("#view-total");
+    if (!totalView) return;
+
+    const response = await fetch(`data/inscripcions.json?t=${Date.now()}`);
+    if (!response.ok) return;
+
+    const data = await response.json();
+    const rows = getRowsFinal(data);
+    const keys = data.columnKeys || {};
+    const startKey = keys.dataInici || "data_inici";
+
+    const values = Array.from({ length: 12 }, () => 0);
+
+    rows.forEach(row => {
+      const date = parseDateFinal(row[startKey]);
+      if (!date) return;
+      values[date.getMonth()] += 1;
+    });
+
+    // Esborrem absolutament totes les versions anteriors del gràfic anual.
+    totalView.querySelectorAll(
+      "#cap-year-final-card, #cap-year-chart-elegant, .cap-year-black-card, .cap-year-chart-card, .cap-month-chart-v3, .cap-month-chart-v2, .cap-month-chart-premium, .cap-month-chart"
+    ).forEach(el => {
+      const text = String(el.textContent || "").toLowerCase();
+      if (
+        text.includes("activitats al llarg de l'any") ||
+        text.includes("activitats al llarg de l’any") ||
+        el.querySelector(".cap-month-v3-line-yellow, .cap-year-black-main, .cap-year-line-main, .cap-final-year-main")
+      ) {
+        el.remove();
+      }
+    });
+
+    const card = document.createElement("section");
+    card.id = "cap-year-final-card";
+    card.className = "cap-final-year-card";
+    card.innerHTML = buildChartFinal(values);
+
+    const chartsRow = totalView.querySelector(".capitalitat-five-charts-row");
+
+    if (chartsRow) {
+      chartsRow.insertAdjacentElement("afterend", card);
+    } else {
+      totalView.appendChild(card);
+    }
+
+    card.querySelectorAll("[data-month-index]").forEach(el => {
+      el.addEventListener("click", () => {
+        selectedMonthFinal = Number(el.dataset.monthIndex);
+        renderFinalSingleYearChart();
+
+        document.dispatchEvent(new CustomEvent("capitalitat:month-selected", {
+          detail: { monthIndex: selectedMonthFinal }
+        }));
+      });
+    });
+  }
+
+  function scheduleFinalSingleYearChart() {
+    setTimeout(renderFinalSingleYearChart, 250);
+    setTimeout(renderFinalSingleYearChart, 1000);
+    setTimeout(renderFinalSingleYearChart, 2400);
+  }
+
+  document.addEventListener("DOMContentLoaded", scheduleFinalSingleYearChart);
+  window.addEventListener("load", scheduleFinalSingleYearChart);
+
+  document.addEventListener("click", event => {
+    const el = event.target.closest("button, .nav-pill, [data-view], .sidebar-item, .nav-item");
+    if (!el) return;
+
+    const text = String(el.textContent || "").toLowerCase();
+
+    if (text.includes("total") || text.includes("passis")) {
+      scheduleFinalSingleYearChart();
+    }
+  });
+})();
