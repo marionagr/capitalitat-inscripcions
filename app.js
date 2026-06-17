@@ -4823,3 +4823,238 @@ mostrarExperienciaCapitalitatV5 = function() {
   });
 })();
 
+
+
+
+/* === CAPITALITAT_AVUI_DAILY_CHART_BLACK === */
+(() => {
+  function norm(value) {
+    return String(value ?? "").replace(/\u00a0/g, " ").replace(/\s+/g, " ").trim();
+  }
+
+  function parseDate(value) {
+    const raw = norm(value);
+    const match = raw.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/);
+    if (!match) return null;
+    const d = new Date(Number(match[3]), Number(match[2]) - 1, Number(match[1]));
+    return isNaN(d.getTime()) ? null : d;
+  }
+
+  function smoothPath(points) {
+    if (!points.length) return "";
+    let d = `M ${points[0].x} ${points[0].y}`;
+    for (let i = 0; i < points.length - 1; i++) {
+      const p0 = points[i - 1] || points[i];
+      const p1 = points[i];
+      const p2 = points[i + 1];
+      const p3 = points[i + 2] || p2;
+
+      const cp1x = p1.x + (p2.x - p0.x) / 6;
+      const cp1y = p1.y + (p2.y - p0.y) / 6;
+      const cp2x = p2.x - (p3.x - p1.x) / 6;
+      const cp2y = p2.y - (p3.y - p1.y) / 6;
+
+      d += ` C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${p2.x} ${p2.y}`;
+    }
+    return d;
+  }
+
+  function findCardByTitle(title) {
+    const all = Array.from(document.querySelectorAll("#view-total section, #view-total article, #view-total div"));
+    return all.find(el => {
+      const text = norm(el.textContent).toLowerCase();
+      return text.includes(title.toLowerCase()) &&
+             el.offsetWidth > 180 &&
+             el.offsetHeight > 140;
+    });
+  }
+
+  async function renderAvuiCard() {
+    const totalView = document.querySelector("#view-total");
+    if (!totalView) return;
+
+    const response = await fetch(`data/inscripcions.json?t=${Date.now()}`);
+    if (!response.ok) return;
+
+    const data = await response.json();
+    const rows = Array.isArray(data.rows) ? data.rows : [];
+    const keys = data.columnKeys || {};
+    const startKey = keys.dataInici || "data_inici";
+
+    const avuiCard = findCardByTitle("Avui");
+    if (!avuiCard) return;
+
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = today.getMonth();
+    const todayDay = today.getDate();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+    const counts = Array.from({ length: daysInMonth }, () => 0);
+
+    rows.forEach(row => {
+      const d = parseDate(row[startKey]);
+      if (!d) return;
+      if (d.getFullYear() === year && d.getMonth() === month) {
+        counts[d.getDate() - 1] += 1;
+      }
+    });
+
+    const totalMonth = counts.reduce((a, b) => a + b, 0);
+    const todayCount = counts[todayDay - 1] || 0;
+    const pctMonth = totalMonth ? (todayCount / totalMonth) * 100 : 0;
+
+    // treure gauge vell
+    avuiCard.querySelectorAll("svg").forEach(svg => svg.remove());
+    avuiCard.querySelectorAll(".cap-avui-daily-chart-wrap").forEach(el => el.remove());
+
+    // actualitzar texts vells si existeixen
+    const ps = Array.from(avuiCard.querySelectorAll("p, span, small, div"));
+    ps.forEach(el => {
+      const txt = norm(el.textContent).toLowerCase();
+      if (txt.includes("vigents") || txt.includes("passis vigents") || txt.includes("del total")) {
+        if (el.children.length === 0 && el.textContent.length < 80) {
+          el.textContent = "";
+        }
+      }
+    });
+
+    const width = 360;
+    const height = 170;
+    const margin = { top: 18, right: 18, bottom: 34, left: 36 };
+    const chartW = width - margin.left - margin.right;
+    const chartH = height - margin.top - margin.bottom;
+
+    const maxY = Math.max(...counts, 1);
+    const yTop = Math.ceil(maxY / 5) * 5 || 5;
+
+    const points = counts.map((value, index) => {
+      const x = margin.left + (chartW / Math.max(daysInMonth - 1, 1)) * index;
+      const y = margin.top + chartH - (value / yTop) * chartH;
+      return { x, y, value, day: index + 1 };
+    });
+
+    const path = smoothPath(points);
+    const todayPoint = points[todayDay - 1];
+
+    const yTicks = [0, 0.5, 1].map(r => Math.round(yTop * r));
+    const yGrid = yTicks.map(v => {
+      const y = margin.top + chartH - (v / yTop) * chartH;
+      return `
+        <line x1="${margin.left}" y1="${y}" x2="${width - margin.right}" y2="${y}" class="cap-avui-grid"></line>
+        <text x="${margin.left - 8}" y="${y + 4}" text-anchor="end" class="cap-avui-y">${v}</text>
+      `;
+    }).join("");
+
+    const monthLabel = today.toLocaleDateString("ca-ES", { month: "long" });
+
+    const xLabels = Array.from({ length: daysInMonth }, (_, i) => i + 1)
+      .filter(d => d === 1 || d == todayDay || d % 5 === 0 || d === daysInMonth)
+      .map(d => {
+        const x = margin.left + (chartW / Math.max(daysInMonth - 1, 1)) * (d - 1);
+        return `<text x="${x}" y="${height - 8}" text-anchor="middle" class="cap-avui-x">${d}</text>`;
+      }).join("");
+
+    const html = `
+      <div class="cap-avui-daily-chart-wrap">
+        <div class="cap-avui-topline">
+          <div class="cap-avui-mainstat">
+            <strong>${todayCount}</strong>
+            <span>AVUI = ${todayCount} passis</span>
+          </div>
+          <div class="cap-avui-sidepct">
+            <strong>${pctMonth.toFixed(1).replace(".", ",")}%</strong>
+            <span>del total de ${monthLabel}</span>
+          </div>
+        </div>
+
+        <svg class="cap-avui-daily-svg" viewBox="0 0 ${width} ${height}" aria-label="Passis del mes actual per dia">
+          ${yGrid}
+          <line x1="${margin.left}" y1="${margin.top + chartH}" x2="${width - margin.right}" y2="${margin.top + chartH}" class="cap-avui-axis"></line>
+          <line x1="${margin.left}" y1="${margin.top}" x2="${margin.left}" y2="${margin.top + chartH}" class="cap-avui-axis"></line>
+
+          <path d="${path}" class="cap-avui-line"></path>
+
+          <line x1="${todayPoint.x}" y1="${todayPoint.y}" x2="${todayPoint.x}" y2="${margin.top + chartH}" class="cap-avui-marker"></line>
+          <circle cx="${todayPoint.x}" cy="${todayPoint.y}" r="4" class="cap-avui-dot"></circle>
+
+          <text x="${todayPoint.x}" y="${todayPoint.y - 10}" text-anchor="middle" class="cap-avui-label">AVUI</text>
+
+          ${xLabels}
+        </svg>
+
+        <div class="cap-avui-footnote">
+          <span>Dies de ${monthLabel}</span>
+          <span>${totalMonth} passis aquest mes</span>
+        </div>
+      </div>
+    `;
+
+    avuiCard.insertAdjacentHTML("beforeend", html);
+  }
+
+  function forceBlackBars() {
+    const chartRoots = [
+      "#chart-modalitat",
+      "#chart-categoria",
+      "#chart-districte",
+      "#chart-encarregada",
+      "#chart-tipus-entrada",
+      "#chart-modalitat-auto",
+      "#chart-categoria-auto",
+      "#chart-districte-auto",
+      "#chart-encarregada-auto",
+      "#chart-tipus-entrada-auto"
+    ];
+
+    chartRoots.forEach(sel => {
+      document.querySelectorAll(`${sel} *`).forEach(el => {
+        const st = el.getAttribute("style") || "";
+        const h = el.offsetHeight || 0;
+        const w = el.offsetWidth || 0;
+
+        if (
+          h <= 12 &&
+          w >= 20 &&
+          (
+            st.includes("background") ||
+            st.includes("width:")
+          )
+        ) {
+          el.style.background = "#202228";
+          el.style.borderColor = "#202228";
+        }
+      });
+    });
+  }
+
+  function runAvuiCard() {
+    setTimeout(() => {
+      renderAvuiCard();
+      forceBlackBars();
+    }, 350);
+
+    setTimeout(() => {
+      renderAvuiCard();
+      forceBlackBars();
+    }, 1200);
+
+    setTimeout(() => {
+      renderAvuiCard();
+      forceBlackBars();
+    }, 2400);
+  }
+
+  document.addEventListener("DOMContentLoaded", runAvuiCard);
+  window.addEventListener("load", runAvuiCard);
+
+  document.addEventListener("click", (e) => {
+    const btn = e.target.closest("button, .nav-pill, [data-view]");
+    if (!btn) return;
+    const txt = norm(btn.textContent).toLowerCase();
+    if (txt.includes("total") || txt.includes("passis")) {
+      runAvuiCard();
+    }
+  });
+})();
+

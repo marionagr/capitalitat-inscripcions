@@ -9676,3 +9676,115 @@ textarea {
   height: auto !important;
 }
 
+
+
+
+/* === CAPITALITAT_AVUI_DAILY_CHART_BLACK_STYLE === */
+
+/* Línies dels gràfics petits en negre */
+#chart-modalitat .bar-fill,
+#chart-categoria .bar-fill,
+#chart-districte .bar-fill,
+#chart-encarregada .bar-fill,
+#chart-tipus-entrada .bar-fill,
+#chart-modalitat-auto .bar-fill,
+#chart-categoria-auto .bar-fill,
+#chart-districte-auto .bar-fill,
+#chart-encarregada-auto .bar-fill,
+#chart-tipus-entrada-auto .bar-fill,
+[id^="chart-"] .bar-fill,
+[id^="chart-"] .chart-bar-fill,
+[id^="chart-"] .cap-bar-fill,
+[id^="chart-"] .progress-fill {
+  background: #202228 !important;
+  border-color: #202228 !important;
+}
+
+/* Card d'Avui nou */
+.cap-avui-daily-chart-wrap {
+  margin-top: 12px;
+}
+
+.cap-avui-topline {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: flex-start;
+  margin-bottom: 10px;
+}
+
+.cap-avui-mainstat strong,
+.cap-avui-sidepct strong {
+  display: block;
+  color: #202228;
+  font-size: 26px;
+  line-height: 1;
+  font-weight: 500;
+  letter-spacing: -0.04em;
+}
+
+.cap-avui-mainstat span,
+.cap-avui-sidepct span {
+  display: block;
+  margin-top: 5px;
+  color: rgba(32,34,40,0.60);
+  font-size: 11px;
+  line-height: 1.3;
+}
+
+.cap-avui-daily-svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.cap-avui-grid {
+  stroke: rgba(32,34,40,0.08);
+  stroke-width: 1;
+}
+
+.cap-avui-axis {
+  stroke: rgba(32,34,40,0.14);
+  stroke-width: 1;
+}
+
+.cap-avui-line {
+  fill: none;
+  stroke: #202228;
+  stroke-width: 2.1;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.cap-avui-marker {
+  stroke: rgba(32,34,40,0.70);
+  stroke-width: 1;
+  stroke-dasharray: 3 4;
+}
+
+.cap-avui-dot {
+  fill: #202228;
+}
+
+.cap-avui-label {
+  fill: #202228;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+}
+
+.cap-avui-x,
+.cap-avui-y {
+  fill: rgba(32,34,40,0.48);
+  font-size: 9px;
+}
+
+.cap-avui-footnote {
+  margin-top: 6px;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  color: rgba(32,34,40,0.58);
+  font-size: 11px;
+}
+
