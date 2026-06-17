@@ -9105,3 +9105,107 @@ thead th {
     font-size: 58px;
   }
 }
+
+/* === CAPITALITAT_OVERVIEW_FULL_WIDTH_FIX === */
+
+/* ============================================================
+   OVERVIEW CARDS · 5 COLUMNES A TOTA AMPLADA
+============================================================ */
+
+/* Forcem el bloc de targetes a ocupar tota l'amplada de la vista */
+#view-total #cap-overview-grid,
+#cap-overview-grid.cap-overview-grid,
+.cap-overview-grid {
+  grid-column: 1 / -1 !important;
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0 !important;
+
+  display: grid !important;
+  grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+  gap: 28px !important;
+
+  margin: 28px 0 42px !important;
+  align-items: stretch !important;
+}
+
+/* Si algun contenidor pare l'està comprimint */
+#view-total,
+.view-total,
+[data-view="total"] {
+  width: 100% !important;
+  max-width: none !important;
+}
+
+/* Targetes més amples, més baixes i elegants */
+.cap-overview-card {
+  width: 100% !important;
+  min-width: 0 !important;
+  min-height: 285px !important;
+  padding: 26px 28px 22px !important;
+  border-radius: 32px !important;
+  box-sizing: border-box !important;
+}
+
+/* Evitem que el text es trenqui tan malament */
+.cap-overview-card h3 {
+  max-width: none !important;
+  font-size: 15px !important;
+  line-height: 1.1 !important;
+  white-space: normal !important;
+  word-break: normal !important;
+  overflow-wrap: normal !important;
+}
+
+.cap-overview-value {
+  font-size: clamp(58px, 5.8vw, 92px) !important;
+  line-height: 0.9 !important;
+  white-space: nowrap !important;
+}
+
+.cap-overview-subtitle {
+  max-width: 92% !important;
+  font-size: 14px !important;
+  line-height: 1.25 !important;
+  min-height: 38px !important;
+  word-break: normal !important;
+  overflow-wrap: normal !important;
+}
+
+.cap-overview-chart {
+  margin-top: 18px !important;
+}
+
+.cap-overview-spark {
+  width: 100% !important;
+  height: 92px !important;
+}
+
+/* En pantalles mitjanes mantenim 5 columnes una mica més compactes */
+@media (max-width: 1450px) {
+  .cap-overview-grid {
+    grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+    gap: 20px !important;
+  }
+
+  .cap-overview-card {
+    padding: 22px 22px 20px !important;
+  }
+
+  .cap-overview-value {
+    font-size: clamp(52px, 5vw, 78px) !important;
+  }
+}
+
+/* Només baixem a 2/1 columnes quan realment no hi cap */
+@media (max-width: 1050px) {
+  .cap-overview-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .cap-overview-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
