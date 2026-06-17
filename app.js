@@ -5569,3 +5569,547 @@ mostrarExperienciaCapitalitatV5 = function() {
     }
   });
 })();
+
+/* === CAPITALITAT_TOTAL_MASTER_REDESIGN === */
+
+(() => {
+  const DATA_URL = "data/inscripcions.json";
+  let capDataCache = null;
+  let capMounted = false;
+
+  const MONTHS_CAT = ["Gen", "Feb", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Oct", "Nov", "Des"];
+  const MONTHS_FULL = ["gener", "febrer", "març", "abril", "maig", "juny", "juliol", "agost", "setembre", "octubre", "novembre", "desembre"];
+
+  function norm(value) {
+    return String(value ?? "")
+      .replace(/\u00a0/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+  }
+
+  function slug(text) {
+    return norm(text)
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "");
+  }
+
+  function parseDate(str) {
+    const txt = norm(str);
+    if (!txt) return null;
+
+    const parts = txt.split(/[\/\-]/).map(s => s.trim());
+    if (parts.length !== 3) return null;
+
+    let d, m, y;
+    if (parts[0].length === 4) {
+      y = Number(parts[0]);
+      m = Number(parts[1]);
+      d = Number(parts[2]);
+    } else {
+      d = Number(parts[0]);
+      m = Number(parts[1]);
+      y = Number(parts[2]);
+    }
+
+    if (!y || !m || !d) return null;
+    const date = new Date(y, m - 1, d);
+    if (Number.isNaN(date.getTime())) return null;
+    date.setHours(0, 0, 0, 0);
+    return date;
+  }
+
+  function boolValue(v) {
+    return /^true$/i.test(norm(v));
+  }
+
+  function sameDay(a, b) {
+    return a && b &&
+      a.getFullYear() === b.getFullYear() &&
+      a.getMonth() === b.getMonth() &&
+      a.getDate() === b.getDate();
+  }
+
+  function formatPercent(value) {
+    return `${value.toFixed(1).replace(".", ",")}%`;
+  }
+
+  function getRows(data) {
+    if (Array.isArray(data?.rows)) return data.rows;
+    if (Array.isArray(data)) return data;
+    return [];
+  }
+
+  async function loadCapData() {
+    if (capDataCache) return capDataCache;
+    const res = await fetch(`${DATA_URL}?v=${Date.now()}`);
+    if (!res.ok) throw new Error("No s'ha pogut carregar data/inscripcions.json");
+    capDataCache = await res.json();
+    return capDataCache;
+  }
+
+  function normalizeBucket(value, emptyLabel) {
+    const txt = norm(value);
+    return txt || emptyLabel;
+  }
+
+  function cleanDistrict(value) {
+    const txt = norm(value);
+    if (!txt) return "Sense districte";
+    return txt;
+  }
+
+  function cleanCategory(value) {
+    return normalizeBucket(value, "Sense categoria");
+  }
+
+  function cleanEntry(value) {
+    return normalizeBucket(value, "Sense informació");
+  }
+
+  function cleanModalitat(value) {
+    return normalizeBucket(value, "Sense modalitat");
+  }
+
+  function cleanResponsable(value) {
+    return normalizeBucket(value, "Sense responsable");
+  }
+
+  function countBy(rows, getter) {
+    const map = new Map();
+    rows.forEach(row => {
+      const key = getter(row);
+      map.set(key, (map.get(key) || 0) + 1);
+    });
+    return [...map.entries()]
+      .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], 'ca'));
+  }
+
+  function computeStats(rows) {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const currentYear = today.getFullYear();
+    const capEnd = new Date(currentYear, 11, 13);
+    capEnd.setHours(0, 0, 0, 0);
+
+    const rowsWithStart = rows
+      .map(r => ({ ...r, __start: parseDate(r.data_inici), __end: parseDate(r.data_final) || parseDate(r.data_inici) }))
+      .filter(r => r.__start);
+
+    let yearRows = rowsWithStart.filter(r => r.__start.getFullYear() === currentYear);
+    if (!yearRows.length) yearRows = rowsWithStart;
+
+    const total = rows.length;
+    const autoRows = rows.filter(r => boolValue(r.propies));
+    const autogestionades = autoRows.length;
+
+    const finishedRows = rowsWithStart.filter(r => {
+      if (boolValue(r.finalitzat)) return true;
+      return r.__end && r.__end < today;
+    });
+
+    const pendingRows = rowsWithStart.filter(r => r.__start > today && r.__start <= capEnd);
+
+    const monthCounts = Array(12).fill(0);
+    yearRows.forEach(r => {
+      monthCounts[r.__start.getMonth()] += 1;
+    });
+
+    const monthTotal = monthCounts.reduce((a, b) => a + b, 0);
+    const monthPeak = Math.max(...monthCounts, 0);
+    const monthPeakIndex = monthCounts.indexOf(monthPeak);
+    const monthAverage = monthCounts.filter(Boolean).length
+      ? Math.round(monthTotal / monthCounts.filter(Boolean).length)
+      : 0;
+
+    const currentMonth = today.getMonth();
+    const currentMonthRows = yearRows.filter(r => r.__start.getMonth() === currentMonth && r.__start.getFullYear() === today.getFullYear());
+    const currentMonthTotal = currentMonthRows.length;
+
+    const daysInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
+    const dailyCounts = Array(daysInMonth).fill(0);
+    currentMonthRows.forEach(r => {
+      const day = r.__start.getDate();
+      dailyCounts[day - 1] += 1;
+    });
+
+    const todayCount = dailyCounts[today.getDate() - 1] || 0;
+    const todayPctMonth = currentMonthTotal ? (todayCount / currentMonthTotal) * 100 : 0;
+
+    return {
+      today,
+      total,
+      autogestionades,
+      finalitzades: finishedRows.length,
+      pendents: pendingRows.length,
+      avui: todayCount,
+      avuiPercentMes: todayPctMonth,
+      currentMonthTotal,
+      currentMonthName: MONTHS_FULL[currentMonth],
+      monthCounts,
+      monthTotal,
+      monthPeak,
+      monthPeakIndex,
+      monthAverage,
+      dailyCounts,
+      daysInMonth,
+      currentMonthIndex: currentMonth,
+      internal: {
+        modalitat: countBy(rows, r => cleanModalitat(r.modalitat)),
+        categoria: countBy(rows, r => cleanCategory(r.categoria)),
+        districte: countBy(rows, r => cleanDistrict(r.districte)),
+        encarregada: countBy(rows, r => cleanResponsable(r.encarregada)),
+        entrada: countBy(rows, r => cleanEntry(r.entrada))
+      }
+    };
+  }
+
+  function createGaugeSvg(percent) {
+    const width = 270;
+    const height = 120;
+    const cx = 135;
+    const cy = 102;
+    const r = 82;
+
+    function polar(angle) {
+      const rad = (Math.PI / 180) * angle;
+      return {
+        x: cx + r * Math.cos(rad),
+        y: cy + r * Math.sin(rad)
+      };
+    }
+
+    const start = polar(180);
+    const end = polar(0);
+    const full = `M ${start.x} ${start.y} A ${r} ${r} 0 0 1 ${end.x} ${end.y}`;
+
+    const valueAngle = 180 - (180 * Math.max(0, Math.min(100, percent)) / 100);
+    const valueEnd = polar(valueAngle);
+    const value = `M ${start.x} ${start.y} A ${r} ${r} 0 0 1 ${valueEnd.x} ${valueEnd.y}`;
+
+    return `
+      <svg viewBox="0 0 ${width} ${height}" class="cap-gauge-svg" aria-hidden="true">
+        <path d="${full}" class="cap-gauge-track"></path>
+        <path d="${value}" class="cap-gauge-value"></path>
+      </svg>
+    `;
+  }
+
+  function renderKpis(container, stats) {
+    const cards = [
+      {
+        title: "Total passis",
+        count: stats.total,
+        percent: 100,
+        metaLeft: `${stats.total} totals`,
+        metaRight: "100%"
+      },
+      {
+        title: "Autogestionades",
+        count: stats.autogestionades,
+        percent: stats.total ? (stats.autogestionades / stats.total) * 100 : 0,
+        metaLeft: `${stats.autogestionades} pròpies`,
+        metaRight: formatPercent(stats.total ? (stats.autogestionades / stats.total) * 100 : 0)
+      },
+      {
+        title: "Finalitzades",
+        count: stats.finalitzades,
+        percent: stats.total ? (stats.finalitzades / stats.total) * 100 : 0,
+        metaLeft: `${stats.finalitzades} acabades`,
+        metaRight: formatPercent(stats.total ? (stats.finalitzades / stats.total) * 100 : 0)
+      },
+      {
+        title: "Pendents",
+        count: stats.pendents,
+        percent: stats.total ? (stats.pendents / stats.total) * 100 : 0,
+        metaLeft: `${stats.pendents} pendents`,
+        metaRight: formatPercent(stats.total ? (stats.pendents / stats.total) * 100 : 0)
+      },
+      {
+        title: "Avui",
+        count: stats.avui,
+        percent: stats.currentMonthTotal ? (stats.avui / stats.currentMonthTotal) * 100 : 0,
+        metaLeft: `${stats.avui} passis avui`,
+        metaRight: formatPercent(stats.currentMonthTotal ? (stats.avui / stats.currentMonthTotal) * 100 : 0)
+      }
+    ];
+
+    container.innerHTML = cards.map(card => `
+      <article class="cap-kpi-card">
+        <div class="cap-kpi-top">
+          <h3>${card.title}</h3>
+          <div class="cap-kpi-meta">
+            <span>● ${card.metaLeft}</span>
+            <span>● ${card.metaRight}</span>
+          </div>
+        </div>
+        <div class="cap-kpi-center">
+          <div class="cap-kpi-number">${card.count}</div>
+          <div class="cap-kpi-sub">${formatPercent(card.percent)}</div>
+        </div>
+        <div class="cap-kpi-gauge-wrap">
+          ${createGaugeSvg(card.percent)}
+        </div>
+      </article>
+    `).join("");
+  }
+
+  function renderYearChart(container, stats) {
+    const width = 1160;
+    const height = 320;
+    const pad = { top: 34, right: 42, bottom: 58, left: 56 };
+    const plotW = width - pad.left - pad.right;
+    const plotH = height - pad.top - pad.bottom;
+
+    const maxVal = Math.max(...stats.monthCounts, 1);
+    const yMax = Math.max(50, Math.ceil(maxVal / 50) * 50);
+
+    const points = stats.monthCounts.map((val, i) => {
+      const x = pad.left + (plotW / 11) * i;
+      const y = pad.top + plotH - (val / yMax) * plotH;
+      return { x, y, val, month: MONTHS_CAT[i] };
+    });
+
+    const lineD = points.map((p, idx) => `${idx === 0 ? "M" : "L"} ${p.x} ${p.y}`).join(" ");
+
+    const yTicks = [];
+    for (let v = 0; v <= yMax; v += 50) yTicks.push(v);
+
+    container.innerHTML = `
+      <div class="cap-wide-card cap-year-card">
+        <div class="cap-wide-head">
+          <div>
+            <div class="cap-wide-label">Activitats al llarg de l’any</div>
+            <p>Distribució mensual de passis del full INSCRIPCIONS.</p>
+          </div>
+          <div class="cap-year-kpi-head">
+            <div><strong>${stats.monthTotal}</strong><span>passis totals</span></div>
+            <div><strong>${stats.monthPeak}</strong><span>pic mensual · ${MONTHS_FULL[stats.monthPeakIndex] || ""}</span></div>
+            <div><strong>${stats.monthAverage}</strong><span>mitjana / mes</span></div>
+          </div>
+        </div>
+
+        <div class="cap-chart-shell">
+          <svg viewBox="0 0 ${width} ${height}" class="cap-year-svg" aria-label="Gràfic anual de passis per mes">
+            ${yTicks.map(v => {
+              const y = pad.top + plotH - (v / yMax) * plotH;
+              return `
+                <line x1="${pad.left}" y1="${y}" x2="${width - pad.right}" y2="${y}" class="cap-grid-line"></line>
+                <text x="${pad.left - 14}" y="${y + 4}" class="cap-axis-label cap-axis-y">${v}</text>
+              `;
+            }).join("")}
+
+            ${points.map(p => `
+              <circle cx="${p.x}" cy="${p.y}" r="2.8" class="cap-year-point"></circle>
+              <title>${p.month}: ${p.val} passis</title>
+            `).join("")}
+
+            <path d="${lineD}" class="cap-year-line"></path>
+
+            ${points.map(p => `
+              <text x="${p.x}" y="${height - 18}" text-anchor="middle" class="cap-axis-label cap-axis-x">${p.month}</text>
+            `).join("")}
+          </svg>
+        </div>
+      </div>
+    `;
+  }
+
+  function renderStatsCard(title, items, total) {
+    return `
+      <article class="cap-stat-card">
+        <div class="cap-stat-head">
+          <h3>${title}</h3>
+        </div>
+        <div class="cap-stat-list">
+          ${items.map(([label, count]) => {
+            const pct = total ? (count / total) * 100 : 0;
+            return `
+              <div class="cap-stat-item">
+                <div class="cap-stat-row">
+                  <span class="cap-stat-name">${label}</span>
+                  <span class="cap-stat-value">${count}</span>
+                </div>
+                <div class="cap-stat-bar">
+                  <i style="width:${pct}%;"></i>
+                </div>
+                <div class="cap-stat-pct">${formatPercent(pct)}</div>
+              </div>
+            `;
+          }).join("")}
+        </div>
+      </article>
+    `;
+  }
+
+  function renderInternalStats(container, stats) {
+    container.innerHTML = `
+      <div class="cap-section-mini-title">Estadístiques internes</div>
+      <div class="cap-stats-grid">
+        ${renderStatsCard("Modalitat", stats.internal.modalitat, stats.total)}
+        ${renderStatsCard("Categoria", stats.internal.categoria, stats.total)}
+        ${renderStatsCard("Districte", stats.internal.districte, stats.total)}
+        ${renderStatsCard("Encarregada", stats.internal.encarregada, stats.total)}
+        ${renderStatsCard("Tipus d’entrada", stats.internal.entrada, stats.total)}
+      </div>
+    `;
+  }
+
+  function renderDailyChart(container, stats) {
+    const width = 1160;
+    const height = 340;
+    const pad = { top: 28, right: 32, bottom: 56, left: 42 };
+    const plotW = width - pad.left - pad.right;
+    const plotH = height - pad.top - pad.bottom;
+    const yMax = 20;
+    const todayIndex = stats.today.getDate() - 1;
+
+    const points = stats.dailyCounts.map((val, i) => {
+      const x = pad.left + (plotW / Math.max(1, stats.daysInMonth - 1)) * i;
+      const y = pad.top + plotH - (Math.min(val, yMax) / yMax) * plotH;
+      return { x, y, val, day: i + 1 };
+    });
+
+    const lineD = points.map((p, idx) => `${idx === 0 ? "M" : "L"} ${p.x} ${p.y}`).join(" ");
+    const todayPoint = points[todayIndex] || points[0];
+
+    const yTicks = [];
+    for (let v = 0; v <= yMax; v += 1) yTicks.push(v);
+
+    container.innerHTML = `
+      <div class="cap-wide-card cap-daily-card">
+        <div class="cap-wide-head cap-daily-head">
+          <div>
+            <div class="cap-wide-label">Activitat diària · ${MONTHS_FULL[stats.currentMonthIndex]}</div>
+            <p>Passis per dia del mes vigent.</p>
+          </div>
+          <div class="cap-daily-summary">
+            <div><strong>${stats.avui}</strong><span>AVUI = ${stats.avui} passis</span></div>
+            <div><strong>${formatPercent(stats.avuiPercentMes)}</strong><span>del total de ${MONTHS_FULL[stats.currentMonthIndex]}</span></div>
+          </div>
+        </div>
+
+        <div class="cap-chart-shell">
+          <svg viewBox="0 0 ${width} ${height}" class="cap-daily-svg" aria-label="Gràfic diari del mes actual">
+            ${yTicks.map(v => {
+              const y = pad.top + plotH - (v / yMax) * plotH;
+              return `
+                <line x1="${pad.left}" y1="${y}" x2="${width - pad.right}" y2="${y}" class="cap-grid-line light"></line>
+                <text x="${pad.left - 12}" y="${y + 4}" class="cap-axis-label cap-axis-y">${v}</text>
+              `;
+            }).join("")}
+
+            <path d="${lineD}" class="cap-daily-line"></path>
+
+            ${points.map(p => `
+              <circle cx="${p.x}" cy="${p.y}" r="2.2" class="cap-daily-point"></circle>
+              <title>Dia ${p.day}: ${p.val} passis</title>
+            `).join("")}
+
+            <line x1="${todayPoint.x}" y1="${todayPoint.y}" x2="${todayPoint.x}" y2="${pad.top + plotH}" class="cap-today-guide"></line>
+            <circle cx="${todayPoint.x}" cy="${todayPoint.y}" r="4.4" class="cap-today-dot"></circle>
+            <text x="${todayPoint.x}" y="${todayPoint.y - 14}" text-anchor="middle" class="cap-today-text">AVUI = ${todayPoint.val} passis</text>
+
+            ${points.map(p => `
+              <text x="${p.x}" y="${height - 16}" text-anchor="middle" class="cap-axis-label cap-axis-x">${p.day}</text>
+            `).join("")}
+          </svg>
+        </div>
+      </div>
+    `;
+  }
+
+  function hideLegacyContent(totalView) {
+    const children = [...totalView.children];
+    let keepUntilIndex = 2;
+
+    const statusIndex = children.findIndex(el => {
+      const txt = norm(el.textContent);
+      return txt.includes("JSON actualitzat") || txt.includes("Dades carregades correctament");
+    });
+
+    if (statusIndex >= 0) keepUntilIndex = statusIndex;
+
+    children.forEach((child, idx) => {
+      if (child.id === "cap-total-master") return;
+      if (idx <= keepUntilIndex) {
+        child.classList.remove("cap-hidden-legacy");
+      } else {
+        child.classList.add("cap-hidden-legacy");
+      }
+    });
+  }
+
+  function ensureMaster(totalView) {
+    let master = totalView.querySelector("#cap-total-master");
+    if (!master) {
+      master = document.createElement("section");
+      master.id = "cap-total-master";
+      master.innerHTML = `
+        <div id="cap-kpi-grid" class="cap-kpi-grid"></div>
+        <div id="cap-year-banner-wrap" class="cap-year-banner-wrap"></div>
+        <div id="cap-internal-stats-wrap" class="cap-internal-stats-wrap"></div>
+        <div id="cap-daily-wrap" class="cap-daily-wrap"></div>
+      `;
+      totalView.appendChild(master);
+    }
+    return master;
+  }
+
+  async function mountTotalDashboard() {
+    const totalView = document.querySelector("#view-total");
+    if (!totalView) return;
+
+    hideLegacyContent(totalView);
+    const master = ensureMaster(totalView);
+
+    try {
+      const data = await loadCapData();
+      const rows = getRows(data);
+      const stats = computeStats(rows);
+
+      renderKpis(master.querySelector("#cap-kpi-grid"), stats);
+      renderYearChart(master.querySelector("#cap-year-banner-wrap"), stats);
+      renderInternalStats(master.querySelector("#cap-internal-stats-wrap"), stats);
+      renderDailyChart(master.querySelector("#cap-daily-wrap"), stats);
+
+      capMounted = true;
+    } catch (error) {
+      console.error(error);
+      master.innerHTML = `<div class="cap-total-error">No s'han pogut carregar les dades del dashboard.</div>`;
+    }
+  }
+
+  function scheduleMount() {
+    setTimeout(mountTotalDashboard, 200);
+    setTimeout(mountTotalDashboard, 800);
+    setTimeout(mountTotalDashboard, 1800);
+  }
+
+  document.addEventListener("DOMContentLoaded", scheduleMount);
+  window.addEventListener("load", scheduleMount);
+
+  document.addEventListener("click", event => {
+    const btn = event.target.closest("[data-view], button, .nav-pill");
+    if (!btn) return;
+    const txt = norm(btn.textContent).toLowerCase();
+    const view = btn.getAttribute("data-view") || "";
+    if (view === "view-total" || txt.includes("total passis")) {
+      scheduleMount();
+    }
+  });
+
+  if (!window.__capTotalObserver) {
+    const observer = new MutationObserver(() => {
+      if (document.querySelector("#view-total") && !capMounted) {
+        scheduleMount();
+      }
+    });
+
+    observer.observe(document.body, { childList: true, subtree: true });
+    window.__capTotalObserver = observer;
+  }
+})();

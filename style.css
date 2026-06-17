@@ -10157,3 +10157,346 @@ textarea {
     font-size: 52px;
   }
 }
+
+/* === CAPITALITAT_TOTAL_MASTER_REDESIGN_STYLE === */
+
+.cap-hidden-legacy {
+  display: none !important;
+}
+
+#cap-total-master {
+  width: 100%;
+  margin-top: 28px;
+  display: grid;
+  gap: 28px;
+}
+
+.cap-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.cap-kpi-card,
+.cap-wide-card,
+.cap-stat-card {
+  background: linear-gradient(180deg, rgba(255,255,255,0.20), rgba(255,255,255,0.08));
+  border: 1px solid rgba(43,45,66,0.06);
+  border-radius: 28px;
+  box-shadow:
+    0 16px 36px rgba(43,45,66,0.08),
+    inset 0 1px 0 rgba(255,255,255,0.35);
+  backdrop-filter: blur(18px) saturate(110%);
+  -webkit-backdrop-filter: blur(18px) saturate(110%);
+}
+
+.cap-kpi-card {
+  min-height: 210px;
+  padding: 18px 18px 14px;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  gap: 10px;
+}
+
+.cap-kpi-top h3 {
+  margin: 0 0 8px;
+  color: #2b2d42;
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+}
+
+.cap-kpi-meta {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  color: rgba(43,45,66,0.72);
+  font-size: 10px;
+}
+
+.cap-kpi-center {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 2px;
+}
+
+.cap-kpi-number {
+  color: #2b2d42;
+  font-size: 54px;
+  line-height: 0.95;
+  font-weight: 300;
+  letter-spacing: -0.05em;
+}
+
+.cap-kpi-sub {
+  color: rgba(43,45,66,0.80);
+  font-size: 14px;
+  font-weight: 400;
+}
+
+.cap-kpi-gauge-wrap {
+  display: flex;
+  justify-content: center;
+  align-items: end;
+}
+
+.cap-gauge-svg {
+  width: 100%;
+  max-width: 220px;
+  height: auto;
+}
+
+.cap-gauge-track {
+  fill: none;
+  stroke: rgba(43,45,66,0.14);
+  stroke-width: 2.4;
+  stroke-linecap: round;
+}
+
+.cap-gauge-value {
+  fill: none;
+  stroke: #2b2d42;
+  stroke-width: 2.6;
+  stroke-linecap: round;
+}
+
+.cap-wide-card {
+  width: 100%;
+  padding: 22px 24px;
+}
+
+.cap-wide-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 24px;
+  margin-bottom: 16px;
+}
+
+.cap-wide-label {
+  color: #2b2d42;
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+}
+
+.cap-wide-head p {
+  margin: 4px 0 0;
+  color: rgba(43,45,66,0.62);
+  font-size: 12px;
+}
+
+.cap-year-kpi-head,
+.cap-daily-summary {
+  display: flex;
+  gap: 26px;
+  flex-wrap: wrap;
+}
+
+.cap-year-kpi-head strong,
+.cap-daily-summary strong {
+  display: block;
+  color: #2b2d42;
+  font-size: 38px;
+  font-weight: 300;
+  letter-spacing: -0.05em;
+  line-height: 0.95;
+}
+
+.cap-year-kpi-head span,
+.cap-daily-summary span {
+  display: block;
+  margin-top: 4px;
+  color: rgba(43,45,66,0.62);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.cap-chart-shell {
+  width: 100%;
+}
+
+.cap-year-svg,
+.cap-daily-svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.cap-grid-line {
+  stroke: rgba(43,45,66,0.07);
+  stroke-width: 1;
+}
+
+.cap-grid-line.light {
+  stroke: rgba(43,45,66,0.06);
+}
+
+.cap-axis-label {
+  fill: rgba(43,45,66,0.45);
+  font-size: 11px;
+  font-weight: 400;
+}
+
+.cap-year-line {
+  fill: none;
+  stroke: #2b2d42;
+  stroke-width: 2.1;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.cap-year-point {
+  fill: #2b2d42;
+}
+
+.cap-section-mini-title {
+  margin: 2px 0 4px;
+  color: #2b2d42;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.cap-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 16px;
+  margin-top: 12px;
+}
+
+.cap-stat-card {
+  padding: 16px 16px 14px;
+  min-height: 320px;
+}
+
+.cap-stat-head h3 {
+  margin: 0 0 8px;
+  color: #2b2d42;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.cap-stat-list {
+  display: grid;
+  gap: 10px;
+  max-height: 460px;
+  overflow: auto;
+  padding-right: 4px;
+}
+
+.cap-stat-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: baseline;
+}
+
+.cap-stat-name {
+  color: rgba(43,45,66,0.82);
+  font-size: 12px;
+  line-height: 1.25;
+}
+
+.cap-stat-value {
+  color: #2b2d42;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.cap-stat-bar {
+  position: relative;
+  width: 100%;
+  height: 4px;
+  margin-top: 5px;
+  background: rgba(43,45,66,0.10);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.cap-stat-bar i {
+  position: absolute;
+  inset: 0 auto 0 0;
+  background: #2b2d42 !important;
+  border-radius: 999px;
+}
+
+.cap-stat-pct {
+  margin-top: 4px;
+  color: rgba(43,45,66,0.48);
+  font-size: 10px;
+}
+
+.cap-daily-line {
+  fill: none;
+  stroke: #2b2d42;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.cap-daily-point {
+  fill: #2b2d42;
+}
+
+.cap-today-guide {
+  stroke: rgba(43,45,66,0.72);
+  stroke-width: 1.2;
+  stroke-dasharray: 5 5;
+}
+
+.cap-today-dot {
+  fill: #2b2d42;
+}
+
+.cap-today-text {
+  fill: #2b2d42;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+
+.cap-total-error {
+  padding: 24px;
+  color: #2b2d42;
+  background: rgba(255,255,255,0.45);
+  border-radius: 22px;
+}
+
+@media (max-width: 1400px) {
+  .cap-kpi-grid,
+  .cap-stats-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 980px) {
+  .cap-kpi-grid,
+  .cap-stats-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .cap-wide-head {
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 680px) {
+  .cap-kpi-grid,
+  .cap-stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .cap-kpi-number {
+    font-size: 42px;
+  }
+
+  .cap-year-kpi-head strong,
+  .cap-daily-summary strong {
+    font-size: 28px;
+  }
+}
