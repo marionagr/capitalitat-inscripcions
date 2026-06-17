@@ -9223,3 +9223,160 @@ textarea {
     grid-template-columns: 1fr !important;
   }
 }
+
+/* === CAPITALITAT_TOP_GAUGE_HOTFIX_STYLE_V1 === */
+
+/* amaga absolutament totes les versions antigues */
+#cap-final-gauge-grid,
+.cap-final-gauge-grid,
+#cap-overview-grid,
+.cap-overview-grid,
+.cap-ref-kpi-grid,
+.cap-overview-card,
+.cap-ref-kpi-card {
+  display: none !important;
+}
+
+/* i mostra només la versió hotfix */
+#cap-hotfix-gauge-grid.cap-hotfix-gauge-grid,
+.cap-hotfix-gauge-grid {
+  display: grid !important;
+  grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+  gap: 18px !important;
+  width: 100% !important;
+  max-width: none !important;
+  margin: 18px 0 34px !important;
+  grid-column: 1 / -1 !important;
+}
+
+#view-total > #cap-hotfix-gauge-grid {
+  width: 100% !important;
+}
+
+.cap-hotfix-gauge-card {
+  min-width: 0 !important;
+  min-height: 230px !important;
+  padding: 18px !important;
+  border-radius: 22px !important;
+  overflow: hidden !important;
+  position: relative !important;
+
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.13), rgba(255,255,255,0.07)) !important;
+  border: 1px solid rgba(255,255,255,0.10) !important;
+  box-shadow:
+    0 18px 34px rgba(60, 40, 36, 0.10),
+    inset 0 1px 0 rgba(255,255,255,0.08) !important;
+
+  backdrop-filter: blur(22px) saturate(118%) !important;
+  -webkit-backdrop-filter: blur(22px) saturate(118%) !important;
+}
+
+.cap-hotfix-gauge-title {
+  font-size: 15px !important;
+  line-height: 1.1 !important;
+  font-weight: 400 !important;
+  color: #2f2f33 !important;
+  margin-bottom: 14px !important;
+  letter-spacing: -0.02em !important;
+}
+
+.cap-hotfix-gauge-meta {
+  display: flex !important;
+  justify-content: space-between !important;
+  gap: 12px !important;
+  margin-bottom: 6px !important;
+}
+
+.cap-hotfix-gauge-meta span {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 7px !important;
+  min-width: 0 !important;
+  font-size: 11px !important;
+  line-height: 1.1 !important;
+  font-weight: 300 !important;
+  color: rgba(47,47,51,0.72) !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+.cap-hotfix-gauge-meta i {
+  width: 6px !important;
+  height: 6px !important;
+  border-radius: 999px !important;
+  background: rgba(47,47,51,0.84) !important;
+  flex: 0 0 auto !important;
+}
+
+.cap-hotfix-gauge-wrap {
+  position: relative !important;
+  height: 150px !important;
+  margin-top: 8px !important;
+}
+
+.cap-hotfix-gauge-svg {
+  width: 100% !important;
+  height: 150px !important;
+  display: block !important;
+}
+
+.cap-hotfix-gauge-track {
+  fill: none !important;
+  stroke: rgba(47,47,51,0.14) !important;
+  stroke-width: 3 !important;
+  stroke-linecap: round !important;
+}
+
+.cap-hotfix-gauge-ticks {
+  fill: none !important;
+  stroke: rgba(47,47,51,0.09) !important;
+  stroke-width: 1.1 !important;
+  stroke-linecap: round !important;
+  stroke-dasharray: 0.5 2.4 !important;
+}
+
+.cap-hotfix-gauge-progress {
+  fill: none !important;
+  stroke: rgba(35,35,38,0.95) !important;
+  stroke-width: 3.2 !important;
+  stroke-linecap: round !important;
+}
+
+.cap-hotfix-gauge-center {
+  position: absolute !important;
+  inset: 52px 0 0 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  pointer-events: none !important;
+}
+
+.cap-hotfix-gauge-center strong {
+  font-size: 32px !important;
+  line-height: 1 !important;
+  font-weight: 300 !important;
+  letter-spacing: -0.055em !important;
+  color: #232326 !important;
+}
+
+.cap-hotfix-gauge-center span {
+  margin-top: 8px !important;
+  font-size: 11px !important;
+  line-height: 1 !important;
+  font-weight: 300 !important;
+  color: rgba(47,47,51,0.56) !important;
+}
+
+@media (max-width: 1180px) {
+  .cap-hotfix-gauge-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (max-width: 700px) {
+  .cap-hotfix-gauge-grid {
+    grid-template-columns: 1fr !important;
+  }
+}

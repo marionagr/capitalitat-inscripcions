@@ -4991,3 +4991,207 @@ mostrarExperienciaCapitalitatV5 = function() {
     }
   });
 })();
+
+/* === CAPITALITAT_TOP_GAUGE_HOTFIX_V1 === */
+
+(() => {
+  const END_CAPITALITAT = new Date(2026, 11, 13);
+  let renderTimeout = null;
+
+  function parseDateDMY(value) {
+    if (!value) return null;
+    const str = String(value).trim();
+    const m = str.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+    if (!m) return null;
+    const d = Number(m[1]);
+    const mo = Number(m[2]) - 1;
+    const y = Number(m[3]);
+    const date = new Date(y, mo, d);
+    return isNaN(date.getTime()) ? null : date;
+  }
+
+  function stripTime(date) {
+    if (!date) return null;
+    return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  }
+
+  function isTrue(value) {
+    return String(value ?? "").trim().toUpperCase() === "TRUE";
+  }
+
+  function formatPercent(value) {
+    return `${value.toFixed(1).replace(".", ",")}%`;
+  }
+
+  function getRows(data) {
+    if (Array.isArray(data)) return data;
+    if (Array.isArray(data.rows)) return data.rows;
+    return [];
+  }
+
+  function esc(value) {
+    return String(value ?? "")
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#039;");
+  }
+
+  function buildGauge(percent) {
+    const p = Math.max(0, Math.min(100, percent));
+    return `
+      <svg class="cap-hotfix-gauge-svg" viewBox="0 0 260 160" aria-hidden="true">
+        <path
+          class="cap-hotfix-gauge-track"
+          d="M 32 132 A 98 98 0 0 1 228 132"
+          pathLength="100"></path>
+
+        <path
+          class="cap-hotfix-gauge-ticks"
+          d="M 42 132 A 88 88 0 0 1 218 132"
+          pathLength="100"></path>
+
+        <path
+          class="cap-hotfix-gauge-progress"
+          d="M 32 132 A 98 98 0 0 1 228 132"
+          pathLength="100"
+          stroke-dasharray="${p} 100"></path>
+      </svg>
+    `;
+  }
+
+  function buildCard(card) {
+    return `
+      <article class="cap-hotfix-gauge-card">
+        <div class="cap-hotfix-gauge-title">${esc(card.title)}</div>
+
+        <div class="cap-hotfix-gauge-meta">
+          <span><i></i>${esc(card.left)}</span>
+          <span><i></i>${esc(card.right)}</span>
+        </div>
+
+        <div class="cap-hotfix-gauge-wrap">
+          ${buildGauge(card.percent)}
+          <div class="cap-hotfix-gauge-center">
+            <strong>${formatPercent(card.percent)}</strong>
+            <span>${esc(card.value)} passis</span>
+          </div>
+        </div>
+      </article>
+    `;
+  }
+
+  function removeAllOldTopBlocks(totalView) {
+    totalView.querySelectorAll(
+      "#cap-final-gauge-grid, .cap-final-gauge-grid, #cap-overview-grid, .cap-overview-grid, .cap-ref-kpi-grid, .cap-overview-card, .cap-ref-kpi-card"
+    ).forEach(el => el.remove());
+  }
+
+  async function renderSingleTopGaugeGrid() {
+    const totalView = document.querySelector("#view-total");
+    if (!totalView) return;
+
+    removeAllOldTopBlocks(totalView);
+
+    const response = await fetch(`data/inscripcions.json?t=${Date.now()}`);
+    if (!response.ok) return;
+
+    const data = await response.json();
+    const rows = getRows(data);
+    const keys = data.columnKeys || {};
+
+    if (!rows.length) return;
+
+    const startKey = keys.dataInici || "data_inici";
+    const endKey = keys.dataFinal || "data_final";
+    const gestioKey = keys.gestio || "propies";
+
+    const today = stripTime(new Date());
+
+    const total = rows.length;
+
+    const autogestionades = rows.filter(row => isTrue(row[gestioKey])).length;
+
+    const finalitzades = rows.filter(row => {
+      const start = stripTime(parseDateDMY(row[startKey]));
+      const end = stripTime(parseDateDMY(row[endKey])) || start;
+      return end && end < today;
+    }).length;
+
+    const pendents = rows.filter(row => {
+      const start = stripTime(parseDateDMY(row[startKey]));
+      return start && start > today && start <= END_CAPITALITAT;
+    }).length;
+
+    const avui = rows.filter(row => {
+      const start = stripTime(parseDateDMY(row[startKey]));
+      const end = stripTime(parseDateDMY(row[endKey])) || start;
+      return start && end && start <= today && end >= today;
+    }).length;
+
+    const cards = [
+      {
+        title: "Total passis",
+        value: total,
+        percent: 100,
+        left: `${total} totals`,
+        right: `100%`
+      },
+      {
+        title: "Autogestionades",
+        value: autogestionades,
+        percent: total ? (autogestionades / total) * 100 : 0,
+        left: `${autogestionades} pròpies`,
+        right: `${formatPercent(total ? (autogestionades / total) * 100 : 0)}`
+      },
+      {
+        title: "Finalitzades",
+        value: finalitzades,
+        percent: total ? (finalitzades / total) * 100 : 0,
+        left: `${finalitzades} acabades`,
+        right: `${formatPercent(total ? (finalitzades / total) * 100 : 0)}`
+      },
+      {
+        title: "Pendents",
+        value: pendents,
+        percent: total ? (pendents / total) * 100 : 0,
+        left: `${pendents} pendents`,
+        right: `${formatPercent(total ? (pendents / total) * 100 : 0)}`
+      },
+      {
+        title: "Avui",
+        value: avui,
+        percent: total ? (avui / total) * 100 : 0,
+        left: `${avui} vigents`,
+        right: `${formatPercent(total ? (avui / total) * 100 : 0)}`
+      }
+    ];
+
+    const section = document.createElement("section");
+    section.id = "cap-hotfix-gauge-grid";
+    section.className = "cap-hotfix-gauge-grid";
+    section.innerHTML = cards.map(buildCard).join("");
+
+    totalView.prepend(section);
+  }
+
+  function scheduleSingleTopGaugeGrid() {
+    clearTimeout(renderTimeout);
+    renderTimeout = setTimeout(() => {
+      renderSingleTopGaugeGrid().catch(console.error);
+    }, 120);
+  }
+
+  document.addEventListener("DOMContentLoaded", scheduleSingleTopGaugeGrid);
+  window.addEventListener("load", scheduleSingleTopGaugeGrid);
+
+  document.addEventListener("click", (event) => {
+    const el = event.target.closest("button, [data-view], .nav-pill, .sidebar-item, .nav-item");
+    if (!el) return;
+    const txt = String(el.textContent || "").toLowerCase();
+    if (txt.includes("total") || txt.includes("passis")) {
+      scheduleSingleTopGaugeGrid();
+    }
+  });
+})();
