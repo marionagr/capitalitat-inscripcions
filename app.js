@@ -4758,3 +4758,217 @@ mostrarExperienciaCapitalitatV5 = function() {
     }
   });
 })();
+
+/* === CAPITALITAT_OVERVIEW_CARDS_V1 === */
+
+(() => {
+  const END_CAPITALITAT = new Date(2026, 11, 13); // 13 desembre 2026
+
+  function parseDateDMY(value) {
+    if (!value) return null;
+    const str = String(value).trim();
+    const m = str.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+    if (!m) return null;
+    const d = Number(m[1]);
+    const mo = Number(m[2]) - 1;
+    const y = Number(m[3]);
+    const date = new Date(y, mo, d);
+    return isNaN(date.getTime()) ? null : date;
+  }
+
+  function stripTime(date) {
+    if (!date) return null;
+    return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  }
+
+  function isTrue(value) {
+    return String(value ?? "").trim().toUpperCase() === "TRUE";
+  }
+
+  function getRowsFromJson(data) {
+    if (Array.isArray(data)) return data;
+    if (Array.isArray(data.rows)) return data.rows;
+    return [];
+  }
+
+  function monthCounts(rows, filterFn) {
+    const out = new Array(12).fill(0);
+    rows.forEach((row) => {
+      const start = stripTime(parseDateDMY(row.data_inici));
+      const end = stripTime(parseDateDMY(row.data_final)) || start;
+      if (!start && !end) return;
+      if (filterFn(row, start, end)) {
+        const ref = start || end;
+        if (ref) out[ref.getMonth()]++;
+      }
+    });
+    return out;
+  }
+
+  function buildSparklineSVG(values, color = "#d90429", fill = "rgba(217,4,41,0.10)") {
+    const width = 260;
+    const height = 90;
+    const pad = 8;
+    const max = Math.max(...values, 1);
+    const stepX = (width - pad * 2) / Math.max(values.length - 1, 1);
+
+    const points = values.map((v, i) => {
+      const x = pad + i * stepX;
+      const y = height - pad - ((v / max) * (height - pad * 2));
+      return [x, y];
+    });
+
+    const line = points.map((p, i) => `${i === 0 ? "M" : "L"} ${p[0]} ${p[1]}`).join(" ");
+    const area = `${line} L ${points[points.length - 1][0]} ${height - pad} L ${points[0][0]} ${height - pad} Z`;
+
+    const dots = points.map((p, i) => `
+      <circle cx="${p[0]}" cy="${p[1]}" r="3.5" fill="#fff" stroke="${color}" stroke-width="2">
+        <title>${values[i]}</title>
+      </circle>
+    `).join("");
+
+    return `
+      <svg viewBox="0 0 ${width} ${height}" class="cap-overview-spark" aria-hidden="true">
+        <path d="${area}" fill="${fill}"></path>
+        <path d="${line}" fill="none" stroke="${color}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"></path>
+        ${dots}
+      </svg>
+    `;
+  }
+
+  function buildCard({ title, value, subtitle, series, tone = "red" }) {
+    const toneClass = tone === "dark" ? "cap-overview-card-dark" : "";
+    return `
+      <article class="cap-overview-card ${toneClass}">
+        <div class="cap-overview-head">
+          <h3>${title}</h3>
+        </div>
+        <div class="cap-overview-value">${value}</div>
+        <p class="cap-overview-subtitle">${subtitle}</p>
+        <div class="cap-overview-chart">
+          ${buildSparklineSVG(series)}
+        </div>
+      </article>
+    `;
+  }
+
+  async function renderOverviewCards() {
+    const totalView = document.querySelector("#view-total");
+    if (!totalView) return;
+
+    let response;
+    try {
+      response = await fetch(`data/inscripcions.json?t=${Date.now()}`);
+    } catch (err) {
+      return;
+    }
+    if (!response.ok) return;
+
+    let data;
+    try {
+      data = await response.json();
+    } catch (err) {
+      return;
+    }
+
+    const rows = getRowsFromJson(data);
+    if (!rows.length) return;
+
+    const today = stripTime(new Date());
+
+    const totalPassis = rows.length;
+    const autoRows = rows.filter(r => isTrue(r.propies));
+    const totalAuto = autoRows.length;
+
+    const finalitzadesRows = rows.filter((r) => {
+      const start = stripTime(parseDateDMY(r.data_inici));
+      const end = stripTime(parseDateDMY(r.data_final)) || start;
+      return end && end < today;
+    });
+
+    const pendentsRows = rows.filter((r) => {
+      const start = stripTime(parseDateDMY(r.data_inici));
+      return start && start > today && start <= END_CAPITALITAT;
+    });
+
+    const avuiRows = rows.filter((r) => {
+      const start = stripTime(parseDateDMY(r.data_inici));
+      const end = stripTime(parseDateDMY(r.data_final)) || start;
+      return start && end && start <= today && end >= today;
+    });
+
+    const totalSeries = monthCounts(rows, () => true);
+    const autoSeries = monthCounts(autoRows, () => true);
+    const finalitzadesSeries = monthCounts(rows, (r, start, end) => end && end < today);
+    const pendentsSeries = monthCounts(rows, (r, start) => start && start > today && start <= END_CAPITALITAT);
+    const avuiSeries = monthCounts(rows, (r, start, end) => start && end && start <= today && end >= today);
+
+    const cardsHtml = `
+      <section class="cap-overview-grid" id="cap-overview-grid">
+        ${buildCard({
+          title: "TOTAL PASSIS",
+          value: totalPassis,
+          subtitle: `${totalPassis} files totals al full INSCRIPCIONS.`,
+          series: totalSeries,
+          tone: "dark"
+        })}
+        ${buildCard({
+          title: "TOTAL AUTOGESTIONADES",
+          value: totalAuto,
+          subtitle: `${totalAuto} files marcades com a PRÒPIES.`,
+          series: autoSeries
+        })}
+        ${buildCard({
+          title: "ACTIVITATS FINALITZADES",
+          value: finalitzadesRows.length,
+          subtitle: `Ja han acabat abans d'avui.`,
+          series: finalitzadesSeries
+        })}
+        ${buildCard({
+          title: "ACTIVITATS PENDENTS",
+          value: pendentsRows.length,
+          subtitle: `Pendents fins al 13 de desembre.`,
+          series: pendentsSeries
+        })}
+        ${buildCard({
+          title: "ACTIVITATS AVUI",
+          value: avuiRows.length,
+          subtitle: `Vigents avui mateix.`,
+          series: avuiSeries
+        })}
+      </section>
+    `;
+
+    const old = totalView.querySelector("#cap-overview-grid");
+    if (old) old.remove();
+
+    const insertBefore = totalView.querySelector(".capitalitat-five-charts-row")
+      || totalView.querySelector(".cap-month-chart-v3")
+      || totalView.firstElementChild?.nextElementSibling
+      || null;
+
+    if (insertBefore) {
+      insertBefore.insertAdjacentHTML("beforebegin", cardsHtml);
+    } else {
+      totalView.insertAdjacentHTML("afterbegin", cardsHtml);
+    }
+  }
+
+  function scheduleOverviewCards() {
+    setTimeout(renderOverviewCards, 300);
+    setTimeout(renderOverviewCards, 1000);
+    setTimeout(renderOverviewCards, 2200);
+  }
+
+  document.addEventListener("DOMContentLoaded", scheduleOverviewCards);
+  window.addEventListener("load", scheduleOverviewCards);
+
+  document.addEventListener("click", (event) => {
+    const el = event.target.closest("button, [data-view], .nav-pill");
+    if (!el) return;
+    const txt = (el.textContent || "").toLowerCase();
+    if (txt.includes("total") || txt.includes("passis")) {
+      scheduleOverviewCards();
+    }
+  });
+})();
