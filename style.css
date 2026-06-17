@@ -7110,3 +7110,487 @@ section,
     border-radius: 24px !important;
   }
 }
+
+/* === CAPITALITAT_GLASS_THEME_DARK_V2 === */
+
+/* ============================================================
+   DARK GLASS DASHBOARD THEME
+   Inspirat en les noves referències
+============================================================ */
+
+:root {
+  --bg-main: #20242b;
+  --bg-soft: #2b3038;
+  --bg-panel: rgba(58, 64, 75, 0.34);
+  --bg-panel-strong: rgba(46, 52, 62, 0.50);
+  --bg-panel-soft: rgba(255, 255, 255, 0.06);
+
+  --line-soft: rgba(255, 255, 255, 0.12);
+  --line-strong: rgba(255, 255, 255, 0.18);
+
+  --text-main: #f4f6fb;
+  --text-soft: rgba(244, 246, 251, 0.68);
+  --text-dim: rgba(244, 246, 251, 0.44);
+
+  --accent: #73b8ff;
+  --accent-soft: rgba(115, 184, 255, 0.18);
+  --accent-strong: rgba(115, 184, 255, 0.42);
+
+  --shadow-lg:
+    0 30px 70px rgba(0, 0, 0, 0.30),
+    0 8px 26px rgba(0, 0, 0, 0.20);
+
+  --shadow-md:
+    0 18px 36px rgba(0, 0, 0, 0.22),
+    0 6px 18px rgba(0, 0, 0, 0.16);
+
+  --radius-xl: 34px;
+  --radius-lg: 28px;
+  --radius-md: 22px;
+  --radius-sm: 18px;
+}
+
+/* Base */
+html,
+body {
+  background:
+    radial-gradient(circle at 18% 20%, rgba(130, 150, 180, 0.18), transparent 24%),
+    radial-gradient(circle at 80% 16%, rgba(255, 255, 255, 0.10), transparent 18%),
+    radial-gradient(circle at 72% 68%, rgba(90, 120, 180, 0.16), transparent 24%),
+    linear-gradient(180deg, #404751 0%, #2c3138 38%, #22272f 100%) !important;
+  color: var(--text-main) !important;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.08), transparent 14%),
+    radial-gradient(circle at 50% 0%, rgba(255,255,255,0.08), transparent 40%),
+    radial-gradient(circle at 10% 90%, rgba(115,184,255,0.08), transparent 22%);
+  opacity: 1;
+}
+
+/* Text general */
+body,
+h1, h2, h3, h4, h5, h6,
+p, span, small, div, li, td, th, label {
+  color: var(--text-main);
+}
+
+p,
+small,
+label,
+.section-subtitle,
+.hero-subtitle,
+.cap-annual-head p,
+.cap-annual-head span,
+.cap-month-detail-head span,
+.cap-linear-head span {
+  color: var(--text-soft) !important;
+}
+
+/* Layout principal */
+main,
+.main-content,
+.page-content,
+.content,
+.view,
+section {
+  position: relative;
+  z-index: 1;
+  background: transparent !important;
+}
+
+/* Sidebar */
+.sidebar,
+aside,
+.left-sidebar,
+.menu-sidebar,
+nav {
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.10), rgba(255,255,255,0.04)) !important;
+  border-right: 1px solid rgba(255,255,255,0.08) !important;
+  box-shadow:
+    inset -1px 0 0 rgba(255,255,255,0.06),
+    0 18px 44px rgba(0,0,0,0.18) !important;
+  backdrop-filter: blur(26px) saturate(140%);
+  -webkit-backdrop-filter: blur(26px) saturate(140%);
+}
+
+/* Logo */
+.sidebar img,
+.brand-logo,
+.logo-wrap img {
+  filter: drop-shadow(0 0 14px rgba(255,255,255,0.08));
+}
+
+/* Targetes generals */
+.card,
+.panel,
+.widget,
+.cap-annual-card,
+.cap-month-chart-v3,
+.cap-month-chart-v2,
+.cap-month-detail-card,
+.cap-month-radial-card,
+.capitalitat-five-chart-card,
+.cap-month-detail-bottom > div,
+.cap-annual-kpis div,
+.cap-month-detail-kpis div,
+.cap-annual-loading,
+.calendar-card,
+.map-card,
+table {
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.12), rgba(255,255,255,0.06)) !important;
+  border: 1px solid var(--line-soft) !important;
+  box-shadow: var(--shadow-lg) !important;
+  backdrop-filter: blur(24px) saturate(150%);
+  -webkit-backdrop-filter: blur(24px) saturate(150%);
+  border-radius: var(--radius-lg) !important;
+  color: var(--text-main) !important;
+}
+
+.cap-annual-card,
+.cap-month-chart-v3,
+.cap-month-chart-v2,
+.cap-month-detail-card,
+.capitalitat-five-chart-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.cap-annual-card::before,
+.cap-month-chart-v3::before,
+.cap-month-chart-v2::before,
+.cap-month-detail-card::before,
+.capitalitat-five-chart-card::before,
+.cap-month-radial-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(135deg,
+      rgba(255,255,255,0.10) 0%,
+      rgba(255,255,255,0.03) 28%,
+      rgba(115,184,255,0.10) 48%,
+      rgba(255,255,255,0.02) 70%,
+      rgba(255,255,255,0.00) 100%);
+  opacity: 0.9;
+}
+
+/* Títols */
+h1, h2, h3, h4, h5, h6,
+.hero-title,
+.page-title,
+.section-title,
+.cap-month-detail-head h3,
+.cap-annual-head h3,
+.cap-linear-head strong,
+.cap-month-radial-card h4 {
+  color: #ffffff !important;
+  letter-spacing: -0.03em;
+}
+
+/* KPIs */
+.cap-annual-kpis strong,
+.cap-month-detail-kpis strong,
+.cap-month-v3-kpis strong,
+.cap-month-v2-kpis strong,
+.cap-month-kpi strong {
+  color: #ffffff !important;
+}
+
+.cap-annual-kpis span,
+.cap-month-detail-kpis span,
+.cap-month-v3-kpis span,
+.cap-month-v2-kpis span,
+.cap-month-kpi span {
+  color: var(--text-dim) !important;
+}
+
+/* Botons / pestanyes / pills */
+button,
+.nav-pill,
+.cap-calendar-tabs button,
+.cap-month-pills span,
+.cap-month-detail-close,
+input,
+select,
+textarea {
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.14), rgba(255,255,255,0.05)) !important;
+  border: 1px solid var(--line-strong) !important;
+  color: var(--text-main) !important;
+  border-radius: 999px !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.12),
+    0 10px 24px rgba(0,0,0,0.18) !important;
+  backdrop-filter: blur(18px) saturate(145%);
+  -webkit-backdrop-filter: blur(18px) saturate(145%);
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease,
+    border-color 0.18s ease,
+    background 0.18s ease;
+}
+
+button:hover,
+.nav-pill:hover,
+.cap-calendar-tabs button:hover,
+.cap-month-detail-close:hover {
+  transform: translateY(-1px);
+  border-color: rgba(255,255,255,0.24) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.14),
+    0 14px 28px rgba(0,0,0,0.24),
+    0 0 0 1px rgba(255,255,255,0.05) !important;
+}
+
+.nav-pill,
+.cap-calendar-tabs button {
+  position: relative;
+  overflow: hidden;
+}
+
+.nav-pill::before,
+.cap-calendar-tabs button::before,
+button::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(120deg,
+      rgba(255,255,255,0.14) 0%,
+      rgba(255,255,255,0.02) 28%,
+      rgba(115,184,255,0.18) 48%,
+      rgba(255,255,255,0.03) 68%,
+      rgba(255,255,255,0.00) 100%);
+  opacity: 1;
+}
+
+.nav-pill.active,
+.nav-pill.is-active,
+.cap-calendar-tabs button.is-active {
+  background:
+    linear-gradient(180deg, rgba(115,184,255,0.24), rgba(255,255,255,0.08)) !important;
+  border-color: rgba(115,184,255,0.44) !important;
+  color: #ffffff !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.16),
+    0 14px 28px rgba(0,0,0,0.24),
+    0 0 0 1px rgba(115,184,255,0.16),
+    0 0 24px rgba(115,184,255,0.12) !important;
+}
+
+/* Inputs */
+input,
+select,
+textarea {
+  border-radius: var(--radius-sm) !important;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--text-dim) !important;
+}
+
+/* Taules */
+table {
+  border-collapse: separate !important;
+  border-spacing: 0;
+  overflow: hidden;
+}
+
+thead th {
+  background: rgba(255,255,255,0.08) !important;
+  color: #ffffff !important;
+}
+
+tbody tr {
+  background: transparent !important;
+}
+
+tbody tr:not(:last-child) td {
+  border-bottom: 1px solid rgba(255,255,255,0.06) !important;
+}
+
+td, th {
+  color: var(--text-main) !important;
+}
+
+/* Gràfics: eixos i línies */
+.cap-month-v3-grid,
+.cap-month-v2-grid,
+.cap-annual-grid-line,
+.cap-annual-row-line,
+.cap-month-radial-grid,
+.cap-month-radial-axis {
+  stroke: rgba(255,255,255,0.08) !important;
+}
+
+.cap-month-v3-axis-y,
+.cap-month-v2-axis-y,
+.cap-month-v2-axis-x,
+.cap-annual-category-label,
+.cap-annual-month-label,
+.cap-month-radial-label {
+  fill: rgba(244,246,251,0.62) !important;
+  color: rgba(244,246,251,0.62) !important;
+}
+
+/* Gràfic principal de mesos: línia blanca elegant */
+.cap-month-v3-line-yellow,
+.cap-month-v2-line-yellow,
+.cap-month-line-passes {
+  stroke: rgba(255,255,255,0.94) !important;
+  filter:
+    drop-shadow(0 0 6px rgba(255,255,255,0.16))
+    drop-shadow(0 0 18px rgba(255,255,255,0.08)) !important;
+}
+
+.cap-month-v3-area,
+.cap-month-v2-area {
+  fill: rgba(255,255,255,0.09) !important;
+}
+
+.cap-month-point-passes circle:first-child {
+  fill: #ffffff !important;
+  stroke: rgba(115,184,255,0.26) !important;
+  filter:
+    drop-shadow(0 0 12px rgba(255,255,255,0.18))
+    drop-shadow(0 0 20px rgba(115,184,255,0.10)) !important;
+}
+
+/* Radials */
+.cap-month-radial-fill {
+  fill: rgba(115,184,255,0.14) !important;
+}
+
+.cap-month-radial-line {
+  stroke: rgba(255,255,255,0.92) !important;
+  filter:
+    drop-shadow(0 0 8px rgba(115,184,255,0.16)) !important;
+}
+
+.cap-month-radial-point {
+  fill: var(--accent) !important;
+  stroke: rgba(255,255,255,0.35) !important;
+}
+
+.cap-month-radial-percent {
+  fill: rgba(115,184,255,0.88) !important;
+}
+
+/* Bubbles anuals */
+.cap-annual-bubble.is-mod-a,
+.cap-annual-legend i.is-mod-a {
+  fill: #73b8ff !important;
+  background: #73b8ff !important;
+}
+
+.cap-annual-bubble.is-mod-b,
+.cap-annual-legend i.is-mod-b {
+  fill: #c9d8f3 !important;
+  background: #c9d8f3 !important;
+}
+
+.cap-annual-bubble.is-mod-c,
+.cap-annual-legend i.is-mod-c {
+  fill: #8ea0c8 !important;
+  background: #8ea0c8 !important;
+}
+
+.cap-annual-bubble.is-mod-other,
+.cap-annual-legend i.is-mod-other {
+  fill: rgba(255,255,255,0.55) !important;
+  background: rgba(255,255,255,0.55) !important;
+}
+
+/* Tooltips */
+.cap-month-tooltip,
+.cap-annual-tooltip {
+  background:
+    linear-gradient(180deg, rgba(58,64,75,0.88), rgba(42,48,58,0.78)) !important;
+  border: 1px solid rgba(255,255,255,0.12) !important;
+  color: var(--text-main) !important;
+  box-shadow: var(--shadow-md) !important;
+  backdrop-filter: blur(22px) saturate(150%);
+  -webkit-backdrop-filter: blur(22px) saturate(150%);
+}
+
+.cap-month-tooltip strong,
+.cap-annual-tooltip strong {
+  color: #ffffff !important;
+}
+
+.cap-month-tooltip span,
+.cap-month-tooltip em,
+.cap-annual-tooltip span,
+.cap-annual-tooltip em {
+  color: var(--text-soft) !important;
+}
+
+/* Calendari i mapa */
+.leaflet-container,
+.mapboxgl-map,
+iframe,
+.calendar-grid,
+.calendar-card,
+.cap-calendar-monthly-panel,
+.cap-calendar-annual-panel {
+  border-radius: var(--radius-lg) !important;
+  overflow: hidden;
+}
+
+/* Tabs inferiors / docks si existeixen */
+.tab-bar,
+.bottom-tabs,
+.floating-tabs,
+.dock {
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.12), rgba(255,255,255,0.05)) !important;
+  border: 1px solid rgba(255,255,255,0.10) !important;
+  border-radius: 999px !important;
+  box-shadow: var(--shadow-md) !important;
+  backdrop-filter: blur(24px) saturate(150%);
+  -webkit-backdrop-filter: blur(24px) saturate(150%);
+}
+
+/* Scrollbars */
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.16);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: rgba(255,255,255,0.24);
+  background-clip: padding-box;
+}
+
+/* Responsive */
+@media (max-width: 860px) {
+  .cap-annual-card,
+  .cap-month-chart-v3,
+  .cap-month-detail-card,
+  .capitalitat-five-chart-card {
+    border-radius: 24px !important;
+  }
+}
