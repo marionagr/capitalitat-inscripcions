@@ -8894,3 +8894,115 @@ thead th {
   background: #d90429 !important;
   box-shadow: 0 0 8px rgba(217,4,41,0.08) !important;
 }
+
+/* === CAPITALITAT_TOTAL_PASSIS_SURGICAL_FIX_STYLE === */
+
+/* ============================================================
+   TOTAL PASSIS · FIX FINAL EXACTE
+============================================================ */
+
+/* Targetes superiors */
+.cap-top-summary-fixed,
+.cap-top-summary-fixed * {
+  color: #2b2d42 !important;
+  text-shadow: none !important;
+}
+
+.cap-top-summary-label {
+  color: #2b2d42 !important;
+  opacity: 1 !important;
+}
+
+.cap-top-summary-number {
+  color: #d90429 !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
+
+/* Per si els números grans tenen una classe pròpia antiga */
+.cap-summary-number,
+.summary-value,
+.stat-value,
+.metric-value,
+.kpi-value,
+.big-number,
+.big-stat,
+.value-xl,
+.value-xxl {
+  color: #d90429 !important;
+  text-shadow: none !important;
+}
+
+/* 5 gràfics */
+.cap-five-card-fixed,
+.cap-five-card-fixed * {
+  text-shadow: none !important;
+}
+
+.cap-five-card-fixed .cap-linear-head span,
+.cap-five-card-fixed .cap-linear-head p,
+.cap-five-card-fixed .card-subtitle,
+.cap-five-card-fixed .chart-subtitle,
+.cap-five-card-fixed [class*="subtitle"],
+.cap-five-card-fixed [class*="description"] {
+  display: none !important;
+}
+
+.cap-five-card-fixed .cap-linear-head strong,
+.cap-five-card-fixed h3,
+.cap-five-card-fixed h4 {
+  color: #2b2d42 !important;
+}
+
+.cap-five-card-fixed .cap-linear-label span,
+.cap-five-card-fixed .cap-linear-row span {
+  color: #5f6778 !important;
+}
+
+.cap-five-card-fixed .cap-linear-row strong,
+.cap-five-card-fixed .cap-linear-value,
+.cap-five-card-fixed b {
+  color: #d90429 !important;
+}
+
+.cap-five-card-fixed .cap-linear-track {
+  background: rgba(43,45,66,0.08) !important;
+}
+
+.cap-five-card-fixed .cap-linear-track i {
+  background: linear-gradient(90deg, #ef233c 0%, #d90429 100%) !important;
+  box-shadow: 0 0 10px rgba(217,4,41,0.10) !important;
+}
+
+/* Mata qualsevol groc antic dins aquestes barres */
+.capitalitat-five-chart-card .cap-linear-track i,
+.capitalitat-five-chart-card .cap-linear-fill,
+.capitalitat-five-chart-card .cap-linear-bar,
+.capitalitat-five-chart-card .cap-linear-progress,
+.capitalitat-five-chart-card .cap-linear-meter {
+  background: linear-gradient(90deg, #ef233c 0%, #d90429 100%) !important;
+  box-shadow: 0 0 10px rgba(217,4,41,0.10) !important;
+}
+
+/* Text general dins les targetes */
+.capitalitat-five-chart-card,
+.capitalitat-five-chart-card * {
+  color: #2b2d42 !important;
+}
+
+.capitalitat-five-chart-card .cap-linear-label span,
+.capitalitat-five-chart-card .cap-linear-row span {
+  color: #5f6778 !important;
+}
+
+.capitalitat-five-chart-card .cap-linear-row strong,
+.capitalitat-five-chart-card .cap-linear-value,
+.capitalitat-five-chart-card b {
+  color: #d90429 !important;
+}
+
+/* Manté la numeració 01-05 però sense rodona */
+.capitalitat-five-chart-card::before {
+  display: none !important;
+  content: none !important;
+}

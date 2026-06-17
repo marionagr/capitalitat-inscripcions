@@ -4605,3 +4605,156 @@ mostrarExperienciaCapitalitatV5 = function() {
     }
   });
 })();
+
+/* === CAPITALITAT_TOTAL_PASSIS_SURGICAL_FIX_START === */
+
+/* ============================================================
+   TOTAL PASSIS · FIX DIRECTE COLORS / TEXTOS / BARRES
+============================================================ */
+
+(() => {
+  function normTxt(value) {
+    return String(value ?? "")
+      .replace(/\u00a0/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+  }
+
+  function closestCard(el) {
+    return el.closest(
+      ".card, .panel, .stat-card, .summary-card, .metric-card, .kpi-card, .dashboard-card, .glass-card, [class*='card'], [class*='kpi'], [class*='summary']"
+    );
+  }
+
+  function fixTopSummaryCards() {
+    const all = [...document.querySelectorAll("body *")];
+
+    all.forEach(el => {
+      const txt = normTxt(el.textContent);
+
+      if (txt === "Total de passis" || txt === "Passis gestionats per nosaltres") {
+        const card = closestCard(el);
+        if (!card) return;
+
+        card.classList.add("cap-top-summary-fixed");
+        el.classList.add("cap-top-summary-label");
+        el.style.color = "#2b2d42";
+        el.style.opacity = "1";
+
+        card.querySelectorAll("*").forEach(child => {
+          const childTxt = normTxt(child.textContent);
+
+          if (childTxt === "1872" || childTxt === "374") {
+            child.classList.add("cap-top-summary-number");
+            child.style.color = "#d90429";
+            child.style.opacity = "1";
+            child.style.textShadow = "none";
+          }
+        });
+      }
+    });
+  }
+
+  function fixFiveCharts() {
+    const row = document.querySelector(".capitalitat-five-charts-row");
+    if (!row) return;
+
+    const cards = [...row.querySelectorAll(".capitalitat-five-chart-card")];
+
+    cards.forEach(card => {
+      card.classList.add("cap-five-card-fixed");
+
+      // Treu textos descriptius antics
+      card.querySelectorAll("*").forEach(el => {
+        const txt = normTxt(el.textContent);
+
+        if (
+          txt === "Totes les files del full INSCRIPCIONS." ||
+          txt.includes("Totes les files del full INSCRIPCIONS")
+        ) {
+          el.style.display = "none";
+        }
+      });
+
+      // Treu rodones decoratives buides de dalt a l'esquerra
+      const cardRect = card.getBoundingClientRect();
+
+      card.querySelectorAll("*").forEach(el => {
+        const txt = normTxt(el.textContent);
+        if (txt) return;
+
+        const rect = el.getBoundingClientRect();
+        if (!rect.width || !rect.height) return;
+
+        const styles = window.getComputedStyle(el);
+        const radius = parseFloat(styles.borderRadius) || 0;
+
+        const isSmallCircle =
+          rect.width >= 18 &&
+          rect.width <= 56 &&
+          rect.height >= 18 &&
+          rect.height <= 56 &&
+          radius >= 10 &&
+          rect.left <= cardRect.left + 70 &&
+          rect.top <= cardRect.top + 70;
+
+        if (isSmallCircle) {
+          el.style.display = "none";
+        }
+      });
+
+      // Colors de text
+      card.querySelectorAll("*").forEach(el => {
+        el.style.textShadow = "none";
+      });
+
+      card.querySelectorAll(".cap-linear-head strong, h3, h4").forEach(el => {
+        el.style.color = "#2b2d42";
+      });
+
+      card.querySelectorAll(".cap-linear-label span, .cap-linear-row span").forEach(el => {
+        el.style.color = "#5f6778";
+      });
+
+      card.querySelectorAll(".cap-linear-row strong, .cap-linear-value, b").forEach(el => {
+        el.style.color = "#d90429";
+      });
+
+      // Barres vermelles
+      card.querySelectorAll(".cap-linear-track i").forEach(bar => {
+        bar.style.background = "linear-gradient(90deg, #ef233c 0%, #d90429 100%)";
+        bar.style.boxShadow = "0 0 10px rgba(217,4,41,0.10)";
+      });
+
+      card.querySelectorAll(".cap-linear-track").forEach(track => {
+        track.style.background = "rgba(43,45,66,0.08)";
+      });
+    });
+  }
+
+  function fixTotalPassisSurgical() {
+    fixTopSummaryCards();
+    fixFiveCharts();
+  }
+
+  function scheduleFixTotalPassisSurgical() {
+    setTimeout(fixTotalPassisSurgical, 200);
+    setTimeout(fixTotalPassisSurgical, 800);
+    setTimeout(fixTotalPassisSurgical, 1600);
+    setTimeout(fixTotalPassisSurgical, 3000);
+  }
+
+  document.addEventListener("DOMContentLoaded", scheduleFixTotalPassisSurgical);
+  window.addEventListener("load", scheduleFixTotalPassisSurgical);
+
+  document.addEventListener("click", event => {
+    const target = event.target.closest("button, a, .nav-item, .sidebar-item");
+    if (!target) return;
+
+    const text = normTxt(target.textContent).toLowerCase();
+
+    if (text.includes("total") || text.includes("passis")) {
+      scheduleFixTotalPassisSurgical();
+    }
+  });
+})();
