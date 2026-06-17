@@ -5476,3 +5476,297 @@ mostrarExperienciaCapitalitatV5 = function() {
     }
   });
 })();
+
+/* === CAPITALITAT_YEAR_CHART_BLACK_SINGLE_V2 === */
+
+(() => {
+  const MONTHS = ["GEN", "FEB", "MARÇ", "ABR", "MAIG", "JUNY", "JUL", "AGO", "SET", "OCT", "NOV", "DES"];
+  let YEAR_CHART_STATE = {
+    selectedMonth: new Date().getMonth(),
+    rows: [],
+    keys: {}
+  };
+
+  function parseDateDMY_blackYear(value) {
+    if (!value) return null;
+    const str = String(value).trim();
+    const m = str.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+    if (!m) return null;
+    const d = Number(m[1]);
+    const mo = Number(m[2]) - 1;
+    const y = Number(m[3]);
+    const dt = new Date(y, mo, d);
+    return isNaN(dt.getTime()) ? null : dt;
+  }
+
+  function getRows_blackYear(data) {
+    if (Array.isArray(data)) return data;
+    if (Array.isArray(data.rows)) return data.rows;
+    return [];
+  }
+
+  function esc_blackYear(value) {
+    return String(value ?? "")
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#039;");
+  }
+
+  function smoothPath_blackYear(points) {
+    if (!points.length) return "";
+    if (points.length === 1) return `M ${points[0].x} ${points[0].y}`;
+
+    let d = `M ${points[0].x} ${points[0].y}`;
+
+    for (let i = 0; i < points.length - 1; i++) {
+      const p0 = points[i === 0 ? i : i - 1];
+      const p1 = points[i];
+      const p2 = points[i + 1];
+      const p3 = points[i + 2] || p2;
+
+      const cp1x = p1.x + (p2.x - p0.x) / 6;
+      const cp1y = p1.y + (p2.y - p0.y) / 6;
+      const cp2x = p2.x - (p3.x - p1.x) / 6;
+      const cp2y = p2.y - (p3.y - p1.y) / 6;
+
+      d += ` C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${p2.x} ${p2.y}`;
+    }
+
+    return d;
+  }
+
+  function buildGhostSeries_blackYear(values) {
+    const g1 = values.map((v, i) => Math.max(0, Math.round((v * 0.78) + (Math.sin(i * 0.9) * 22) + 20)));
+    const g2 = values.map((v, i) => Math.max(0, Math.round((v * 0.62) + (Math.cos(i * 0.7) * 18) + 35)));
+    const g3 = values.map((v, i) => Math.max(0, Math.round((v * 0.52) + (Math.sin(i * 1.15) * 16) + 28)));
+    return [g1, g2, g3];
+  }
+
+  function buildPoints_blackYear(values, width, height, margin, maxValue) {
+    const innerW = width - margin.left - margin.right;
+    const innerH = height - margin.top - margin.bottom;
+
+    const x = (i) => margin.left + (innerW / 11) * i;
+    const y = (v) => margin.top + innerH - (v / maxValue) * innerH;
+
+    return values.map((value, i) => ({
+      x: x(i),
+      y: y(value),
+      value,
+      month: MONTHS[i],
+      idx: i
+    }));
+  }
+
+  function buildYearSvg_blackYear(values, selectedMonth) {
+    const width = 1080;
+    const height = 370;
+    const margin = { top: 36, right: 32, bottom: 62, left: 56 };
+    const maxValueRaw = Math.max(...values, 10);
+    const maxValue = Math.ceil(maxValueRaw / 100) * 100 || 100;
+
+    const mainPoints = buildPoints_blackYear(values, width, height, margin, maxValue);
+    const mainPath = smoothPath_blackYear(mainPoints);
+
+    const ghostSeries = buildGhostSeries_blackYear(values);
+    const ghostPaths = ghostSeries.map(series => {
+      const pts = buildPoints_blackYear(series, width, height, margin, maxValue);
+      return smoothPath_blackYear(pts);
+    });
+
+    const selected = mainPoints[selectedMonth] || mainPoints[0];
+    const innerH = height - margin.top - margin.bottom;
+    const baseY = margin.top + innerH;
+
+    const gridValues = [0.25, 0.50, 0.75, 1.00].map(r => Math.round(maxValue * r));
+    const gridLines = gridValues.map(value => {
+      const y = margin.top + innerH - (value / maxValue) * innerH;
+      return `
+        <line x1="${margin.left}" y1="${y}" x2="${width - margin.right}" y2="${y}" class="cap-year-black-grid" />
+        <text x="${margin.left - 10}" y="${y + 4}" text-anchor="end" class="cap-year-black-ylabel">${Math.round((value / maxValue) * 100)}%</text>
+      `;
+    }).join("");
+
+    const monthGroups = mainPoints.map(p => `
+      <g class="cap-year-black-month-hit ${p.idx === selectedMonth ? 'is-active' : ''}" data-month-index="${p.idx}">
+        <rect x="${p.x - 34}" y="${baseY + 10}" width="68" height="28" rx="10" fill="transparent"></rect>
+        <text x="${p.x}" y="${baseY + 30}" text-anchor="middle" class="cap-year-black-xlabel">${p.month}</text>
+      </g>
+    `).join("");
+
+    const hitTargets = mainPoints.map(p => `
+      <g class="cap-year-black-point-hit" data-month-index="${p.idx}">
+        <rect x="${p.x - 26}" y="${margin.top}" width="52" height="${baseY - margin.top + 16}" fill="transparent"></rect>
+      </g>
+    `).join("");
+
+    return `
+      <svg viewBox="0 0 ${width} ${height}" class="cap-year-black-svg" role="img" aria-label="Activitats al llarg de l'any">
+        ${gridLines}
+
+        ${ghostPaths.map(d => `<path d="${d}" class="cap-year-black-ghost"></path>`).join("")}
+
+        <path d="${mainPath}" class="cap-year-black-main"></path>
+
+        <line
+          x1="${selected.x}" y1="${selected.y}"
+          x2="${selected.x}" y2="${baseY}"
+          class="cap-year-black-vertical"
+        ></line>
+
+        <circle
+          cx="${selected.x}" cy="${selected.y}" r="5.2"
+          class="cap-year-black-selected-dot"
+        ></circle>
+
+        ${hitTargets}
+        ${monthGroups}
+      </svg>
+    `;
+  }
+
+  function buildYearCard_blackYear(values, selectedMonth) {
+    const total = values.reduce((a, b) => a + b, 0);
+    const peak = Math.max(...values);
+    const peakMonth = MONTHS[values.indexOf(peak)];
+    const avg = Math.round(total / 12);
+
+    return `
+      <div class="cap-year-black-head">
+        <div>
+          <div class="cap-year-black-title">Activitats al llarg de l'any</div>
+          <div class="cap-year-black-sub">Distribució mensual de totes les files segons la data d'inici.</div>
+        </div>
+      </div>
+
+      <div class="cap-year-black-inner">
+        <div class="cap-year-black-stats">
+          <div class="cap-year-black-stat">
+            <strong>${total}</strong>
+            <span>PASSIS TOTALS</span>
+          </div>
+          <div class="cap-year-black-stat">
+            <strong>${peak}</strong>
+            <span>PIC MENSUAL · ${peakMonth}</span>
+          </div>
+          <div class="cap-year-black-stat">
+            <strong>${avg}</strong>
+            <span>MITJANA / MES</span>
+          </div>
+        </div>
+
+        ${buildYearSvg_blackYear(values, selectedMonth)}
+
+        <div class="cap-year-black-legend">
+          <span class="cap-year-black-legend-item">
+            <i class="legend-main"></i>
+            Passis per mes · clica un mes per veure el dashboard mensual
+          </span>
+        </div>
+      </div>
+    `;
+  }
+
+  function getMonthlyCounts_blackYear(rows, startKey) {
+    const counts = Array.from({ length: 12 }, () => 0);
+    rows.forEach(row => {
+      const dt = parseDateDMY_blackYear(row[startKey]);
+      if (!dt) return;
+      counts[dt.getMonth()] += 1;
+    });
+    return counts;
+  }
+
+  function removeExtraYearCharts_blackYear(totalView, keepEl) {
+    totalView.querySelectorAll(".cap-year-chart-card, #cap-year-chart-elegant").forEach(el => {
+      if (el !== keepEl) el.remove();
+    });
+  }
+
+  function openMonthDashboard_blackYear(monthIndex) {
+    document.dispatchEvent(new CustomEvent("capitalitat:month-selected", {
+      detail: { monthIndex }
+    }));
+
+    if (typeof window.renderMonthDashboard === "function") {
+      try { window.renderMonthDashboard(monthIndex); } catch (e) {}
+    }
+    if (typeof window.renderMonthlyDashboard === "function") {
+      try { window.renderMonthlyDashboard(monthIndex); } catch (e) {}
+    }
+    if (typeof window.showMonthDashboard === "function") {
+      try { window.showMonthDashboard(monthIndex); } catch (e) {}
+    }
+    if (typeof window.selectMonthDashboard === "function") {
+      try { window.selectMonthDashboard(monthIndex); } catch (e) {}
+    }
+  }
+
+  function bindChartClicks_blackYear(host) {
+    host.querySelectorAll("[data-month-index]").forEach(el => {
+      el.addEventListener("click", () => {
+        const idx = Number(el.getAttribute("data-month-index"));
+        YEAR_CHART_STATE.selectedMonth = idx;
+        renderElegantSingleYearChart_blackYear();
+        openMonthDashboard_blackYear(idx);
+      });
+    });
+  }
+
+  async function renderElegantSingleYearChart_blackYear() {
+    const totalView = document.querySelector("#view-total");
+    if (!totalView) return;
+
+    const response = await fetch(`data/inscripcions.json?t=${Date.now()}`);
+    if (!response.ok) return;
+
+    const data = await response.json();
+    const rows = getRows_blackYear(data);
+    const keys = data.columnKeys || {};
+    const startKey = keys.dataInici || "data_inici";
+
+    YEAR_CHART_STATE.rows = rows;
+    YEAR_CHART_STATE.keys = keys;
+
+    const values = getMonthlyCounts_blackYear(rows, startKey);
+
+    // elimina previews o versions petites anteriors
+    totalView.querySelectorAll(".cap-year-chart-preview, .cap-year-chart-small, .cap-year-chart-shell-small").forEach(el => el.remove());
+
+    let host = totalView.querySelector(".cap-month-chart-v3");
+    if (!host) {
+      const chartsRow = totalView.querySelector(".capitalitat-five-charts-row");
+      if (!chartsRow) return;
+      host = document.createElement("section");
+      host.className = "cap-month-chart-v3";
+      chartsRow.insertAdjacentElement("afterend", host);
+    }
+
+    host.id = "cap-year-chart-elegant";
+    host.classList.add("cap-year-chart-card", "cap-year-black-card");
+    host.innerHTML = buildYearCard_blackYear(values, YEAR_CHART_STATE.selectedMonth);
+
+    removeExtraYearCharts_blackYear(totalView, host);
+    bindChartClicks_blackYear(host);
+  }
+
+  function scheduleElegantSingleYearChart_blackYear() {
+    setTimeout(renderElegantSingleYearChart_blackYear, 300);
+    setTimeout(renderElegantSingleYearChart_blackYear, 1200);
+    setTimeout(renderElegantSingleYearChart_blackYear, 2600);
+  }
+
+  document.addEventListener("DOMContentLoaded", scheduleElegantSingleYearChart_blackYear);
+  window.addEventListener("load", scheduleElegantSingleYearChart_blackYear);
+
+  document.addEventListener("click", (event) => {
+    const btn = event.target.closest("button, .nav-pill, [data-view]");
+    if (!btn) return;
+    const txt = String(btn.textContent || "").toLowerCase();
+    if (txt.includes("total") || txt.includes("passis")) {
+      scheduleElegantSingleYearChart_blackYear();
+    }
+  });
+})();
