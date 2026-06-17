@@ -4311,3 +4311,43 @@ mostrarExperienciaCapitalitatV5 = function() {
     }
   });
 })();
+
+/* === CAPITALITAT_REMOVE_DUPLICATED_INSCRIPCIONS_HERO === */
+
+(() => {
+  function removeDuplicatedInscripcionsHero() {
+    const totalView = document.querySelector("#view-total");
+    if (!totalView) return;
+
+    // Elimina el bloc duplicat que vam generar dins del dashboard nou
+    totalView.querySelectorAll(".cap-final-hero").forEach(el => el.remove());
+
+    // Assegura que el títol original de dalt continuï visible
+    totalView.querySelectorAll(".cap-original-total-header-hidden").forEach(el => {
+      el.classList.remove("cap-original-total-header-hidden");
+      el.style.display = "";
+    });
+  }
+
+  function scheduleRemoveDuplicatedInscripcionsHero() {
+    setTimeout(removeDuplicatedInscripcionsHero, 100);
+    setTimeout(removeDuplicatedInscripcionsHero, 600);
+    setTimeout(removeDuplicatedInscripcionsHero, 1400);
+    setTimeout(removeDuplicatedInscripcionsHero, 2600);
+  }
+
+  document.addEventListener("DOMContentLoaded", scheduleRemoveDuplicatedInscripcionsHero);
+  window.addEventListener("load", scheduleRemoveDuplicatedInscripcionsHero);
+
+  document.addEventListener("click", event => {
+    const btn = event.target.closest("button, .nav-pill, [data-view], .sidebar-item, .nav-item");
+    if (!btn) return;
+
+    const text = String(btn.textContent || "").toLowerCase();
+    const view = btn.getAttribute("data-view") || "";
+
+    if (view.includes("total") || text.includes("total") || text.includes("passis")) {
+      scheduleRemoveDuplicatedInscripcionsHero();
+    }
+  });
+})();

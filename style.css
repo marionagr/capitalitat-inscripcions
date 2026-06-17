@@ -8628,3 +8628,16 @@ thead th {
     flex-direction: column;
   }
 }
+
+/* === CAPITALITAT_HIDE_DUPLICATED_INSCRIPCIONS_HERO === */
+
+/* El bloc duplicat de dins del dashboard no s'ha de veure */
+#cap-total-stable-dashboard .cap-final-hero,
+#view-total .cap-final-hero {
+  display: none !important;
+}
+
+/* El títol original de dalt sí que ha de quedar visible */
+#view-total > :not(#cap-total-stable-dashboard) {
+  display: revert !important;
+}
