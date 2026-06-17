@@ -3908,535 +3908,18 @@ mostrarExperienciaCapitalitatV5 = function() {
 })();
 
 
-/* === CAPITALITAT_FINAL_TOP_GAUGES_START === */
+
+
+/* === CAPITALITAT_TOTAL_FINAL_STABLE_LAYOUT === */
 
 (() => {
-  const END_CAPITALITAT = new Date(2026, 11, 13);
+  if (window.__capTotalFinalStableLayout) return;
+  window.__capTotalFinalStableLayout = true;
 
-  function parseDateDMY(value) {
-    if (!value) return null;
-    const str = String(value).trim();
-    const m = str.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
-    if (!m) return null;
-
-    const d = Number(m[1]);
-    const mo = Number(m[2]) - 1;
-    const y = Number(m[3]);
-    const date = new Date(y, mo, d);
-
-    return isNaN(date.getTime()) ? null : date;
-  }
-
-  function stripTime(date) {
-    if (!date) return null;
-    return new Date(date.getFullYear(), date.getMonth(), date.getDate());
-  }
-
-  function isTrue(value) {
-    return String(value ?? "").trim().toUpperCase() === "TRUE";
-  }
-
-  function formatPercent(value) {
-    return `${value.toFixed(1).replace(".", ",")}%`;
-  }
-
-  function escapeHtml(value) {
-    return String(value ?? "")
-      .replaceAll("&", "&amp;")
-      .replaceAll("<", "&lt;")
-      .replaceAll(">", "&gt;")
-      .replaceAll('"', "&quot;")
-      .replaceAll("'", "&#039;");
-  }
-
-  function getRows(data) {
-    if (Array.isArray(data)) return data;
-    if (Array.isArray(data.rows)) return data.rows;
-    return [];
-  }
-
-  function buildGauge(percent) {
-    const p = Math.max(0, Math.min(100, percent));
-
-    return `
-      <svg class="cap-final-gauge-svg" viewBox="0 0 260 160" aria-hidden="true">
-        <path
-          class="cap-final-gauge-track"
-          d="M 32 132 A 98 98 0 0 1 228 132"
-          pathLength="100"></path>
-
-        <path
-          class="cap-final-gauge-ticks"
-          d="M 42 132 A 88 88 0 0 1 218 132"
-          pathLength="100"></path>
-
-        <path
-          class="cap-final-gauge-progress"
-          d="M 32 132 A 98 98 0 0 1 228 132"
-          pathLength="100"
-          stroke-dasharray="${p} 100"></path>
-      </svg>
-    `;
-  }
-
-  function buildCard(card) {
-    return `
-      <article class="cap-final-gauge-card">
-        <header class="cap-final-gauge-header">
-          <h3>${escapeHtml(card.title)}</h3>
-        </header>
-
-        <div class="cap-final-gauge-meta">
-          <span><i></i>${escapeHtml(card.left)}</span>
-          <span><i></i>${escapeHtml(card.right)}</span>
-        </div>
-
-        <div class="cap-final-gauge-wrap">
-          ${buildGauge(card.percent)}
-          <div class="cap-final-gauge-center">
-            <strong>${formatPercent(card.percent)}</strong>
-            <span>${escapeHtml(card.value)} passis</span>
-          </div>
-        </div>
-      </article>
-    `;
-  }
-
-  function removeOldOverview(totalView) {
-    totalView.querySelectorAll(
-      "#cap-overview-grid, .cap-overview-grid, .cap-ref-kpi-grid, .cap-overview-card, .cap-ref-kpi-card"
-    ).forEach(el => el.remove());
-
-    [...totalView.querySelectorAll("*")].forEach(el => {
-      const txt = String(el.textContent || "").replace(/\s+/g, " ").trim().toLowerCase();
-
-      if (
-        txt === "total de passis" ||
-        txt === "passis gestionats per nosaltres"
-      ) {
-        const card = el.closest(".card, .panel, .summary-card, .stat-card, [class*='card']");
-        if (card) card.style.display = "none";
-      }
-    });
-  }
-
-  async function renderFinalTopGauges() {
-    const totalView = document.querySelector("#view-total");
-    if (!totalView) return;
-
-    const response = await fetch(`data/inscripcions.json?t=${Date.now()}`);
-    if (!response.ok) return;
-
-    const data = await response.json();
-    const rows = getRows(data);
-    const keys = data.columnKeys || {};
-
-    if (!rows.length) return;
-
-    const startKey = keys.dataInici || "data_inici";
-    const endKey = keys.dataFinal || "data_final";
-    const gestioKey = keys.gestio || "propies";
-
-    const today = stripTime(new Date());
-    const total = rows.length;
-
-    const autogestionades = rows.filter(row => isTrue(row[gestioKey])).length;
-
-    const finalitzades = rows.filter(row => {
-      const start = stripTime(parseDateDMY(row[startKey]));
-      const end = stripTime(parseDateDMY(row[endKey])) || start;
-      return end && end < today;
-    }).length;
-
-    const pendents = rows.filter(row => {
-      const start = stripTime(parseDateDMY(row[startKey]));
-      return start && start > today && start <= END_CAPITALITAT;
-    }).length;
-
-    const avui = rows.filter(row => {
-      const start = stripTime(parseDateDMY(row[startKey]));
-      const end = stripTime(parseDateDMY(row[endKey])) || start;
-      return start && end && start <= today && end >= today;
-    }).length;
-
-    const cards = [
-      {
-        title: "Total passis",
-        value: total,
-        percent: 100,
-        left: `${total} totals`,
-        right: `100%`
-      },
-      {
-        title: "Autogestionades",
-        value: autogestionades,
-        percent: total ? autogestionades / total * 100 : 0,
-        left: `${autogestionades} pròpies`,
-        right: `${formatPercent(total ? autogestionades / total * 100 : 0)}`
-      },
-      {
-        title: "Finalitzades",
-        value: finalitzades,
-        percent: total ? finalitzades / total * 100 : 0,
-        left: `${finalitzades} acabades`,
-        right: `${formatPercent(total ? finalitzades / total * 100 : 0)}`
-      },
-      {
-        title: "Pendents",
-        value: pendents,
-        percent: total ? pendents / total * 100 : 0,
-        left: `${pendents} pendents`,
-        right: `${formatPercent(total ? pendents / total * 100 : 0)}`
-      },
-      {
-        title: "Avui",
-        value: avui,
-        percent: total ? avui / total * 100 : 0,
-        left: `${avui} vigents`,
-        right: `${formatPercent(total ? avui / total * 100 : 0)}`
-      }
-    ];
-
-    removeOldOverview(totalView);
-
-    const html = `
-      <section id="cap-final-gauge-grid" class="cap-final-gauge-grid">
-        ${cards.map(buildCard).join("")}
-      </section>
-    `;
-
-    const target =
-      totalView.querySelector(".capitalitat-five-charts-row") ||
-      totalView.querySelector(".cap-month-chart-v3") ||
-      totalView.firstElementChild ||
-      null;
-
-    if (target) {
-      target.insertAdjacentHTML("beforebegin", html);
-    } else {
-      totalView.insertAdjacentHTML("afterbegin", html);
-    }
-  }
-
-  function scheduleFinalTopGauges() {
-    setTimeout(renderFinalTopGauges, 250);
-    setTimeout(renderFinalTopGauges, 900);
-    setTimeout(renderFinalTopGauges, 1800);
-    setTimeout(renderFinalTopGauges, 3200);
-  }
-
-  document.addEventListener("DOMContentLoaded", scheduleFinalTopGauges);
-  window.addEventListener("load", scheduleFinalTopGauges);
-
-  document.addEventListener("click", event => {
-    const el = event.target.closest("button, [data-view], .nav-pill, .sidebar-item, .nav-item");
-    if (!el) return;
-
-    const txt = String(el.textContent || "").toLowerCase();
-
-    if (txt.includes("total") || txt.includes("passis")) {
-      scheduleFinalTopGauges();
-    }
-  });
-})();
-
-/* === CAPITALITAT_TOP_GAUGE_HOTFIX_V1 === */
-
-(() => {
-  const END_CAPITALITAT = new Date(2026, 11, 13);
-  let renderTimeout = null;
-
-  function parseDateDMY(value) {
-    if (!value) return null;
-    const str = String(value).trim();
-    const m = str.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
-    if (!m) return null;
-    const d = Number(m[1]);
-    const mo = Number(m[2]) - 1;
-    const y = Number(m[3]);
-    const date = new Date(y, mo, d);
-    return isNaN(date.getTime()) ? null : date;
-  }
-
-  function stripTime(date) {
-    if (!date) return null;
-    return new Date(date.getFullYear(), date.getMonth(), date.getDate());
-  }
-
-  function isTrue(value) {
-    return String(value ?? "").trim().toUpperCase() === "TRUE";
-  }
-
-  function formatPercent(value) {
-    return `${value.toFixed(1).replace(".", ",")}%`;
-  }
-
-  function getRows(data) {
-    if (Array.isArray(data)) return data;
-    if (Array.isArray(data.rows)) return data.rows;
-    return [];
-  }
-
-  function esc(value) {
-    return String(value ?? "")
-      .replaceAll("&", "&amp;")
-      .replaceAll("<", "&lt;")
-      .replaceAll(">", "&gt;")
-      .replaceAll('"', "&quot;")
-      .replaceAll("'", "&#039;");
-  }
-
-  function buildGauge(percent) {
-    const p = Math.max(0, Math.min(100, percent));
-    return `
-      <svg class="cap-hotfix-gauge-svg" viewBox="0 0 260 160" aria-hidden="true">
-        <path
-          class="cap-hotfix-gauge-track"
-          d="M 32 132 A 98 98 0 0 1 228 132"
-          pathLength="100"></path>
-
-        <path
-          class="cap-hotfix-gauge-ticks"
-          d="M 42 132 A 88 88 0 0 1 218 132"
-          pathLength="100"></path>
-
-        <path
-          class="cap-hotfix-gauge-progress"
-          d="M 32 132 A 98 98 0 0 1 228 132"
-          pathLength="100"
-          stroke-dasharray="${p} 100"></path>
-      </svg>
-    `;
-  }
-
-  function buildCard(card) {
-    return `
-      <article class="cap-hotfix-gauge-card">
-        <div class="cap-hotfix-gauge-title">${esc(card.title)}</div>
-
-        <div class="cap-hotfix-gauge-meta">
-          <span><i></i>${esc(card.left)}</span>
-          <span><i></i>${esc(card.right)}</span>
-        </div>
-
-        <div class="cap-hotfix-gauge-wrap">
-          ${buildGauge(card.percent)}
-          <div class="cap-hotfix-gauge-center">
-            <strong>${formatPercent(card.percent)}</strong>
-            <span>${esc(card.value)} passis</span>
-          </div>
-        </div>
-      </article>
-    `;
-  }
-
-  function removeAllOldTopBlocks(totalView) {
-    totalView.querySelectorAll(
-      "#cap-final-gauge-grid, .cap-final-gauge-grid, #cap-overview-grid, .cap-overview-grid, .cap-ref-kpi-grid, .cap-overview-card, .cap-ref-kpi-card"
-    ).forEach(el => el.remove());
-  }
-
-  async function renderSingleTopGaugeGrid() {
-    const totalView = document.querySelector("#view-total");
-    if (!totalView) return;
-
-    removeAllOldTopBlocks(totalView);
-
-    const response = await fetch(`data/inscripcions.json?t=${Date.now()}`);
-    if (!response.ok) return;
-
-    const data = await response.json();
-    const rows = getRows(data);
-    const keys = data.columnKeys || {};
-
-    if (!rows.length) return;
-
-    const startKey = keys.dataInici || "data_inici";
-    const endKey = keys.dataFinal || "data_final";
-    const gestioKey = keys.gestio || "propies";
-
-    const today = stripTime(new Date());
-
-    const total = rows.length;
-
-    const autogestionades = rows.filter(row => isTrue(row[gestioKey])).length;
-
-    const finalitzades = rows.filter(row => {
-      const start = stripTime(parseDateDMY(row[startKey]));
-      const end = stripTime(parseDateDMY(row[endKey])) || start;
-      return end && end < today;
-    }).length;
-
-    const pendents = rows.filter(row => {
-      const start = stripTime(parseDateDMY(row[startKey]));
-      return start && start > today && start <= END_CAPITALITAT;
-    }).length;
-
-    const avui = rows.filter(row => {
-      const start = stripTime(parseDateDMY(row[startKey]));
-      const end = stripTime(parseDateDMY(row[endKey])) || start;
-      return start && end && start <= today && end >= today;
-    }).length;
-
-    const cards = [
-      {
-        title: "Total passis",
-        value: total,
-        percent: 100,
-        left: `${total} totals`,
-        right: `100%`
-      },
-      {
-        title: "Autogestionades",
-        value: autogestionades,
-        percent: total ? (autogestionades / total) * 100 : 0,
-        left: `${autogestionades} pròpies`,
-        right: `${formatPercent(total ? (autogestionades / total) * 100 : 0)}`
-      },
-      {
-        title: "Finalitzades",
-        value: finalitzades,
-        percent: total ? (finalitzades / total) * 100 : 0,
-        left: `${finalitzades} acabades`,
-        right: `${formatPercent(total ? (finalitzades / total) * 100 : 0)}`
-      },
-      {
-        title: "Pendents",
-        value: pendents,
-        percent: total ? (pendents / total) * 100 : 0,
-        left: `${pendents} pendents`,
-        right: `${formatPercent(total ? (pendents / total) * 100 : 0)}`
-      },
-      {
-        title: "Avui",
-        value: avui,
-        percent: total ? (avui / total) * 100 : 0,
-        left: `${avui} vigents`,
-        right: `${formatPercent(total ? (avui / total) * 100 : 0)}`
-      }
-    ];
-
-    const section = document.createElement("section");
-    section.id = "cap-hotfix-gauge-grid";
-    section.className = "cap-hotfix-gauge-grid";
-    section.innerHTML = cards.map(buildCard).join("");
-
-    totalView.prepend(section);
-  }
-
-  function scheduleSingleTopGaugeGrid() {
-    clearTimeout(renderTimeout);
-    renderTimeout = setTimeout(() => {
-      renderSingleTopGaugeGrid().catch(console.error);
-    }, 120);
-  }
-
-  document.addEventListener("DOMContentLoaded", scheduleSingleTopGaugeGrid);
-  window.addEventListener("load", scheduleSingleTopGaugeGrid);
-
-  document.addEventListener("click", (event) => {
-    const el = event.target.closest("button, [data-view], .nav-pill, .sidebar-item, .nav-item");
-    if (!el) return;
-    const txt = String(el.textContent || "").toLowerCase();
-    if (txt.includes("total") || txt.includes("passis")) {
-      scheduleSingleTopGaugeGrid();
-    }
-  });
-})();
-
-/* === CAPITALITAT_REMOVE_DUPLICATE_TOP_GAUGES_V1 === */
-
-(() => {
-  function cleanupDuplicateTopGaugeGrids() {
-    const totalView = document.querySelector("#view-total");
-    if (!totalView) return;
-
-    const selectors = [
-      "#cap-hotfix-gauge-grid",
-      "#cap-final-gauge-grid",
-      "#cap-overview-grid",
-      ".cap-hotfix-gauge-grid",
-      ".cap-final-gauge-grid",
-      ".cap-overview-grid",
-      ".cap-ref-kpi-grid"
-    ];
-
-    const found = [];
-    selectors.forEach(sel => {
-      totalView.querySelectorAll(sel).forEach(el => {
-        if (!found.includes(el)) found.push(el);
-      });
-    });
-
-    if (!found.length) return;
-
-    // Ordenem pel lloc on apareixen al DOM
-    const ordered = found.sort((a, b) => {
-      if (a === b) return 0;
-      const pos = a.compareDocumentPosition(b);
-      if (pos & Node.DOCUMENT_POSITION_FOLLOWING) return -1;
-      if (pos & Node.DOCUMENT_POSITION_PRECEDING) return 1;
-      return 0;
-    });
-
-    // Deixem només el primer
-    const first = ordered[0];
-    ordered.slice(1).forEach(el => el.remove());
-
-    // Si per algun motiu hi ha elements antics dins del view-total, també els traiem
-    totalView.querySelectorAll(".cap-hotfix-gauge-card, .cap-final-gauge-card, .cap-ref-kpi-card").forEach(card => {
-      const parentGrid = card.closest("#cap-hotfix-gauge-grid, #cap-final-gauge-grid, #cap-overview-grid, .cap-hotfix-gauge-grid, .cap-final-gauge-grid, .cap-overview-grid, .cap-ref-kpi-grid");
-      if (parentGrid && parentGrid !== first) {
-        parentGrid.remove();
-      }
-    });
-  }
-
-  function startGaugeCleanupWatcher() {
-    cleanupDuplicateTopGaugeGrids();
-
-    const totalView = document.querySelector("#view-total");
-    if (!totalView) return;
-
-    const observer = new MutationObserver(() => {
-      cleanupDuplicateTopGaugeGrids();
-    });
-
-    observer.observe(totalView, {
-      childList: true,
-      subtree: true
-    });
-
-    // Reforç durant uns segons per matar qualsevol script antic
-    let count = 0;
-    const interval = setInterval(() => {
-      cleanupDuplicateTopGaugeGrids();
-      count += 1;
-      if (count > 20) clearInterval(interval);
-    }, 500);
-  }
-
-  document.addEventListener("DOMContentLoaded", () => {
-    setTimeout(startGaugeCleanupWatcher, 300);
-    setTimeout(cleanupDuplicateTopGaugeGrids, 1000);
-    setTimeout(cleanupDuplicateTopGaugeGrids, 2500);
-  });
-
-  window.addEventListener("load", () => {
-    setTimeout(startGaugeCleanupWatcher, 300);
-    setTimeout(cleanupDuplicateTopGaugeGrids, 1200);
-    setTimeout(cleanupDuplicateTopGaugeGrids, 3000);
-  });
-})();
-
-
-/* === CAPITALITAT_CLEAN_SINGLE_YEAR_CHART === */
-
-(() => {
   const MONTHS = ["GEN", "FEB", "MAR", "ABR", "MAI", "JUN", "JUL", "AGO", "SET", "OCT", "NOV", "DES"];
-  const MONTHS_FULL = ["Gener", "Febrer", "Març", "Abril", "Maig", "Juny", "Juliol", "Agost", "Setembre", "Octubre", "Novembre", "Desembre"];
-  let selectedMonth = 5;
-  let observerStarted = false;
+  const MONTHS_FULL = ["gener", "febrer", "març", "abril", "maig", "juny", "juliol", "agost", "setembre", "octubre", "novembre", "desembre"];
+
+  let dataCache = null;
 
   function norm(value) {
     return String(value ?? "").replace(/\u00a0/g, " ").replace(/\s+/g, " ").trim();
@@ -4455,34 +3938,64 @@ mostrarExperienciaCapitalitatV5 = function() {
     const raw = norm(value);
     const match = raw.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/);
     if (!match) return null;
-    const date = new Date(Number(match[3]), Number(match[2]) - 1, Number(match[1]));
-    return isNaN(date.getTime()) ? null : date;
+
+    const d = new Date(Number(match[3]), Number(match[2]) - 1, Number(match[1]));
+    if (Number.isNaN(d.getTime())) return null;
+
+    d.setHours(0, 0, 0, 0);
+    return d;
+  }
+
+  function isTrue(value) {
+    return String(value ?? "").trim().toUpperCase() === "TRUE";
+  }
+
+  function percent(value) {
+    return `${value.toFixed(1).replace(".", ",")}%`;
+  }
+
+  function smooth(points) {
+    if (!points.length) return "";
+
+    let d = `M ${points[0].x} ${points[0].y}`;
+
+    for (let i = 0; i < points.length - 1; i++) {
+      const p0 = points[i - 1] || points[i];
+      const p1 = points[i];
+      const p2 = points[i + 1];
+      const p3 = points[i + 2] || p2;
+
+      const cp1x = p1.x + (p2.x - p0.x) / 6;
+      const cp1y = p1.y + (p2.y - p0.y) / 6;
+      const cp2x = p2.x - (p3.x - p1.x) / 6;
+      const cp2y = p2.y - (p3.y - p1.y) / 6;
+
+      d += ` C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${p2.x} ${p2.y}`;
+    }
+
+    return d;
+  }
+
+  async function loadData() {
+    if (dataCache) return dataCache;
+
+    const response = await fetch(`data/inscripcions.json?t=${Date.now()}`);
+    if (!response.ok) throw new Error("No s'ha pogut carregar data/inscripcions.json");
+
+    dataCache = await response.json();
+    return dataCache;
   }
 
   function getRows(data) {
-    if (Array.isArray(data)) return data;
-    if (Array.isArray(data.rows)) return data.rows;
-    return [];
+    return Array.isArray(data.rows) ? data.rows : [];
   }
 
-  function cleanCategory(value) {
-    const v = norm(value);
-    if (!v) return "Sense categoria";
-    const low = v.toLowerCase();
-
-    if (low === "rutes" || low === "ruta") return "Rutes";
-    if (low.includes("debat")) return "Debats i conferències";
-    if (low.includes("expos")) return "Exposicions";
-    if (low.includes("taller")) return "Tallers";
-
-    return v;
-  }
-
-  function countBy(rows, key, cleaner = norm) {
+  function countBy(rows, key, fallback) {
     const map = new Map();
 
     rows.forEach(row => {
-      const label = cleaner(row[key]) || "Sense informació";
+      const raw = norm(row[key]);
+      const label = raw || fallback;
       map.set(label, (map.get(label) || 0) + 1);
     });
 
@@ -4491,1625 +4004,310 @@ mostrarExperienciaCapitalitatV5 = function() {
       .sort((a, b) => b.value - a.value || a.label.localeCompare(b.label, "ca"));
   }
 
-  function smoothPath(points) {
-    if (!points.length) return "";
-    let d = `M ${points[0].x} ${points[0].y}`;
-
-    for (let i = 0; i < points.length - 1; i++) {
-      const p0 = points[i - 1] || points[i];
-      const p1 = points[i];
-      const p2 = points[i + 1];
-      const p3 = points[i + 2] || p2;
-
-      const cp1x = p1.x + (p2.x - p0.x) / 6;
-      const cp1y = p1.y + (p2.y - p0.y) / 6;
-      const cp2x = p2.x - (p3.x - p1.x) / 6;
-      const cp2y = p2.y - (p3.y - p1.y) / 6;
-
-      d += ` C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${p2.x} ${p2.y}`;
-    }
-
-    return d;
-  }
-
-  function buildPoints(values, width, height, margin, maxValue) {
-    const innerW = width - margin.left - margin.right;
-    const innerH = height - margin.top - margin.bottom;
-    const baseY = margin.top + innerH;
-
-    return values.map((value, index) => ({
-      index,
-      value,
-      month: MONTHS[index],
-      x: margin.left + (innerW / 11) * index,
-      y: baseY - (value / maxValue) * innerH
-    }));
-  }
-
-  function ghostValues(values, factor, shift) {
-    return values.map((value, index) => {
-      const wave = Math.sin(index * 0.9 + shift) * 14;
-      return Math.max(0, Math.round(value * factor + wave + 18));
-    });
-  }
-
-  function removeOldYearCharts() {
-    const totalView = document.querySelector("#view-total");
-    if (!totalView) return;
-
-    totalView.querySelectorAll(
-      "#cap-year-chart-elegant, #cap-year-final-card, .cap-year-black-card, .cap-year-chart-card, .cap-month-chart-v3, .cap-month-chart-v2, .cap-month-chart-premium, .cap-month-chart"
-    ).forEach(el => {
-      if (el.id === "cap-clean-year-card") return;
-
-      const text = norm(el.textContent).toLowerCase();
-      const hasYearChart =
-        text.includes("activitats al llarg de l'any") ||
-        text.includes("activitats al llarg de l’any") ||
-        el.querySelector(".cap-month-v3-line-yellow, .cap-year-black-main, .cap-year-line-main, .cap-final-year-main, .cap-clean-year-main");
-
-      if (hasYearChart) el.remove();
-    });
-  }
-
-  function buildChart(values, rows, keys) {
-    const width = 1080;
-    const height = 370;
-    const margin = { top: 34, right: 34, bottom: 64, left: 58 };
-
-    const total = values.reduce((sum, value) => sum + value, 0);
-    const peak = Math.max(...values);
-    const peakMonth = MONTHS[values.indexOf(peak)];
-    const average = Math.round(total / 12);
-
-    const maxValue = Math.ceil(Math.max(peak, 100) / 100) * 100;
-    const points = buildPoints(values, width, height, margin, maxValue);
-    const mainPath = smoothPath(points);
-
-    const ghost1 = smoothPath(buildPoints(ghostValues(values, 0.75, 0.4), width, height, margin, maxValue));
-    const ghost2 = smoothPath(buildPoints(ghostValues(values, 0.55, 1.1), width, height, margin, maxValue));
-    const ghost3 = smoothPath(buildPoints(ghostValues(values, 0.45, 1.8), width, height, margin, maxValue));
-
-    const selected = points[selectedMonth] || points[0];
-    const baseY = height - margin.bottom;
-
-    const grid = [0.25, 0.50, 0.75, 1].map(ratio => {
-      const y = margin.top + (baseY - margin.top) * (1 - ratio);
-      return `
-        <line class="cap-clean-year-grid" x1="${margin.left}" y1="${y}" x2="${width - margin.right}" y2="${y}" />
-        <text class="cap-clean-year-y" x="${margin.left - 12}" y="${y + 4}" text-anchor="end">${Math.round(ratio * 100)}%</text>
-      `;
-    }).join("");
-
-    const months = points.map(point => `
-      <g class="cap-clean-year-month ${point.index === selectedMonth ? "is-active" : ""}" data-month-index="${point.index}">
-        <rect x="${point.x - 34}" y="${baseY + 14}" width="68" height="30" rx="12" fill="transparent"></rect>
-        <text x="${point.x}" y="${baseY + 34}" text-anchor="middle">${point.month}</text>
-      </g>
-    `).join("");
-
-    const clickZones = points.map(point => `
-      <rect class="cap-clean-year-click"
-            data-month-index="${point.index}"
-            x="${point.x - 28}"
-            y="${margin.top}"
-            width="56"
-            height="${baseY - margin.top + 44}"
-            fill="transparent"></rect>
-    `).join("");
-
-    const startKey = keys.dataInici || "data_inici";
-    const categoryKey = keys.categoria || "categoria";
-    const districtKey = keys.districte || "districte";
-
-    const monthRows = rows.filter(row => {
-      const date = parseDate(row[startKey]);
-      return date && date.getMonth() === selectedMonth;
-    });
-
-    const categories = countBy(monthRows, categoryKey, cleanCategory).slice(0, 5);
-    const districtes = countBy(monthRows, districtKey, value => norm(value) || "Sense districte").slice(0, 5);
-
-    return `
-      <div class="cap-clean-year-head">
-        <div>
-          <span>06</span>
-          <h3>Activitats al llarg de l’any</h3>
-          <p>Distribució mensual de totes les files segons la data d’inici.</p>
-        </div>
-      </div>
-
-      <div class="cap-clean-year-inner">
-        <div class="cap-clean-year-kpis">
-          <div>
-            <strong>${total}</strong>
-            <span>PASSIS TOTALS</span>
-          </div>
-          <div>
-            <strong>${peak}</strong>
-            <span>PIC MENSUAL · ${peakMonth}</span>
-          </div>
-          <div>
-            <strong>${average}</strong>
-            <span>MITJANA / MES</span>
-          </div>
-        </div>
-
-        <svg class="cap-clean-year-svg" viewBox="0 0 ${width} ${height}" aria-label="Activitats al llarg de l'any">
-          ${grid}
-
-          <path class="cap-clean-year-ghost" d="${ghost1}"></path>
-          <path class="cap-clean-year-ghost" d="${ghost2}"></path>
-          <path class="cap-clean-year-ghost is-soft" d="${ghost3}"></path>
-
-          <path class="cap-clean-year-main" d="${mainPath}"></path>
-
-          <line class="cap-clean-year-marker"
-                x1="${selected.x}"
-                y1="${selected.y}"
-                x2="${selected.x}"
-                y2="${baseY}"></line>
-
-          <circle class="cap-clean-year-dot"
-                  cx="${selected.x}"
-                  cy="${selected.y}"
-                  r="5"></circle>
-
-          ${clickZones}
-          ${months}
-        </svg>
-
-        <div class="cap-clean-year-legend">
-          <span><i></i>Passis per mes · clica un mes per veure el dashboard mensual</span>
-        </div>
-
-        <div class="cap-clean-month-detail">
-          <div>
-            <strong>${MONTHS_FULL[selectedMonth]}</strong>
-            <span>${monthRows.length} passis aquest mes</span>
-          </div>
-          <div>
-            <h4>Categories</h4>
-            ${categories.map(item => `<p><span>${esc(item.label)}</span><b>${item.value}</b></p>`).join("") || "<em>Sense dades</em>"}
-          </div>
-          <div>
-            <h4>Districtes</h4>
-            ${districtes.map(item => `<p><span>${esc(item.label)}</span><b>${item.value}</b></p>`).join("") || "<em>Sense dades</em>"}
-          </div>
-        </div>
-      </div>
-    `;
-  }
-
-  async function renderCleanSingleYearChart() {
-    const totalView = document.querySelector("#view-total");
-    if (!totalView) return;
-
-    removeOldYearCharts();
-
-    const response = await fetch(`data/inscripcions.json?t=${Date.now()}`);
-    if (!response.ok) return;
-
-    const data = await response.json();
+  function computeStats(data) {
     const rows = getRows(data);
     const keys = data.columnKeys || {};
+
     const startKey = keys.dataInici || "data_inici";
+    const endKey = keys.dataFinal || "data_final";
+    const gestioKey = keys.gestio || "propies";
+    const modalitatKey = keys.modalitat || "modalitat";
+    const categoriaKey = keys.categoria || "categoria";
+    const districteKey = keys.districte || "districte";
+    const encarregadaKey = keys.responsable || "encarregada";
+    const entradaKey = keys.entrada || "entrada";
 
-    const values = Array.from({ length: 12 }, () => 0);
-
-    rows.forEach(row => {
-      const date = parseDate(row[startKey]);
-      if (!date) return;
-      values[date.getMonth()] += 1;
-    });
-
-    let card = totalView.querySelector("#cap-clean-year-card");
-
-    if (!card) {
-      card = document.createElement("section");
-      card.id = "cap-clean-year-card";
-      card.className = "cap-clean-year-card";
-
-      const chartsRow = totalView.querySelector(".capitalitat-five-charts-row");
-      if (chartsRow) {
-        chartsRow.insertAdjacentElement("afterend", card);
-      } else {
-        totalView.appendChild(card);
-      }
-    }
-
-    card.innerHTML = buildChart(values, rows, keys);
-
-    card.querySelectorAll("[data-month-index]").forEach(el => {
-      el.addEventListener("click", () => {
-        selectedMonth = Number(el.dataset.monthIndex);
-        renderCleanSingleYearChart();
-      });
-    });
-
-    startCleanupObserver();
-  }
-
-  function startCleanupObserver() {
-    if (observerStarted) return;
-    observerStarted = true;
-
-    const totalView = document.querySelector("#view-total");
-    if (!totalView) return;
-
-    const observer = new MutationObserver(() => {
-      removeOldYearCharts();
-    });
-
-    observer.observe(totalView, { childList: true, subtree: true });
-  }
-
-  function scheduleCleanSingleYearChart() {
-    setTimeout(renderCleanSingleYearChart, 300);
-    setTimeout(renderCleanSingleYearChart, 1200);
-    setTimeout(renderCleanSingleYearChart, 2600);
-  }
-
-  document.addEventListener("DOMContentLoaded", scheduleCleanSingleYearChart);
-  window.addEventListener("load", scheduleCleanSingleYearChart);
-
-  document.addEventListener("click", event => {
-    const el = event.target.closest("button, .nav-pill, [data-view], .sidebar-item, .nav-item");
-    if (!el) return;
-
-    const text = String(el.textContent || "").toLowerCase();
-
-    if (text.includes("total") || text.includes("passis")) {
-      scheduleCleanSingleYearChart();
-    }
-  });
-})();
-
-
-
-/* === CAPITALITAT_FORCE_SINGLE_FULL_WIDTH_YEAR_CARD === */
-(() => {
-  function cleanYearArea() {
-    const totalView = document.querySelector("#view-total");
-    if (!totalView) return;
-
-    const goodCard = totalView.querySelector("#cap-clean-year-card");
-    if (!goodCard) return;
-
-    // 1) El gràfic bo sempre ocupa tota l'amplada
-    goodCard.style.width = "100%";
-    goodCard.style.maxWidth = "none";
-    goodCard.style.gridColumn = "1 / -1";
-    goodCard.style.display = "block";
-
-    // 2) Esborrem qualsevol banner duplicat o buit amb el mateix títol
-    const candidates = totalView.querySelectorAll("section, div");
-    candidates.forEach(el => {
-      if (el.id === "cap-clean-year-card") return;
-
-      const text = (el.textContent || "").toLowerCase().replace(/\s+/g, " ").trim();
-      const hasTitle =
-        text.includes("activitats al llarg de l'any") ||
-        text.includes("activitats al llarg de l’any");
-
-      const hasGoodChart =
-        el.querySelector(".cap-clean-year-svg") ||
-        el.querySelector(".cap-clean-year-main") ||
-        el.querySelector(".cap-clean-month-detail");
-
-      if (hasTitle && !hasGoodChart) {
-        el.remove();
-      }
-    });
-  }
-
-  function runCleanYearArea() {
-    setTimeout(cleanYearArea, 200);
-    setTimeout(cleanYearArea, 800);
-    setTimeout(cleanYearArea, 1800);
-  }
-
-  document.addEventListener("DOMContentLoaded", runCleanYearArea);
-  window.addEventListener("load", runCleanYearArea);
-
-  document.addEventListener("click", (e) => {
-    const btn = e.target.closest("button, .nav-pill, [data-view]");
-    if (!btn) return;
-
-    const txt = (btn.textContent || "").toLowerCase();
-    if (txt.includes("total") || txt.includes("passis")) {
-      runCleanYearArea();
-    }
-  });
-})();
-
-
-
-
-/* === CAPITALITAT_AVUI_DAILY_CHART_BLACK === */
-(() => {
-  function norm(value) {
-    return String(value ?? "").replace(/\u00a0/g, " ").replace(/\s+/g, " ").trim();
-  }
-
-  function parseDate(value) {
-    const raw = norm(value);
-    const match = raw.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/);
-    if (!match) return null;
-    const d = new Date(Number(match[3]), Number(match[2]) - 1, Number(match[1]));
-    return isNaN(d.getTime()) ? null : d;
-  }
-
-  function smoothPath(points) {
-    if (!points.length) return "";
-    let d = `M ${points[0].x} ${points[0].y}`;
-    for (let i = 0; i < points.length - 1; i++) {
-      const p0 = points[i - 1] || points[i];
-      const p1 = points[i];
-      const p2 = points[i + 1];
-      const p3 = points[i + 2] || p2;
-
-      const cp1x = p1.x + (p2.x - p0.x) / 6;
-      const cp1y = p1.y + (p2.y - p0.y) / 6;
-      const cp2x = p2.x - (p3.x - p1.x) / 6;
-      const cp2y = p2.y - (p3.y - p1.y) / 6;
-
-      d += ` C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${p2.x} ${p2.y}`;
-    }
-    return d;
-  }
-
-  function findCardByTitle(title) {
-    const all = Array.from(document.querySelectorAll("#view-total section, #view-total article, #view-total div"));
-    return all.find(el => {
-      const text = norm(el.textContent).toLowerCase();
-      return text.includes(title.toLowerCase()) &&
-             el.offsetWidth > 180 &&
-             el.offsetHeight > 140;
-    });
-  }
-
-  async function renderAvuiCard() {
-    const totalView = document.querySelector("#view-total");
-    if (!totalView) return;
-
-    const response = await fetch(`data/inscripcions.json?t=${Date.now()}`);
-    if (!response.ok) return;
-
-    const data = await response.json();
-    const rows = Array.isArray(data.rows) ? data.rows : [];
-    const keys = data.columnKeys || {};
-    const startKey = keys.dataInici || "data_inici";
-
-    const avuiCard = findCardByTitle("Avui");
-    if (!avuiCard) return;
-
-    const today = new Date();
-    const year = today.getFullYear();
-    const month = today.getMonth();
-    const todayDay = today.getDate();
-    const daysInMonth = new Date(year, month + 1, 0).getDate();
-
-    const counts = Array.from({ length: daysInMonth }, () => 0);
-
-    rows.forEach(row => {
-      const d = parseDate(row[startKey]);
-      if (!d) return;
-      if (d.getFullYear() === year && d.getMonth() === month) {
-        counts[d.getDate() - 1] += 1;
-      }
-    });
-
-    const totalMonth = counts.reduce((a, b) => a + b, 0);
-    const todayCount = counts[todayDay - 1] || 0;
-    const pctMonth = totalMonth ? (todayCount / totalMonth) * 100 : 0;
-
-    // treure gauge vell
-    avuiCard.querySelectorAll("svg").forEach(svg => svg.remove());
-    avuiCard.querySelectorAll(".cap-avui-daily-chart-wrap").forEach(el => el.remove());
-
-    // actualitzar texts vells si existeixen
-    const ps = Array.from(avuiCard.querySelectorAll("p, span, small, div"));
-    ps.forEach(el => {
-      const txt = norm(el.textContent).toLowerCase();
-      if (txt.includes("vigents") || txt.includes("passis vigents") || txt.includes("del total")) {
-        if (el.children.length === 0 && el.textContent.length < 80) {
-          el.textContent = "";
-        }
-      }
-    });
-
-    const width = 360;
-    const height = 170;
-    const margin = { top: 18, right: 18, bottom: 34, left: 36 };
-    const chartW = width - margin.left - margin.right;
-    const chartH = height - margin.top - margin.bottom;
-
-    const maxY = Math.max(...counts, 1);
-    const yTop = Math.ceil(maxY / 5) * 5 || 5;
-
-    const points = counts.map((value, index) => {
-      const x = margin.left + (chartW / Math.max(daysInMonth - 1, 1)) * index;
-      const y = margin.top + chartH - (value / yTop) * chartH;
-      return { x, y, value, day: index + 1 };
-    });
-
-    const path = smoothPath(points);
-    const todayPoint = points[todayDay - 1];
-
-    const yTicks = [0, 0.5, 1].map(r => Math.round(yTop * r));
-    const yGrid = yTicks.map(v => {
-      const y = margin.top + chartH - (v / yTop) * chartH;
-      return `
-        <line x1="${margin.left}" y1="${y}" x2="${width - margin.right}" y2="${y}" class="cap-avui-grid"></line>
-        <text x="${margin.left - 8}" y="${y + 4}" text-anchor="end" class="cap-avui-y">${v}</text>
-      `;
-    }).join("");
-
-    const monthLabel = today.toLocaleDateString("ca-ES", { month: "long" });
-
-    const xLabels = Array.from({ length: daysInMonth }, (_, i) => i + 1)
-      .filter(d => d === 1 || d == todayDay || d % 5 === 0 || d === daysInMonth)
-      .map(d => {
-        const x = margin.left + (chartW / Math.max(daysInMonth - 1, 1)) * (d - 1);
-        return `<text x="${x}" y="${height - 8}" text-anchor="middle" class="cap-avui-x">${d}</text>`;
-      }).join("");
-
-    const html = `
-      <div class="cap-avui-daily-chart-wrap">
-        <div class="cap-avui-topline">
-          <div class="cap-avui-mainstat">
-            <strong>${todayCount}</strong>
-            <span>AVUI = ${todayCount} passis</span>
-          </div>
-          <div class="cap-avui-sidepct">
-            <strong>${pctMonth.toFixed(1).replace(".", ",")}%</strong>
-            <span>del total de ${monthLabel}</span>
-          </div>
-        </div>
-
-        <svg class="cap-avui-daily-svg" viewBox="0 0 ${width} ${height}" aria-label="Passis del mes actual per dia">
-          ${yGrid}
-          <line x1="${margin.left}" y1="${margin.top + chartH}" x2="${width - margin.right}" y2="${margin.top + chartH}" class="cap-avui-axis"></line>
-          <line x1="${margin.left}" y1="${margin.top}" x2="${margin.left}" y2="${margin.top + chartH}" class="cap-avui-axis"></line>
-
-          <path d="${path}" class="cap-avui-line"></path>
-
-          <line x1="${todayPoint.x}" y1="${todayPoint.y}" x2="${todayPoint.x}" y2="${margin.top + chartH}" class="cap-avui-marker"></line>
-          <circle cx="${todayPoint.x}" cy="${todayPoint.y}" r="4" class="cap-avui-dot"></circle>
-
-          <text x="${todayPoint.x}" y="${todayPoint.y - 10}" text-anchor="middle" class="cap-avui-label">AVUI</text>
-
-          ${xLabels}
-        </svg>
-
-        <div class="cap-avui-footnote">
-          <span>Dies de ${monthLabel}</span>
-          <span>${totalMonth} passis aquest mes</span>
-        </div>
-      </div>
-    `;
-
-    avuiCard.insertAdjacentHTML("beforeend", html);
-  }
-
-  function forceBlackBars() {
-    const chartRoots = [
-      "#chart-modalitat",
-      "#chart-categoria",
-      "#chart-districte",
-      "#chart-encarregada",
-      "#chart-tipus-entrada",
-      "#chart-modalitat-auto",
-      "#chart-categoria-auto",
-      "#chart-districte-auto",
-      "#chart-encarregada-auto",
-      "#chart-tipus-entrada-auto"
-    ];
-
-    chartRoots.forEach(sel => {
-      document.querySelectorAll(`${sel} *`).forEach(el => {
-        const st = el.getAttribute("style") || "";
-        const h = el.offsetHeight || 0;
-        const w = el.offsetWidth || 0;
-
-        if (
-          h <= 12 &&
-          w >= 20 &&
-          (
-            st.includes("background") ||
-            st.includes("width:")
-          )
-        ) {
-          el.style.background = "#202228";
-          el.style.borderColor = "#202228";
-        }
-      });
-    });
-  }
-
-  function runAvuiCard() {
-    setTimeout(() => {
-      renderAvuiCard();
-      forceBlackBars();
-    }, 350);
-
-    setTimeout(() => {
-      renderAvuiCard();
-      forceBlackBars();
-    }, 1200);
-
-    setTimeout(() => {
-      renderAvuiCard();
-      forceBlackBars();
-    }, 2400);
-  }
-
-  document.addEventListener("DOMContentLoaded", runAvuiCard);
-  window.addEventListener("load", runAvuiCard);
-
-  document.addEventListener("click", (e) => {
-    const btn = e.target.closest("button, .nav-pill, [data-view]");
-    if (!btn) return;
-    const txt = norm(btn.textContent).toLowerCase();
-    if (txt.includes("total") || txt.includes("passis")) {
-      runAvuiCard();
-    }
-  });
-})();
-
-
-
-
-/* === CAPITALITAT_YEAR_CHART_CLEAN_AND_MONTH_BARS === */
-(() => {
-  const CAP_MONTHS_FULL = [
-    "Gener","Febrer","Març","Abril","Maig","Juny",
-    "Juliol","Agost","Setembre","Octubre","Novembre","Desembre"
-  ];
-
-  const CAP_MONTHS_ABBR = [
-    "GEN","FEB","MAR","ABR","MAI","JUN",
-    "JUL","AGO","SET","OCT","NOV","DES"
-  ];
-
-  let capJsonCache = null;
-
-  function capNorm(value) {
-    return String(value ?? "")
-      .replace(/\u00a0/g, " ")
-      .replace(/\s+/g, " ")
-      .trim();
-  }
-
-  function capSlug(value) {
-    return capNorm(value)
-      .toLowerCase()
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "");
-  }
-
-  function capParseDate(value) {
-    const raw = capNorm(value);
-    const match = raw.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
-    if (!match) return null;
-    const d = new Date(Number(match[3]), Number(match[2]) - 1, Number(match[1]));
-    return Number.isNaN(d.getTime()) ? null : d;
-  }
-
-  function capCleanLabel(value, fallback) {
-    const txt = capNorm(value);
-    if (!txt) return fallback;
-
-    if (fallback.toLowerCase().includes("districte")) {
-      const m = txt.match(/^\d+\s+(.*)$/);
-      if (m) return capNorm(m[1]) || fallback;
-    }
-
-    return txt;
-  }
-
-  async function capGetJson() {
-    if (capJsonCache) return capJsonCache;
-    const res = await fetch(`data/inscripcions.json?t=${Date.now()}`);
-    if (!res.ok) throw new Error("No s'ha pogut carregar data/inscripcions.json");
-    capJsonCache = await res.json();
-    return capJsonCache;
-  }
-
-  function capFindYearCard() {
-    return document.querySelector("#cap-clean-year-card")
-      || document.querySelector(".cap-clean-year-card")
-      || Array.from(document.querySelectorAll("#view-total section, #view-total div, #view-total article"))
-           .find(el => capNorm(el.textContent).toLowerCase().includes("activitats al llarg de l'any"));
-  }
-
-  function capRemoveOldMonthDetail(card) {
-    if (!card) return;
-
-    // Eliminem el detall antic si existeix
-    card.querySelectorAll(
-      ".cap-clean-month-detail, .cap-month-detail, .month-detail, .cap-month-graphs-panel-old"
-    ).forEach(el => el.remove());
-
-    // També podem buidar blocs antics molt petits de llistes si hi són
-    card.querySelectorAll(".cap-old-month-breakdown").forEach(el => el.remove());
-  }
-
-  function capCleanYearChart(card) {
-    if (!card) return;
-    const svg = card.querySelector("svg");
-    if (!svg) return;
-
-    // 1) Treure línies grises de fons (paths secundaris)
-    const paths = Array.from(svg.querySelectorAll("path"));
-    if (paths.length > 1) {
-      const scored = paths.map(p => {
-        const cs = getComputedStyle(p);
-        const sw = parseFloat(cs.strokeWidth || p.getAttribute("stroke-width") || "0") || 0;
-        const d = p.getAttribute("d") || "";
-        return { p, score: sw * 1000 + d.length };
-      }).sort((a, b) => b.score - a.score);
-
-      const keepMain = scored[0] ? scored[0].p : null;
-
-      scored.forEach(({ p }) => {
-        if (p !== keepMain) {
-          p.style.display = "none";
-        } else {
-          p.style.stroke = "#202228";
-          p.style.fill = "none";
-          p.style.strokeWidth = "2";
-          p.style.strokeLinecap = "round";
-          p.style.strokeLinejoin = "round";
-        }
-      });
-    }
-
-    // 2) Treure línies grises horitzontals i decoratives
-    Array.from(svg.querySelectorAll("line")).forEach(line => {
-      const x1 = parseFloat(line.getAttribute("x1") || "0");
-      const x2 = parseFloat(line.getAttribute("x2") || "0");
-      const y1 = parseFloat(line.getAttribute("y1") || "0");
-      const y2 = parseFloat(line.getAttribute("y2") || "0");
-      const dash = line.getAttribute("stroke-dasharray") || "";
-      const horizontal = Math.abs(y1 - y2) < 0.5;
-      const vertical = Math.abs(x1 - x2) < 0.5;
-
-      // mantenim només la vertical discontínua del mes seleccionat
-      if (horizontal) {
-        line.style.display = "none";
-      } else if (vertical && dash) {
-        line.style.stroke = "rgba(32,34,40,0.35)";
-        line.style.strokeWidth = "1";
-      } else if (vertical) {
-        line.style.display = "none";
-      }
-    });
-
-    // 3) Punts més fins i negres
-    Array.from(svg.querySelectorAll("circle")).forEach(circle => {
-      circle.setAttribute("r", "2.6");
-      circle.style.fill = "#202228";
-      circle.style.stroke = "none";
-    });
-  }
-
-  function capBuildMonthDataset(rows, keys, monthIndex) {
-    const startKey = keys.dataInici || "data_inici";
-    const catKey = keys.categoria || "categoria";
-    const distKey = keys.districte || "districte";
-
-    const filtered = rows.filter(row => {
-      const d = capParseDate(row[startKey]);
-      return d && d.getMonth() === monthIndex;
-    });
-
-    const categories = {};
-    const districts = {};
-
-    filtered.forEach(row => {
-      const c = capCleanLabel(row[catKey], "Sense categoria");
-      const d = capCleanLabel(row[distKey], "Sense districte");
-
-      categories[c] = (categories[c] || 0) + 1;
-      districts[d] = (districts[d] || 0) + 1;
-    });
-
-    const catList = Object.entries(categories)
-      .sort((a, b) => b[1] - a[1])
-      .map(([label, value]) => ({ label, value }));
-
-    const distList = Object.entries(districts)
-      .sort((a, b) => b[1] - a[1])
-      .map(([label, value]) => ({ label, value }));
-
-    return {
-      monthIndex,
-      monthName: CAP_MONTHS_FULL[monthIndex],
-      total: filtered.length,
-      categories: catList,
-      districts: distList
-    };
-  }
-
-  function capVerticalBarsHTML(items, total) {
-    if (!items.length) {
-      return `<div class="cap-vbars-empty">Sense dades</div>`;
-    }
-
-    const max = Math.max(...items.map(i => i.value), 1);
-
-    return `
-      <div class="cap-vbars-wrap">
-        ${items.map(item => {
-          const h = Math.max(8, (item.value / max) * 120);
-          const pct = total ? ((item.value / total) * 100) : 0;
-          return `
-            <div class="cap-vbar-item" title="${item.label}: ${item.value}">
-              <div class="cap-vbar-value">${item.value}</div>
-              <div class="cap-vbar-track">
-                <div class="cap-vbar-fill" style="height:${h}px"></div>
-              </div>
-              <div class="cap-vbar-label">${item.label}</div>
-              <div class="cap-vbar-pct">${pct.toFixed(1).replace(".", ",")}%</div>
-            </div>
-          `;
-        }).join("")}
-      </div>
-    `;
-  }
-
-  async function capRenderMonthBars(monthIndex) {
-    const card = capFindYearCard();
-    if (!card) return;
-
-    const data = await capGetJson();
-    const rows = Array.isArray(data.rows) ? data.rows : [];
-    const keys = data.columnKeys || {};
-
-    capRemoveOldMonthDetail(card);
-
-    card.querySelectorAll("#cap-month-graphs-panel").forEach(el => el.remove());
-
-    const dataset = capBuildMonthDataset(rows, keys, monthIndex);
-
-    const panel = document.createElement("div");
-    panel.id = "cap-month-graphs-panel";
-    panel.className = "cap-month-graphs-panel";
-    panel.innerHTML = `
-      <div class="cap-month-panel-head">
-        <div>
-          <h4>${dataset.monthName}</h4>
-          <p>${dataset.total} passis aquest mes</p>
-        </div>
-      </div>
-
-      <div class="cap-month-graphs-grid">
-        <section class="cap-month-graph-card">
-          <div class="cap-month-graph-top">
-            <h5>Categories</h5>
-            <span>${dataset.categories.length} opcions</span>
-          </div>
-          ${capVerticalBarsHTML(dataset.categories, dataset.total)}
-        </section>
-
-        <section class="cap-month-graph-card">
-          <div class="cap-month-graph-top">
-            <h5>Districtes</h5>
-            <span>${dataset.districts.length} opcions</span>
-          </div>
-          ${capVerticalBarsHTML(dataset.districts, dataset.total)}
-        </section>
-      </div>
-    `;
-
-    card.appendChild(panel);
-  }
-
-  function capBindMonthClicks() {
-    const card = capFindYearCard();
-    if (!card) return;
-    const svg = card.querySelector("svg");
-    if (!svg) return;
-
-    const texts = Array.from(svg.querySelectorAll("text"));
-
-    texts.forEach(textEl => {
-      const raw = capNorm(textEl.textContent).toUpperCase();
-      const idx = CAP_MONTHS_ABBR.indexOf(raw);
-      if (idx === -1) return;
-
-      if (textEl.dataset.capBound === "1") return;
-      textEl.dataset.capBound = "1";
-      textEl.style.cursor = "pointer";
-
-      textEl.addEventListener("click", (e) => {
-        e.preventDefault();
-        capRenderMonthBars(idx);
-      });
-    });
-
-    // Per defecte: mes vigent
-    const nowIdx = new Date().getMonth();
-    capRenderMonthBars(nowIdx);
-  }
-
-  function capForceBlackSmallCharts() {
-    document.querySelectorAll(
-      '#chart-modalitat .bar-fill, #chart-categoria .bar-fill, #chart-districte .bar-fill, #chart-encarregada .bar-fill, #chart-tipus-entrada .bar-fill,' +
-      '#chart-modalitat-auto .bar-fill, #chart-categoria-auto .bar-fill, #chart-districte-auto .bar-fill, #chart-encarregada-auto .bar-fill, #chart-tipus-entrada-auto .bar-fill,' +
-      '[id^="chart-"] .bar-fill, [id^="chart-"] .chart-bar-fill, [id^="chart-"] .cap-bar-fill, [id^="chart-"] .progress-fill'
-    ).forEach(el => {
-      el.style.background = "#202228";
-      el.style.borderColor = "#202228";
-    });
-  }
-
-  function capRunYearUpgrade() {
-    setTimeout(() => {
-      const card = capFindYearCard();
-      capCleanYearChart(card);
-      capBindMonthClicks();
-      capForceBlackSmallCharts();
-    }, 250);
-
-    setTimeout(() => {
-      const card = capFindYearCard();
-      capCleanYearChart(card);
-      capBindMonthClicks();
-      capForceBlackSmallCharts();
-    }, 1000);
-
-    setTimeout(() => {
-      const card = capFindYearCard();
-      capCleanYearChart(card);
-      capBindMonthClicks();
-      capForceBlackSmallCharts();
-    }, 2200);
-  }
-
-  document.addEventListener("DOMContentLoaded", capRunYearUpgrade);
-  window.addEventListener("load", capRunYearUpgrade);
-
-  document.addEventListener("click", (e) => {
-    const btn = e.target.closest("button, .nav-pill, [data-view]");
-    if (!btn) return;
-    const txt = capNorm(btn.textContent).toLowerCase();
-    if (txt.includes("total") || txt.includes("passis")) {
-      capRunYearUpgrade();
-    }
-  });
-})();
-
-
-/* === CAPITALITAT_TOTAL_EDITORIAL_LAYOUT === */
-
-(() => {
-  let observerStarted = false;
-
-  function norm(value) {
-    return String(value ?? "")
-      .replace(/\u00a0/g, " ")
-      .replace(/\s+/g, " ")
-      .trim();
-  }
-
-  function findStatusText(totalView) {
-    const found = Array.from(totalView.querySelectorAll("p, div, span, small"))
-      .find(el => {
-        if (el.closest("#cap-total-editorial-layout")) return false;
-        return norm(el.textContent).includes("Dades carregades correctament");
-      });
-
-    return found ? norm(found.textContent) : "Dades carregades correctament · passis: 1872 · autogestionades: 374";
-  }
-
-  function hideOriginalHeader(totalView) {
-    Array.from(totalView.querySelectorAll("h1, h2, p, div, span, small")).forEach(el => {
-      if (el.closest("#cap-total-editorial-layout")) return;
-
-      const txt = norm(el.textContent);
-
-      if (
-        txt === "INSCRIPCIONS" ||
-        txt === "CAPITALITAT MUNDIAL DE L'ARQUITECTURA 2026" ||
-        txt === "CAPITALITAT MUNDIAL DE L’ARQUITECTURA 2026" ||
-        txt === "Seguiment d’activitats, passis i espais vinculats al full d’INSCRIPCIONS." ||
-        txt.includes("Dades carregades correctament")
-      ) {
-        el.classList.add("cap-original-total-header-hidden");
-      }
-    });
-  }
-
-  function ensureEditorialHero(totalView) {
-    let hero = totalView.querySelector("#cap-total-editorial-layout");
-
-    if (!hero) {
-      hero = document.createElement("section");
-      hero.id = "cap-total-editorial-layout";
-      hero.className = "cap-total-editorial-layout";
-
-      hero.innerHTML = `
-        <div class="cap-total-editorial-copy">
-          <div class="cap-total-eyebrow">Capitalitat Mundial de l’Arquitectura 2026</div>
-          <h1>Inscripcions</h1>
-          <p>Seguiment d’activitats, passis i espais vinculats al full d’INSCRIPCIONS.</p>
-          <small data-cap-total-status></small>
-        </div>
-
-        <div class="cap-total-year-slot" id="cap-total-year-slot"></div>
-      `;
-
-      totalView.prepend(hero);
-    }
-
-    const status = hero.querySelector("[data-cap-total-status]");
-    if (status) status.textContent = findStatusText(totalView);
-
-    return hero;
-  }
-
-  function ensureKpiArea(totalView, hero) {
-    let area = totalView.querySelector("#cap-total-kpi-area");
-
-    if (!area) {
-      area = document.createElement("section");
-      area.id = "cap-total-kpi-area";
-      area.className = "cap-total-kpi-area";
-      hero.insertAdjacentElement("afterend", area);
-    }
-
-    return area;
-  }
-
-  function moveYearChart(totalView, hero) {
-    const slot = hero.querySelector("#cap-total-year-slot");
-    if (!slot) return;
-
-    const chart =
-      totalView.querySelector("#cap-clean-year-card") ||
-      totalView.querySelector(".cap-clean-year-card");
-
-    if (!chart) return;
-
-    if (!slot.contains(chart)) {
-      slot.appendChild(chart);
-    }
-
-    chart.classList.add("cap-year-top-right-card");
-
-    // Dins del banner petit no volem que el detall mensual faci créixer el bloc.
-    chart.querySelectorAll(".cap-clean-month-detail, #cap-month-graphs-panel").forEach(el => {
-      el.remove();
-    });
-  }
-
-  function moveKpiGrid(totalView, area) {
-    const grid = totalView.querySelector("#cap-hotfix-gauge-grid");
-    if (!grid) return;
-
-    if (!area.contains(grid)) {
-      area.appendChild(grid);
-    }
-
-    grid.classList.add("cap-kpi-editorial-grid");
-
-    Array.from(grid.children).forEach((card, index) => {
-      card.classList.add("cap-kpi-editorial-card");
-      card.dataset.kpiPosition = String(index + 1);
-    });
-  }
-
-  function removeDuplicateBlocks(totalView) {
-    const goodYear = totalView.querySelector("#cap-total-year-slot #cap-clean-year-card");
-    const goodKpi = totalView.querySelector("#cap-total-kpi-area #cap-hotfix-gauge-grid");
-
-    totalView.querySelectorAll("#cap-clean-year-card, .cap-clean-year-card").forEach(el => {
-      if (goodYear && el !== goodYear) el.remove();
-    });
-
-    totalView.querySelectorAll("#cap-hotfix-gauge-grid, .cap-hotfix-gauge-grid").forEach(el => {
-      if (goodKpi && el !== goodKpi) el.remove();
-    });
-
-    totalView.querySelectorAll(
-      "#cap-year-chart-elegant, #cap-year-final-card, .cap-year-black-card, .cap-year-chart-card:not(#cap-clean-year-card), .cap-month-chart-v3:has(.cap-month-v3-line-yellow), .cap-month-chart-v2, .cap-month-chart-premium, .cap-month-chart"
-    ).forEach(el => {
-      if (!el.closest("#cap-total-year-slot")) el.remove();
-    });
-  }
-
-  function applyTotalEditorialLayout() {
-    const totalView = document.querySelector("#view-total");
-    if (!totalView) return;
-
-    hideOriginalHeader(totalView);
-
-    const hero = ensureEditorialHero(totalView);
-    const area = ensureKpiArea(totalView, hero);
-
-    moveYearChart(totalView, hero);
-    moveKpiGrid(totalView, area);
-    removeDuplicateBlocks(totalView);
-
-    if (!observerStarted) {
-      observerStarted = true;
-
-      const observer = new MutationObserver(() => {
-        setTimeout(applyTotalEditorialLayout, 80);
-      });
-
-      observer.observe(totalView, {
-        childList: true,
-        subtree: true
-      });
-    }
-  }
-
-  function scheduleTotalEditorialLayout() {
-    setTimeout(applyTotalEditorialLayout, 300);
-    setTimeout(applyTotalEditorialLayout, 1000);
-    setTimeout(applyTotalEditorialLayout, 2200);
-    setTimeout(applyTotalEditorialLayout, 3600);
-  }
-
-  document.addEventListener("DOMContentLoaded", scheduleTotalEditorialLayout);
-  window.addEventListener("load", scheduleTotalEditorialLayout);
-
-  document.addEventListener("click", event => {
-    const el = event.target.closest("button, .nav-pill, [data-view], .sidebar-item, .nav-item");
-    if (!el) return;
-
-    const text = norm(el.textContent).toLowerCase();
-
-    if (text.includes("total") || text.includes("passis")) {
-      scheduleTotalEditorialLayout();
-    }
-  });
-})();
-
-/* === CAPITALITAT_TOTAL_MASTER_REDESIGN === */
-
-(() => {
-  const DATA_URL = "data/inscripcions.json";
-  let capDataCache = null;
-  let capMounted = false;
-
-  const MONTHS_CAT = ["Gen", "Feb", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Oct", "Nov", "Des"];
-  const MONTHS_FULL = ["gener", "febrer", "març", "abril", "maig", "juny", "juliol", "agost", "setembre", "octubre", "novembre", "desembre"];
-
-  function norm(value) {
-    return String(value ?? "")
-      .replace(/\u00a0/g, " ")
-      .replace(/\s+/g, " ")
-      .trim();
-  }
-
-  function slug(text) {
-    return norm(text)
-      .toLowerCase()
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .replace(/[^a-z0-9]+/g, "-")
-      .replace(/^-+|-+$/g, "");
-  }
-
-  function parseDate(str) {
-    const txt = norm(str);
-    if (!txt) return null;
-
-    const parts = txt.split(/[\/\-]/).map(s => s.trim());
-    if (parts.length !== 3) return null;
-
-    let d, m, y;
-    if (parts[0].length === 4) {
-      y = Number(parts[0]);
-      m = Number(parts[1]);
-      d = Number(parts[2]);
-    } else {
-      d = Number(parts[0]);
-      m = Number(parts[1]);
-      y = Number(parts[2]);
-    }
-
-    if (!y || !m || !d) return null;
-    const date = new Date(y, m - 1, d);
-    if (Number.isNaN(date.getTime())) return null;
-    date.setHours(0, 0, 0, 0);
-    return date;
-  }
-
-  function boolValue(v) {
-    return /^true$/i.test(norm(v));
-  }
-
-  function sameDay(a, b) {
-    return a && b &&
-      a.getFullYear() === b.getFullYear() &&
-      a.getMonth() === b.getMonth() &&
-      a.getDate() === b.getDate();
-  }
-
-  function formatPercent(value) {
-    return `${value.toFixed(1).replace(".", ",")}%`;
-  }
-
-  function getRows(data) {
-    if (Array.isArray(data?.rows)) return data.rows;
-    if (Array.isArray(data)) return data;
-    return [];
-  }
-
-  async function loadCapData() {
-    if (capDataCache) return capDataCache;
-    const res = await fetch(`${DATA_URL}?v=${Date.now()}`);
-    if (!res.ok) throw new Error("No s'ha pogut carregar data/inscripcions.json");
-    capDataCache = await res.json();
-    return capDataCache;
-  }
-
-  function normalizeBucket(value, emptyLabel) {
-    const txt = norm(value);
-    return txt || emptyLabel;
-  }
-
-  function cleanDistrict(value) {
-    const txt = norm(value);
-    if (!txt) return "Sense districte";
-    return txt;
-  }
-
-  function cleanCategory(value) {
-    return normalizeBucket(value, "Sense categoria");
-  }
-
-  function cleanEntry(value) {
-    return normalizeBucket(value, "Sense informació");
-  }
-
-  function cleanModalitat(value) {
-    return normalizeBucket(value, "Sense modalitat");
-  }
-
-  function cleanResponsable(value) {
-    return normalizeBucket(value, "Sense responsable");
-  }
-
-  function countBy(rows, getter) {
-    const map = new Map();
-    rows.forEach(row => {
-      const key = getter(row);
-      map.set(key, (map.get(key) || 0) + 1);
-    });
-    return [...map.entries()]
-      .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], 'ca'));
-  }
-
-  function computeStats(rows) {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    const currentYear = today.getFullYear();
-    const capEnd = new Date(currentYear, 11, 13);
+    const year = today.getFullYear();
+    const capEnd = new Date(year, 11, 13);
     capEnd.setHours(0, 0, 0, 0);
 
-    const rowsWithStart = rows
-      .map(r => ({ ...r, __start: parseDate(r.data_inici), __end: parseDate(r.data_final) || parseDate(r.data_inici) }))
-      .filter(r => r.__start);
+    const datedRows = rows.map(row => {
+      const start = parseDate(row[startKey]);
+      const end = parseDate(row[endKey]) || start;
+      return { row, start, end };
+    }).filter(item => item.start);
 
-    let yearRows = rowsWithStart.filter(r => r.__start.getFullYear() === currentYear);
-    if (!yearRows.length) yearRows = rowsWithStart;
+    let yearRows = datedRows.filter(item => item.start.getFullYear() === year);
+    if (!yearRows.length) yearRows = datedRows;
 
     const total = rows.length;
-    const autoRows = rows.filter(r => boolValue(r.propies));
-    const autogestionades = autoRows.length;
+    const autogestionades = rows.filter(row => isTrue(row[gestioKey])).length;
 
-    const finishedRows = rowsWithStart.filter(r => {
-      if (boolValue(r.finalitzat)) return true;
-      return r.__end && r.__end < today;
-    });
-
-    const pendingRows = rowsWithStart.filter(r => r.__start > today && r.__start <= capEnd);
+    const finalitzades = datedRows.filter(item => item.end && item.end < today).length;
+    const pendents = datedRows.filter(item => item.start > today && item.start <= capEnd).length;
 
     const monthCounts = Array(12).fill(0);
-    yearRows.forEach(r => {
-      monthCounts[r.__start.getMonth()] += 1;
+    yearRows.forEach(item => {
+      monthCounts[item.start.getMonth()] += 1;
     });
 
-    const monthTotal = monthCounts.reduce((a, b) => a + b, 0);
-    const monthPeak = Math.max(...monthCounts, 0);
-    const monthPeakIndex = monthCounts.indexOf(monthPeak);
-    const monthAverage = monthCounts.filter(Boolean).length
-      ? Math.round(monthTotal / monthCounts.filter(Boolean).length)
-      : 0;
-
     const currentMonth = today.getMonth();
-    const currentMonthRows = yearRows.filter(r => r.__start.getMonth() === currentMonth && r.__start.getFullYear() === today.getFullYear());
-    const currentMonthTotal = currentMonthRows.length;
-
-    const daysInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
+    const daysInMonth = new Date(year, currentMonth + 1, 0).getDate();
     const dailyCounts = Array(daysInMonth).fill(0);
-    currentMonthRows.forEach(r => {
-      const day = r.__start.getDate();
-      dailyCounts[day - 1] += 1;
+
+    yearRows.forEach(item => {
+      if (item.start.getMonth() === currentMonth && item.start.getFullYear() === year) {
+        dailyCounts[item.start.getDate() - 1] += 1;
+      }
     });
 
     const todayCount = dailyCounts[today.getDate() - 1] || 0;
-    const todayPctMonth = currentMonthTotal ? (todayCount / currentMonthTotal) * 100 : 0;
+    const currentMonthTotal = dailyCounts.reduce((a, b) => a + b, 0);
 
     return {
+      rows,
+      keys,
       today,
       total,
       autogestionades,
-      finalitzades: finishedRows.length,
-      pendents: pendingRows.length,
+      finalitzades,
+      pendents,
       avui: todayCount,
-      avuiPercentMes: todayPctMonth,
+      avuiPercentMes: currentMonthTotal ? todayCount / currentMonthTotal * 100 : 0,
+      currentMonth,
       currentMonthTotal,
-      currentMonthName: MONTHS_FULL[currentMonth],
-      monthCounts,
-      monthTotal,
-      monthPeak,
-      monthPeakIndex,
-      monthAverage,
       dailyCounts,
       daysInMonth,
-      currentMonthIndex: currentMonth,
+      monthCounts,
+      monthTotal: monthCounts.reduce((a, b) => a + b, 0),
+      monthPeak: Math.max(...monthCounts),
+      monthPeakIndex: monthCounts.indexOf(Math.max(...monthCounts)),
+      monthAverage: Math.round(monthCounts.reduce((a, b) => a + b, 0) / 12),
       internal: {
-        modalitat: countBy(rows, r => cleanModalitat(r.modalitat)),
-        categoria: countBy(rows, r => cleanCategory(r.categoria)),
-        districte: countBy(rows, r => cleanDistrict(r.districte)),
-        encarregada: countBy(rows, r => cleanResponsable(r.encarregada)),
-        entrada: countBy(rows, r => cleanEntry(r.entrada))
+        modalitat: countBy(rows, modalitatKey, "Sense modalitat"),
+        categoria: countBy(rows, categoriaKey, "Sense categoria"),
+        districte: countBy(rows, districteKey, "Sense districte"),
+        encarregada: countBy(rows, encarregadaKey, "Sense responsable"),
+        entrada: countBy(rows, entradaKey, "Sense informació")
       }
     };
   }
 
-  function createGaugeSvg(percent) {
-    const width = 270;
-    const height = 120;
-    const cx = 135;
-    const cy = 102;
-    const r = 82;
-
-    function polar(angle) {
-      const rad = (Math.PI / 180) * angle;
-      return {
-        x: cx + r * Math.cos(rad),
-        y: cy + r * Math.sin(rad)
-      };
-    }
-
-    const start = polar(180);
-    const end = polar(0);
-    const full = `M ${start.x} ${start.y} A ${r} ${r} 0 0 1 ${end.x} ${end.y}`;
-
-    const valueAngle = 180 - (180 * Math.max(0, Math.min(100, percent)) / 100);
-    const valueEnd = polar(valueAngle);
-    const value = `M ${start.x} ${start.y} A ${r} ${r} 0 0 1 ${valueEnd.x} ${valueEnd.y}`;
+  function renderKpis(stats) {
+    const kpis = [
+      ["Total passis", stats.total, 100, `${stats.total} totals`],
+      ["Autogestionades", stats.autogestionades, stats.total ? stats.autogestionades / stats.total * 100 : 0, `${stats.autogestionades} pròpies`],
+      ["Finalitzades", stats.finalitzades, stats.total ? stats.finalitzades / stats.total * 100 : 0, `${stats.finalitzades} acabades`],
+      ["Pendents", stats.pendents, stats.total ? stats.pendents / stats.total * 100 : 0, `${stats.pendents} pendents`],
+      ["Avui", stats.avui, stats.currentMonthTotal ? stats.avui / stats.currentMonthTotal * 100 : 0, `${stats.avui} passis avui`]
+    ];
 
     return `
-      <svg viewBox="0 0 ${width} ${height}" class="cap-gauge-svg" aria-hidden="true">
-        <path d="${full}" class="cap-gauge-track"></path>
-        <path d="${value}" class="cap-gauge-value"></path>
-      </svg>
+      <section class="cap-final-kpis">
+        ${kpis.map(([title, value, pct, meta]) => `
+          <article class="cap-final-kpi">
+            <div class="cap-final-kpi-title">${esc(title)}</div>
+            <div class="cap-final-kpi-meta">
+              <span>● ${esc(meta)}</span>
+              <span>● ${percent(pct)}</span>
+            </div>
+            <div class="cap-final-kpi-value">${value}</div>
+            <div class="cap-final-kpi-percent">${percent(pct)}</div>
+          </article>
+        `).join("")}
+      </section>
     `;
   }
 
-  function renderKpis(container, stats) {
-    const cards = [
-      {
-        title: "Total passis",
-        count: stats.total,
-        percent: 100,
-        metaLeft: `${stats.total} totals`,
-        metaRight: "100%"
-      },
-      {
-        title: "Autogestionades",
-        count: stats.autogestionades,
-        percent: stats.total ? (stats.autogestionades / stats.total) * 100 : 0,
-        metaLeft: `${stats.autogestionades} pròpies`,
-        metaRight: formatPercent(stats.total ? (stats.autogestionades / stats.total) * 100 : 0)
-      },
-      {
-        title: "Finalitzades",
-        count: stats.finalitzades,
-        percent: stats.total ? (stats.finalitzades / stats.total) * 100 : 0,
-        metaLeft: `${stats.finalitzades} acabades`,
-        metaRight: formatPercent(stats.total ? (stats.finalitzades / stats.total) * 100 : 0)
-      },
-      {
-        title: "Pendents",
-        count: stats.pendents,
-        percent: stats.total ? (stats.pendents / stats.total) * 100 : 0,
-        metaLeft: `${stats.pendents} pendents`,
-        metaRight: formatPercent(stats.total ? (stats.pendents / stats.total) * 100 : 0)
-      },
-      {
-        title: "Avui",
-        count: stats.avui,
-        percent: stats.currentMonthTotal ? (stats.avui / stats.currentMonthTotal) * 100 : 0,
-        metaLeft: `${stats.avui} passis avui`,
-        metaRight: formatPercent(stats.currentMonthTotal ? (stats.avui / stats.currentMonthTotal) * 100 : 0)
-      }
-    ];
-
-    container.innerHTML = cards.map(card => `
-      <article class="cap-kpi-card">
-        <div class="cap-kpi-top">
-          <h3>${card.title}</h3>
-          <div class="cap-kpi-meta">
-            <span>● ${card.metaLeft}</span>
-            <span>● ${card.metaRight}</span>
-          </div>
-        </div>
-        <div class="cap-kpi-center">
-          <div class="cap-kpi-number">${card.count}</div>
-          <div class="cap-kpi-sub">${formatPercent(card.percent)}</div>
-        </div>
-        <div class="cap-kpi-gauge-wrap">
-          ${createGaugeSvg(card.percent)}
-        </div>
-      </article>
-    `).join("");
-  }
-
-  function renderYearChart(container, stats) {
+  function renderYearChart(stats) {
     const width = 1160;
-    const height = 320;
-    const pad = { top: 34, right: 42, bottom: 58, left: 56 };
+    const height = 330;
+    const pad = { top: 34, right: 36, bottom: 56, left: 50 };
     const plotW = width - pad.left - pad.right;
     const plotH = height - pad.top - pad.bottom;
 
-    const maxVal = Math.max(...stats.monthCounts, 1);
-    const yMax = Math.max(50, Math.ceil(maxVal / 50) * 50);
+    const maxValue = Math.max(50, Math.ceil(Math.max(...stats.monthCounts, 1) / 50) * 50);
 
-    const points = stats.monthCounts.map((val, i) => {
-      const x = pad.left + (plotW / 11) * i;
-      const y = pad.top + plotH - (val / yMax) * plotH;
-      return { x, y, val, month: MONTHS_CAT[i] };
+    const points = stats.monthCounts.map((value, index) => {
+      const x = pad.left + (plotW / 11) * index;
+      const y = pad.top + plotH - (value / maxValue) * plotH;
+      return { x, y, value, month: MONTHS[index] };
     });
 
-    const lineD = points.map((p, idx) => `${idx === 0 ? "M" : "L"} ${p.x} ${p.y}`).join(" ");
+    const line = smooth(points);
 
     const yTicks = [];
-    for (let v = 0; v <= yMax; v += 50) yTicks.push(v);
+    for (let v = 0; v <= maxValue; v += 50) yTicks.push(v);
 
-    container.innerHTML = `
-      <div class="cap-wide-card cap-year-card">
-        <div class="cap-wide-head">
+    return `
+      <section class="cap-final-wide-card">
+        <div class="cap-final-section-head">
           <div>
-            <div class="cap-wide-label">Activitats al llarg de l’any</div>
-            <p>Distribució mensual de passis del full INSCRIPCIONS.</p>
+            <h2>Activitats al llarg de l’any</h2>
+            <p>Distribució mensual de passis segons la data d’inici.</p>
           </div>
-          <div class="cap-year-kpi-head">
+          <div class="cap-final-section-kpis">
             <div><strong>${stats.monthTotal}</strong><span>passis totals</span></div>
-            <div><strong>${stats.monthPeak}</strong><span>pic mensual · ${MONTHS_FULL[stats.monthPeakIndex] || ""}</span></div>
+            <div><strong>${stats.monthPeak}</strong><span>pic mensual · ${MONTHS_FULL[stats.monthPeakIndex]}</span></div>
             <div><strong>${stats.monthAverage}</strong><span>mitjana / mes</span></div>
           </div>
         </div>
 
-        <div class="cap-chart-shell">
-          <svg viewBox="0 0 ${width} ${height}" class="cap-year-svg" aria-label="Gràfic anual de passis per mes">
-            ${yTicks.map(v => {
-              const y = pad.top + plotH - (v / yMax) * plotH;
-              return `
-                <line x1="${pad.left}" y1="${y}" x2="${width - pad.right}" y2="${y}" class="cap-grid-line"></line>
-                <text x="${pad.left - 14}" y="${y + 4}" class="cap-axis-label cap-axis-y">${v}</text>
-              `;
-            }).join("")}
-
-            ${points.map(p => `
-              <circle cx="${p.x}" cy="${p.y}" r="2.8" class="cap-year-point"></circle>
-              <title>${p.month}: ${p.val} passis</title>
-            `).join("")}
-
-            <path d="${lineD}" class="cap-year-line"></path>
-
-            ${points.map(p => `
-              <text x="${p.x}" y="${height - 18}" text-anchor="middle" class="cap-axis-label cap-axis-x">${p.month}</text>
-            `).join("")}
-          </svg>
-        </div>
-      </div>
-    `;
-  }
-
-  function renderStatsCard(title, items, total) {
-    return `
-      <article class="cap-stat-card">
-        <div class="cap-stat-head">
-          <h3>${title}</h3>
-        </div>
-        <div class="cap-stat-list">
-          ${items.map(([label, count]) => {
-            const pct = total ? (count / total) * 100 : 0;
+        <svg class="cap-final-year-svg" viewBox="0 0 ${width} ${height}">
+          ${yTicks.map(v => {
+            const y = pad.top + plotH - (v / maxValue) * plotH;
             return `
-              <div class="cap-stat-item">
-                <div class="cap-stat-row">
-                  <span class="cap-stat-name">${label}</span>
-                  <span class="cap-stat-value">${count}</span>
-                </div>
-                <div class="cap-stat-bar">
-                  <i style="width:${pct}%;"></i>
-                </div>
-                <div class="cap-stat-pct">${formatPercent(pct)}</div>
-              </div>
+              <line x1="${pad.left}" y1="${y}" x2="${width - pad.right}" y2="${y}" class="cap-final-grid"></line>
+              <text x="${pad.left - 12}" y="${y + 4}" text-anchor="end" class="cap-final-axis">${v}</text>
             `;
           }).join("")}
+
+          <path d="${line}" class="cap-final-year-line"></path>
+
+          ${points.map(p => `
+            <text x="${p.x}" y="${height - 18}" text-anchor="middle" class="cap-final-axis">${p.month}</text>
+          `).join("")}
+        </svg>
+      </section>
+    `;
+  }
+
+  function renderInternalStats(stats) {
+    const cards = [
+      ["Modalitat", stats.internal.modalitat],
+      ["Categoria", stats.internal.categoria],
+      ["Districte", stats.internal.districte],
+      ["Encarregada", stats.internal.encarregada],
+      ["Tipus d’entrada", stats.internal.entrada]
+    ];
+
+    return `
+      <section class="cap-final-internal">
+        <h2>Estadístiques internes</h2>
+        <div class="cap-final-stats-grid">
+          ${cards.map(([title, items]) => `
+            <article class="cap-final-stat-card">
+              <h3>${esc(title)}</h3>
+              <div class="cap-final-stat-list">
+                ${items.map(item => {
+                  const pct = stats.total ? item.value / stats.total * 100 : 0;
+                  return `
+                    <div class="cap-final-stat-item">
+                      <div class="cap-final-stat-row">
+                        <span>${esc(item.label)}</span>
+                        <strong>${item.value}</strong>
+                      </div>
+                      <div class="cap-final-stat-bar"><i style="width:${pct}%"></i></div>
+                      <small>${percent(pct)}</small>
+                    </div>
+                  `;
+                }).join("")}
+              </div>
+            </article>
+          `).join("")}
         </div>
-      </article>
+      </section>
     `;
   }
 
-  function renderInternalStats(container, stats) {
-    container.innerHTML = `
-      <div class="cap-section-mini-title">Estadístiques internes</div>
-      <div class="cap-stats-grid">
-        ${renderStatsCard("Modalitat", stats.internal.modalitat, stats.total)}
-        ${renderStatsCard("Categoria", stats.internal.categoria, stats.total)}
-        ${renderStatsCard("Districte", stats.internal.districte, stats.total)}
-        ${renderStatsCard("Encarregada", stats.internal.encarregada, stats.total)}
-        ${renderStatsCard("Tipus d’entrada", stats.internal.entrada, stats.total)}
-      </div>
-    `;
-  }
-
-  function renderDailyChart(container, stats) {
+  function renderDailyChart(stats) {
     const width = 1160;
-    const height = 340;
-    const pad = { top: 28, right: 32, bottom: 56, left: 42 };
+    const height = 380;
+    const pad = { top: 34, right: 36, bottom: 62, left: 50 };
     const plotW = width - pad.left - pad.right;
     const plotH = height - pad.top - pad.bottom;
     const yMax = 20;
-    const todayIndex = stats.today.getDate() - 1;
 
-    const points = stats.dailyCounts.map((val, i) => {
-      const x = pad.left + (plotW / Math.max(1, stats.daysInMonth - 1)) * i;
-      const y = pad.top + plotH - (Math.min(val, yMax) / yMax) * plotH;
-      return { x, y, val, day: i + 1 };
+    const points = stats.dailyCounts.map((value, index) => {
+      const x = pad.left + (plotW / Math.max(1, stats.daysInMonth - 1)) * index;
+      const y = pad.top + plotH - (Math.min(value, yMax) / yMax) * plotH;
+      return { x, y, value, day: index + 1 };
     });
 
-    const lineD = points.map((p, idx) => `${idx === 0 ? "M" : "L"} ${p.x} ${p.y}`).join(" ");
+    const todayIndex = stats.today.getDate() - 1;
     const todayPoint = points[todayIndex] || points[0];
+    const line = smooth(points);
 
     const yTicks = [];
-    for (let v = 0; v <= yMax; v += 1) yTicks.push(v);
+    for (let v = 0; v <= yMax; v++) yTicks.push(v);
 
-    container.innerHTML = `
-      <div class="cap-wide-card cap-daily-card">
-        <div class="cap-wide-head cap-daily-head">
+    return `
+      <section class="cap-final-wide-card cap-final-daily">
+        <div class="cap-final-section-head">
           <div>
-            <div class="cap-wide-label">Activitat diària · ${MONTHS_FULL[stats.currentMonthIndex]}</div>
+            <h2>Activitat diària · ${MONTHS_FULL[stats.currentMonth]}</h2>
             <p>Passis per dia del mes vigent.</p>
           </div>
-          <div class="cap-daily-summary">
+          <div class="cap-final-section-kpis">
             <div><strong>${stats.avui}</strong><span>AVUI = ${stats.avui} passis</span></div>
-            <div><strong>${formatPercent(stats.avuiPercentMes)}</strong><span>del total de ${MONTHS_FULL[stats.currentMonthIndex]}</span></div>
+            <div><strong>${percent(stats.avuiPercentMes)}</strong><span>del total de ${MONTHS_FULL[stats.currentMonth]}</span></div>
           </div>
         </div>
 
-        <div class="cap-chart-shell">
-          <svg viewBox="0 0 ${width} ${height}" class="cap-daily-svg" aria-label="Gràfic diari del mes actual">
-            ${yTicks.map(v => {
-              const y = pad.top + plotH - (v / yMax) * plotH;
-              return `
-                <line x1="${pad.left}" y1="${y}" x2="${width - pad.right}" y2="${y}" class="cap-grid-line light"></line>
-                <text x="${pad.left - 12}" y="${y + 4}" class="cap-axis-label cap-axis-y">${v}</text>
-              `;
-            }).join("")}
+        <svg class="cap-final-daily-svg" viewBox="0 0 ${width} ${height}">
+          ${yTicks.map(v => {
+            const y = pad.top + plotH - (v / yMax) * plotH;
+            return `
+              <line x1="${pad.left}" y1="${y}" x2="${width - pad.right}" y2="${y}" class="cap-final-grid light"></line>
+              <text x="${pad.left - 12}" y="${y + 4}" text-anchor="end" class="cap-final-axis">${v}</text>
+            `;
+          }).join("")}
 
-            <path d="${lineD}" class="cap-daily-line"></path>
+          <path d="${line}" class="cap-final-daily-line"></path>
 
-            ${points.map(p => `
-              <circle cx="${p.x}" cy="${p.y}" r="2.2" class="cap-daily-point"></circle>
-              <title>Dia ${p.day}: ${p.val} passis</title>
-            `).join("")}
+          <line x1="${todayPoint.x}" y1="${todayPoint.y}" x2="${todayPoint.x}" y2="${pad.top + plotH}" class="cap-final-today-guide"></line>
+          <circle cx="${todayPoint.x}" cy="${todayPoint.y}" r="4" class="cap-final-today-dot"></circle>
+          <text x="${todayPoint.x}" y="${todayPoint.y - 14}" text-anchor="middle" class="cap-final-today-label">AVUI = ${todayPoint.value} passis</text>
 
-            <line x1="${todayPoint.x}" y1="${todayPoint.y}" x2="${todayPoint.x}" y2="${pad.top + plotH}" class="cap-today-guide"></line>
-            <circle cx="${todayPoint.x}" cy="${todayPoint.y}" r="4.4" class="cap-today-dot"></circle>
-            <text x="${todayPoint.x}" y="${todayPoint.y - 14}" text-anchor="middle" class="cap-today-text">AVUI = ${todayPoint.val} passis</text>
-
-            ${points.map(p => `
-              <text x="${p.x}" y="${height - 16}" text-anchor="middle" class="cap-axis-label cap-axis-x">${p.day}</text>
-            `).join("")}
-          </svg>
-        </div>
-      </div>
+          ${points.map(p => `
+            <text x="${p.x}" y="${height - 18}" text-anchor="middle" class="cap-final-axis">${p.day}</text>
+          `).join("")}
+        </svg>
+      </section>
     `;
   }
 
-  function hideLegacyContent(totalView) {
-    const children = [...totalView.children];
-    let keepUntilIndex = 2;
+  async function renderStableDashboard() {
+    const view = document.querySelector("#view-total");
+    if (!view) return;
 
-    const statusIndex = children.findIndex(el => {
-      const txt = norm(el.textContent);
-      return txt.includes("JSON actualitzat") || txt.includes("Dades carregades correctament");
-    });
+    const data = await loadData();
+    const stats = computeStats(data);
 
-    if (statusIndex >= 0) keepUntilIndex = statusIndex;
+    let dashboard = view.querySelector("#cap-total-stable-dashboard");
 
-    children.forEach((child, idx) => {
-      if (child.id === "cap-total-master") return;
-      if (idx <= keepUntilIndex) {
-        child.classList.remove("cap-hidden-legacy");
-      } else {
-        child.classList.add("cap-hidden-legacy");
-      }
-    });
-  }
-
-  function ensureMaster(totalView) {
-    let master = totalView.querySelector("#cap-total-master");
-    if (!master) {
-      master = document.createElement("section");
-      master.id = "cap-total-master";
-      master.innerHTML = `
-        <div id="cap-kpi-grid" class="cap-kpi-grid"></div>
-        <div id="cap-year-banner-wrap" class="cap-year-banner-wrap"></div>
-        <div id="cap-internal-stats-wrap" class="cap-internal-stats-wrap"></div>
-        <div id="cap-daily-wrap" class="cap-daily-wrap"></div>
-      `;
-      totalView.appendChild(master);
+    if (!dashboard) {
+      dashboard = document.createElement("section");
+      dashboard.id = "cap-total-stable-dashboard";
+      view.prepend(dashboard);
     }
-    return master;
+
+    dashboard.innerHTML = `
+      <header class="cap-final-hero">
+        <div class="cap-final-eyebrow">Capitalitat Mundial de l’Arquitectura 2026</div>
+        <h1>Inscripcions</h1>
+        <p>Seguiment d’activitats, passis i espais vinculats al full d’INSCRIPCIONS.</p>
+        <small>Dades carregades correctament · passis: ${stats.total} · autogestionades: ${stats.autogestionades}</small>
+      </header>
+
+      ${renderKpis(stats)}
+      ${renderYearChart(stats)}
+      ${renderInternalStats(stats)}
+      ${renderDailyChart(stats)}
+    `;
   }
 
-  async function mountTotalDashboard() {
-    const totalView = document.querySelector("#view-total");
-    if (!totalView) return;
-
-    hideLegacyContent(totalView);
-    const master = ensureMaster(totalView);
-
-    try {
-      const data = await loadCapData();
-      const rows = getRows(data);
-      const stats = computeStats(rows);
-
-      renderKpis(master.querySelector("#cap-kpi-grid"), stats);
-      renderYearChart(master.querySelector("#cap-year-banner-wrap"), stats);
-      renderInternalStats(master.querySelector("#cap-internal-stats-wrap"), stats);
-      renderDailyChart(master.querySelector("#cap-daily-wrap"), stats);
-
-      capMounted = true;
-    } catch (error) {
-      console.error(error);
-      master.innerHTML = `<div class="cap-total-error">No s'han pogut carregar les dades del dashboard.</div>`;
-    }
+  function scheduleRender() {
+    setTimeout(() => renderStableDashboard().catch(console.error), 150);
+    setTimeout(() => renderStableDashboard().catch(console.error), 900);
+    setTimeout(() => renderStableDashboard().catch(console.error), 1800);
   }
 
-  function scheduleMount() {
-    setTimeout(mountTotalDashboard, 200);
-    setTimeout(mountTotalDashboard, 800);
-    setTimeout(mountTotalDashboard, 1800);
-  }
-
-  document.addEventListener("DOMContentLoaded", scheduleMount);
-  window.addEventListener("load", scheduleMount);
+  document.addEventListener("DOMContentLoaded", scheduleRender);
+  window.addEventListener("load", scheduleRender);
 
   document.addEventListener("click", event => {
-    const btn = event.target.closest("[data-view], button, .nav-pill");
-    if (!btn) return;
-    const txt = norm(btn.textContent).toLowerCase();
-    const view = btn.getAttribute("data-view") || "";
-    if (view === "view-total" || txt.includes("total passis")) {
-      scheduleMount();
+    const target = event.target.closest("button, .nav-pill, [data-view], .sidebar-item, .nav-item");
+    if (!target) return;
+
+    const txt = norm(target.textContent).toLowerCase();
+    const view = target.getAttribute("data-view") || "";
+
+    if (view.includes("total") || txt.includes("total") || txt.includes("passis")) {
+      scheduleRender();
     }
   });
-
-  if (!window.__capTotalObserver) {
-    const observer = new MutationObserver(() => {
-      if (document.querySelector("#view-total") && !capMounted) {
-        scheduleMount();
-      }
-    });
-
-    observer.observe(document.body, { childList: true, subtree: true });
-    window.__capTotalObserver = observer;
-  }
 })();

@@ -5583,688 +5583,6 @@ tr:hover td {
   }
 }
 
-/* === CAPITALITAT_MONTH_CHART_X_MONTHS_STYLE === */
-
-.cap-month-chart-v2 {
-  width: 100%;
-  padding: 28px 30px 24px;
-  border-radius: 30px;
-  background:
-    radial-gradient(circle at 50% 42%, rgba(255,228,92,0.055), transparent 38%),
-    linear-gradient(180deg, rgba(255,255,255,0.025), rgba(255,255,255,0.01)),
-    rgba(14,14,16,0.96);
-  border: 1px solid rgba(255,255,255,0.065);
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,0.035),
-    0 22px 60px rgba(0,0,0,0.30);
-}
-
-.cap-month-v2-head {
-  display: flex;
-  justify-content: space-between;
-  gap: 20px;
-  margin-bottom: 18px;
-}
-
-.cap-month-v2-kpis {
-  display: flex;
-  gap: 34px;
-  flex-wrap: wrap;
-  align-items: flex-end;
-}
-
-.cap-month-v2-kpis strong {
-  display: block;
-  color: #fff;
-  font-size: 54px;
-  line-height: 0.92;
-  font-weight: 700;
-  letter-spacing: -0.065em;
-}
-
-.cap-month-v2-kpis span {
-  display: block;
-  margin-top: 8px;
-  color: rgba(255,255,255,0.56);
-  font-size: 12px;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-}
-
-.cap-month-v2-kpis .is-small strong {
-  color: #ffe45c;
-  font-size: 36px;
-}
-
-.cap-month-v2-svg-wrap {
-  width: 100%;
-  height: 420px;
-}
-
-.cap-month-v2-svg {
-  width: 100%;
-  height: 100%;
-  overflow: visible;
-}
-
-.cap-month-v2-grid {
-  stroke: rgba(255,255,255,0.075);
-  stroke-width: 1;
-}
-
-.cap-month-v2-axis-y {
-  fill: rgba(255,255,255,0.50);
-  font-size: 12px;
-}
-
-.cap-month-v2-axis-x {
-  fill: rgba(255,255,255,0.62);
-  font-size: 13px;
-  letter-spacing: 0.04em;
-}
-
-.cap-month-v2-area {
-  fill: url(#capYellowAreaV2);
-  filter: blur(0.2px);
-}
-
-.cap-month-v2-line-yellow {
-  fill: none;
-  stroke: url(#capYellowLineV2);
-  stroke-width: 4.2;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  filter:
-    drop-shadow(0 0 9px rgba(255,228,92,0.55))
-    drop-shadow(0 0 28px rgba(255,228,92,0.18));
-}
-
-.cap-month-v2-line-white {
-  fill: none;
-  stroke: rgba(255,255,255,0.46);
-  stroke-width: 2.4;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  stroke-dasharray: 6 8;
-  opacity: 0.95;
-}
-
-.cap-month-point {
-  cursor: pointer;
-}
-
-.cap-month-point-passes circle:first-child {
-  fill: #ffe45c;
-  stroke: rgba(12,12,12,0.9);
-  stroke-width: 1.5;
-  filter:
-    drop-shadow(0 0 8px rgba(255,228,92,0.95))
-    drop-shadow(0 0 18px rgba(255,228,92,0.24));
-}
-
-.cap-month-point-passes circle:last-child {
-  fill: transparent;
-  stroke: transparent;
-}
-
-.cap-month-point-categories circle {
-  fill: rgba(255,255,255,0.9);
-  stroke: rgba(12,12,12,0.92);
-  stroke-width: 1.2;
-  filter:
-    drop-shadow(0 0 8px rgba(255,255,255,0.16));
-}
-
-.cap-month-v2-legend {
-  display: flex;
-  gap: 24px;
-  flex-wrap: wrap;
-  margin-top: 18px;
-  padding-top: 18px;
-  border-top: 1px solid rgba(255,255,255,0.065);
-}
-
-.cap-month-v2-legend div {
-  display: flex;
-  align-items: center;
-  gap: 11px;
-  color: rgba(255,255,255,0.56);
-  font-size: 13px;
-}
-
-.cap-month-v2-legend strong {
-  color: rgba(255,255,255,0.90);
-  font-weight: 600;
-}
-
-.cap-month-v2-legend i {
-  display: inline-block;
-  width: 42px;
-  height: 0;
-  border-top: 3px solid #fff;
-  border-radius: 99px;
-}
-
-.cap-month-v2-legend i.is-yellow {
-  border-color: #ffe45c;
-  box-shadow: 0 0 14px rgba(255,228,92,0.30);
-}
-
-.cap-month-v2-legend i.is-white {
-  border-color: rgba(255,255,255,0.70);
-  border-top-style: dashed;
-}
-
-.cap-month-tooltip {
-  position: fixed;
-  z-index: 30000;
-  pointer-events: none;
-  opacity: 0;
-  transform: translateY(4px);
-  padding: 11px 13px;
-  border-radius: 14px;
-  color: #fff;
-  background:
-    linear-gradient(180deg, rgba(20,20,20,0.98), rgba(8,8,8,0.94));
-  border: 1px solid rgba(255,228,92,0.18);
-  box-shadow:
-    0 18px 40px rgba(0,0,0,0.34),
-    0 0 24px rgba(255,228,92,0.10);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  transition: opacity 0.12s ease, transform 0.12s ease;
-}
-
-.cap-month-tooltip.is-visible {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-.cap-month-tooltip strong {
-  display: block;
-  color: #ffe45c;
-  font-size: 19px;
-  line-height: 1;
-  margin-bottom: 4px;
-}
-
-.cap-month-tooltip span {
-  display: block;
-  color: rgba(255,255,255,0.82);
-  font-size: 12px;
-  margin-bottom: 2px;
-}
-
-.cap-month-tooltip em {
-  display: block;
-  color: rgba(255,255,255,0.54);
-  font-size: 12px;
-  font-style: normal;
-}
-
-@media (max-width: 760px) {
-  .cap-month-chart-v2 {
-    padding: 22px 18px;
-  }
-
-  .cap-month-v2-kpis {
-    gap: 24px;
-  }
-
-  .cap-month-v2-kpis strong {
-    font-size: 40px;
-  }
-
-  .cap-month-v2-kpis .is-small strong {
-    font-size: 30px;
-  }
-
-  .cap-month-v2-svg-wrap {
-    height: 360px;
-  }
-
-  .cap-month-v2-legend {
-    flex-direction: column;
-    gap: 12px;
-  }
-}
-
-/* === CAPITALITAT_MONTH_CLICK_DASHBOARD_STYLE === */
-
-.cap-month-chart-v3 {
-  width: 100%;
-  padding: 28px 30px 24px;
-  border-radius: 30px;
-  background:
-    radial-gradient(circle at 50% 42%, rgba(255,228,92,0.06), transparent 38%),
-    linear-gradient(180deg, rgba(255,255,255,0.025), rgba(255,255,255,0.01)),
-    rgba(14,14,16,0.96);
-  border: 1px solid rgba(255,255,255,0.065);
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,0.035),
-    0 22px 60px rgba(0,0,0,0.30);
-}
-
-.cap-month-v3-head {
-  margin-bottom: 18px;
-}
-
-.cap-month-v3-kpis {
-  display: flex;
-  gap: 34px;
-  flex-wrap: wrap;
-  align-items: flex-end;
-}
-
-.cap-month-v3-kpis strong {
-  display: block;
-  color: #fff;
-  font-size: 54px;
-  line-height: 0.92;
-  font-weight: 700;
-  letter-spacing: -0.065em;
-}
-
-.cap-month-v3-kpis span {
-  display: block;
-  margin-top: 8px;
-  color: rgba(255,255,255,0.56);
-  font-size: 12px;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-}
-
-.cap-month-v3-kpis .is-small strong {
-  color: #ffe45c;
-  font-size: 36px;
-}
-
-.cap-month-v3-svg-wrap {
-  width: 100%;
-  height: 420px;
-}
-
-.cap-month-v3-svg {
-  width: 100%;
-  height: 100%;
-  overflow: visible;
-}
-
-.cap-month-v3-grid {
-  stroke: rgba(255,255,255,0.075);
-  stroke-width: 1;
-}
-
-.cap-month-v3-axis-y {
-  fill: rgba(255,255,255,0.50);
-  font-size: 12px;
-}
-
-.cap-month-v3-area {
-  fill: url(#capYellowAreaV3);
-}
-
-.cap-month-v3-line-yellow {
-  fill: none;
-  stroke: url(#capYellowLineV3);
-  stroke-width: 4.2;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  filter:
-    drop-shadow(0 0 9px rgba(255,228,92,0.55))
-    drop-shadow(0 0 28px rgba(255,228,92,0.18));
-}
-
-.cap-month-point-passes {
-  cursor: pointer;
-}
-
-.cap-month-point-passes circle:first-child {
-  fill: #ffe45c;
-  stroke: rgba(12,12,12,0.9);
-  stroke-width: 1.5;
-  filter:
-    drop-shadow(0 0 8px rgba(255,228,92,0.95))
-    drop-shadow(0 0 18px rgba(255,228,92,0.24));
-}
-
-.cap-month-point-passes circle:last-child {
-  fill: transparent;
-  stroke: transparent;
-}
-
-.cap-month-v3-month-tab {
-  cursor: pointer;
-}
-
-.cap-month-v3-month-tab rect {
-  fill: rgba(255,255,255,0.035);
-  stroke: rgba(255,255,255,0.08);
-  transition:
-    fill 0.18s ease,
-    stroke 0.18s ease,
-    filter 0.18s ease;
-}
-
-.cap-month-v3-month-tab text {
-  fill: rgba(255,255,255,0.62);
-  font-size: 13px;
-  letter-spacing: 0.04em;
-  pointer-events: none;
-  transition: fill 0.18s ease;
-}
-
-.cap-month-v3-month-tab:hover rect,
-.cap-month-v3-month-tab.is-selected rect {
-  fill: rgba(255,228,92,0.10);
-  stroke: rgba(255,228,92,0.55);
-  filter: drop-shadow(0 0 12px rgba(255,228,92,0.18));
-}
-
-.cap-month-v3-month-tab:hover text,
-.cap-month-v3-month-tab.is-selected text {
-  fill: #ffe45c;
-}
-
-.cap-month-v3-legend {
-  display: flex;
-  gap: 24px;
-  flex-wrap: wrap;
-  margin-top: 18px;
-  padding-top: 18px;
-  border-top: 1px solid rgba(255,255,255,0.065);
-}
-
-.cap-month-v3-legend div {
-  display: flex;
-  align-items: center;
-  gap: 11px;
-  color: rgba(255,255,255,0.56);
-  font-size: 13px;
-}
-
-.cap-month-v3-legend strong {
-  color: rgba(255,255,255,0.90);
-  font-weight: 600;
-}
-
-.cap-month-v3-legend i {
-  display: inline-block;
-  width: 42px;
-  height: 0;
-  border-top: 3px solid #ffe45c;
-  border-radius: 99px;
-  box-shadow: 0 0 14px rgba(255,228,92,0.30);
-}
-
-/* Dashboard mensual */
-.cap-month-dashboard-mount {
-  margin-top: 22px;
-}
-
-.cap-month-detail-card {
-  padding: 24px;
-  border-radius: 28px;
-  background:
-    radial-gradient(circle at 50% 38%, rgba(255,228,92,0.045), transparent 40%),
-    rgba(255,255,255,0.028);
-  border: 1px solid rgba(255,255,255,0.075);
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,0.035),
-    0 16px 40px rgba(0,0,0,0.18);
-}
-
-.cap-month-detail-head {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 16px;
-  margin-bottom: 22px;
-}
-
-.cap-month-detail-head span {
-  display: block;
-  color: rgba(255,255,255,0.48);
-  font-size: 12px;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  margin-bottom: 6px;
-}
-
-.cap-month-detail-head h3 {
-  margin: 0;
-  color: #fff;
-  font-size: 34px;
-  line-height: 1;
-  letter-spacing: -0.06em;
-}
-
-.cap-month-detail-close {
-  width: 36px;
-  height: 36px;
-  border-radius: 999px;
-  border: 1px solid rgba(255,255,255,0.12);
-  background: rgba(255,255,255,0.04);
-  color: rgba(255,255,255,0.72);
-  font-size: 24px;
-  cursor: pointer;
-}
-
-.cap-month-detail-kpis {
-  display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
-  gap: 12px;
-  margin-bottom: 22px;
-}
-
-.cap-month-detail-kpis div {
-  min-width: 0;
-  padding: 16px;
-  border-radius: 18px;
-  background: rgba(0,0,0,0.20);
-  border: 1px solid rgba(255,255,255,0.055);
-}
-
-.cap-month-detail-kpis strong {
-  display: block;
-  color: #ffe45c;
-  font-size: 24px;
-  line-height: 1;
-  letter-spacing: -0.05em;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.cap-month-detail-kpis span {
-  display: block;
-  margin-top: 8px;
-  color: rgba(255,255,255,0.48);
-  font-size: 11px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.cap-month-detail-main {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 18px;
-}
-
-.cap-month-radial-card {
-  padding: 18px;
-  border-radius: 24px;
-  background: rgba(0,0,0,0.18);
-  border: 1px solid rgba(255,255,255,0.055);
-}
-
-.cap-month-radial-card h4 {
-  margin: 0 0 12px;
-  color: rgba(255,255,255,0.90);
-  font-size: 16px;
-  letter-spacing: -0.03em;
-}
-
-.cap-month-radial-svg {
-  display: block;
-  width: 100%;
-  height: auto;
-  max-height: 360px;
-}
-
-.cap-month-radial-grid {
-  fill: none;
-  stroke: rgba(255,255,255,0.07);
-  stroke-width: 1;
-}
-
-.cap-month-radial-axis {
-  stroke: rgba(255,255,255,0.045);
-  stroke-width: 1;
-}
-
-.cap-month-radial-fill {
-  fill: rgba(255,228,92,0.12);
-  stroke: none;
-}
-
-.cap-month-radial-line {
-  fill: none;
-  stroke: #ffe45c;
-  stroke-width: 2.4;
-  stroke-linejoin: round;
-  stroke-linecap: round;
-  filter:
-    drop-shadow(0 0 8px rgba(255,228,92,0.45))
-    drop-shadow(0 0 18px rgba(255,228,92,0.14));
-}
-
-.cap-month-radial-point {
-  fill: #ffe45c;
-  stroke: rgba(12,12,12,0.92);
-  stroke-width: 1.2;
-}
-
-.cap-month-radial-label {
-  fill: rgba(255,255,255,0.58);
-  font-size: 10.5px;
-}
-
-.cap-month-radial-list {
-  display: grid;
-  gap: 8px;
-  margin-top: 8px;
-}
-
-.cap-month-radial-list div {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  color: rgba(255,255,255,0.62);
-  font-size: 12px;
-}
-
-.cap-month-radial-list span {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.cap-month-radial-list strong {
-  color: #ffe45c;
-}
-
-.cap-month-detail-bottom {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 18px;
-  margin-top: 18px;
-}
-
-.cap-month-detail-bottom > div {
-  padding: 18px;
-  border-radius: 22px;
-  background: rgba(0,0,0,0.14);
-  border: 1px solid rgba(255,255,255,0.05);
-}
-
-.cap-month-detail-bottom h4 {
-  margin: 0 0 12px;
-  color: rgba(255,255,255,0.86);
-  font-size: 15px;
-}
-
-.cap-month-pills {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.cap-month-pills span {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  padding: 8px 10px;
-  border-radius: 999px;
-  background: rgba(255,255,255,0.045);
-  border: 1px solid rgba(255,255,255,0.07);
-  color: rgba(255,255,255,0.70);
-  font-size: 12px;
-}
-
-.cap-month-pills strong {
-  color: #ffe45c;
-}
-
-.cap-month-empty {
-  min-height: 280px;
-  display: grid;
-  place-items: center;
-  color: rgba(255,255,255,0.45);
-  font-size: 13px;
-}
-
-@media (max-width: 1250px) {
-  .cap-month-detail-kpis {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-}
-
-@media (max-width: 860px) {
-  .cap-month-detail-main,
-  .cap-month-detail-bottom {
-    grid-template-columns: 1fr;
-  }
-
-  .cap-month-detail-kpis {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
-@media (max-width: 620px) {
-  .cap-month-chart-v3 {
-    padding: 22px 18px;
-  }
-
-  .cap-month-v3-svg-wrap {
-    height: 360px;
-  }
-
-  .cap-month-v3-kpis strong {
-    font-size: 40px;
-  }
-
-  .cap-month-v3-kpis .is-small strong {
-    font-size: 30px;
-  }
-
-  .cap-month-detail-kpis {
-    grid-template-columns: 1fr;
-  }
-}
-
-
 /* === CAPITALITAT_CALENDAR_ANNUAL_MATRIX_STYLE === */
 
 /* Botons mensual / anual */
@@ -9008,1353 +8326,195 @@ thead th {
 }
 
 
-/* === CAPITALITAT_FINAL_TOP_GAUGES_STYLE === */
 
-/* ============================================================
-   TOP GAUGES · estil net com la referència
-============================================================ */
 
-@import url("https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700&display=swap");
+/* === CAPITALITAT_TOTAL_FINAL_STABLE_LAYOUT_STYLE === */
 
-html,
-body,
-button,
-input,
-select,
-textarea {
-  font-family: "Manrope", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
-}
-
-#cap-final-gauge-grid.cap-final-gauge-grid,
-.cap-final-gauge-grid {
-  width: 100% !important;
-  max-width: none !important;
-  display: grid !important;
-  grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
-  gap: 18px !important;
-  margin: 20px 0 36px !important;
-  align-items: stretch !important;
-}
-
-.cap-final-gauge-card {
-  position: relative;
-  min-height: 220px !important;
-  padding: 18px 18px 14px !important;
-  border-radius: 22px !important;
-  overflow: hidden !important;
-
-  background:
-    linear-gradient(180deg, rgba(255,255,255,0.13), rgba(255,255,255,0.065)) !important;
-  border: 1px solid rgba(255,255,255,0.10) !important;
-  box-shadow:
-    0 20px 38px rgba(60, 40, 36, 0.12),
-    inset 0 1px 0 rgba(255,255,255,0.08) !important;
-
-  backdrop-filter: blur(24px) saturate(120%) !important;
-  -webkit-backdrop-filter: blur(24px) saturate(120%) !important;
-}
-
-.cap-final-gauge-card::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background:
-    linear-gradient(135deg,
-      rgba(255,255,255,0.08) 0%,
-      rgba(255,255,255,0.025) 35%,
-      rgba(255,255,255,0.00) 70%);
-  opacity: 1;
-}
-
-.cap-final-gauge-header,
-.cap-final-gauge-meta,
-.cap-final-gauge-wrap {
-  position: relative;
-  z-index: 2;
-}
-
-.cap-final-gauge-header {
-  margin-bottom: 16px;
-}
-
-.cap-final-gauge-header h3 {
-  margin: 0 !important;
-  color: rgba(255,255,255,0.92) !important;
-  font-size: 15px !important;
-  line-height: 1.1 !important;
-  font-weight: 400 !important;
-  letter-spacing: -0.025em !important;
-  text-shadow: none !important;
-}
-
-.cap-final-gauge-meta {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 2px;
-}
-
-.cap-final-gauge-meta span {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  min-width: 0;
-
-  color: rgba(255,255,255,0.74) !important;
-  font-size: 11px !important;
-  font-weight: 300 !important;
-  line-height: 1.1 !important;
-  letter-spacing: -0.01em !important;
-
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.cap-final-gauge-meta i {
-  width: 6px;
-  height: 6px;
-  border-radius: 999px;
-  flex: 0 0 auto;
-  background: rgba(255,255,255,0.92);
-  box-shadow: 0 0 8px rgba(255,255,255,0.18);
-}
-
-.cap-final-gauge-wrap {
-  position: relative;
-  height: 150px;
-  margin-top: 0;
-}
-
-.cap-final-gauge-svg {
-  width: 100%;
-  height: 150px;
-  display: block;
-  overflow: visible;
-}
-
-.cap-final-gauge-track {
-  fill: none;
-  stroke: rgba(255,255,255,0.18);
-  stroke-width: 3;
-  stroke-linecap: round;
-}
-
-.cap-final-gauge-ticks {
-  fill: none;
-  stroke: rgba(255,255,255,0.08);
-  stroke-width: 1.1;
-  stroke-linecap: round;
-  stroke-dasharray: 0.5 2.4;
-}
-
-.cap-final-gauge-progress {
-  fill: none;
-  stroke: rgba(255,255,255,0.96);
-  stroke-width: 3.2;
-  stroke-linecap: round;
-}
-
-.cap-final-gauge-center {
-  position: absolute;
-  inset: 52px 0 0 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  pointer-events: none;
-}
-
-.cap-final-gauge-center strong {
-  color: rgba(255,255,255,0.98) !important;
-  font-size: 34px !important;
-  line-height: 1 !important;
-  font-weight: 300 !important;
-  letter-spacing: -0.055em !important;
-  text-shadow: none !important;
-}
-
-.cap-final-gauge-center span {
-  margin-top: 8px;
-  color: rgba(255,255,255,0.58) !important;
-  font-size: 11px !important;
-  line-height: 1 !important;
-  font-weight: 300 !important;
-  letter-spacing: -0.01em !important;
-}
-
-/* Mata del tot les versions antigues */
-#cap-overview-grid,
-.cap-overview-grid,
-.cap-overview-card,
-.cap-ref-kpi-grid,
-.cap-ref-kpi-card {
+#view-total > :not(#cap-total-stable-dashboard) {
   display: none !important;
 }
 
-/* Però no amaguem el nou */
-#cap-final-gauge-grid {
-  display: grid !important;
-}
-
-@media (max-width: 1450px) {
-  .cap-final-gauge-grid {
-    gap: 14px !important;
-  }
-
-  .cap-final-gauge-card {
-    min-height: 210px !important;
-    padding: 16px !important;
-  }
-
-  .cap-final-gauge-center strong {
-    font-size: 30px !important;
-  }
-}
-
-@media (max-width: 1180px) {
-  .cap-final-gauge-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-  }
-}
-
-@media (max-width: 700px) {
-  .cap-final-gauge-grid {
-    grid-template-columns: 1fr !important;
-  }
-}
-
-/* === CAPITALITAT_TOP_GAUGE_HOTFIX_STYLE_V1 === */
-
-/* amaga absolutament totes les versions antigues */
-#cap-final-gauge-grid,
-.cap-final-gauge-grid,
-#cap-overview-grid,
-.cap-overview-grid,
-.cap-ref-kpi-grid,
-.cap-overview-card,
-.cap-ref-kpi-card {
-  display: none !important;
-}
-
-/* i mostra només la versió hotfix */
-#cap-hotfix-gauge-grid.cap-hotfix-gauge-grid,
-.cap-hotfix-gauge-grid {
-  display: grid !important;
-  grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
-  gap: 18px !important;
-  width: 100% !important;
-  max-width: none !important;
-  margin: 18px 0 34px !important;
-  grid-column: 1 / -1 !important;
-}
-
-#view-total > #cap-hotfix-gauge-grid {
-  width: 100% !important;
-}
-
-.cap-hotfix-gauge-card {
-  min-width: 0 !important;
-  min-height: 230px !important;
-  padding: 18px !important;
-  border-radius: 22px !important;
-  overflow: hidden !important;
-  position: relative !important;
-
-  background:
-    linear-gradient(180deg, rgba(255,255,255,0.13), rgba(255,255,255,0.07)) !important;
-  border: 1px solid rgba(255,255,255,0.10) !important;
-  box-shadow:
-    0 18px 34px rgba(60, 40, 36, 0.10),
-    inset 0 1px 0 rgba(255,255,255,0.08) !important;
-
-  backdrop-filter: blur(22px) saturate(118%) !important;
-  -webkit-backdrop-filter: blur(22px) saturate(118%) !important;
-}
-
-.cap-hotfix-gauge-title {
-  font-size: 15px !important;
-  line-height: 1.1 !important;
-  font-weight: 400 !important;
-  color: #2f2f33 !important;
-  margin-bottom: 14px !important;
-  letter-spacing: -0.02em !important;
-}
-
-.cap-hotfix-gauge-meta {
-  display: flex !important;
-  justify-content: space-between !important;
-  gap: 12px !important;
-  margin-bottom: 6px !important;
-}
-
-.cap-hotfix-gauge-meta span {
-  display: inline-flex !important;
-  align-items: center !important;
-  gap: 7px !important;
-  min-width: 0 !important;
-  font-size: 11px !important;
-  line-height: 1.1 !important;
-  font-weight: 300 !important;
-  color: rgba(47,47,51,0.72) !important;
-  white-space: nowrap !important;
-  overflow: hidden !important;
-  text-overflow: ellipsis !important;
-}
-
-.cap-hotfix-gauge-meta i {
-  width: 6px !important;
-  height: 6px !important;
-  border-radius: 999px !important;
-  background: rgba(47,47,51,0.84) !important;
-  flex: 0 0 auto !important;
-}
-
-.cap-hotfix-gauge-wrap {
-  position: relative !important;
-  height: 150px !important;
-  margin-top: 8px !important;
-}
-
-.cap-hotfix-gauge-svg {
-  width: 100% !important;
-  height: 150px !important;
-  display: block !important;
-}
-
-.cap-hotfix-gauge-track {
-  fill: none !important;
-  stroke: rgba(47,47,51,0.14) !important;
-  stroke-width: 3 !important;
-  stroke-linecap: round !important;
-}
-
-.cap-hotfix-gauge-ticks {
-  fill: none !important;
-  stroke: rgba(47,47,51,0.09) !important;
-  stroke-width: 1.1 !important;
-  stroke-linecap: round !important;
-  stroke-dasharray: 0.5 2.4 !important;
-}
-
-.cap-hotfix-gauge-progress {
-  fill: none !important;
-  stroke: rgba(35,35,38,0.95) !important;
-  stroke-width: 3.2 !important;
-  stroke-linecap: round !important;
-}
-
-.cap-hotfix-gauge-center {
-  position: absolute !important;
-  inset: 52px 0 0 0 !important;
-  display: flex !important;
-  flex-direction: column !important;
-  align-items: center !important;
-  pointer-events: none !important;
-}
-
-.cap-hotfix-gauge-center strong {
-  font-size: 32px !important;
-  line-height: 1 !important;
-  font-weight: 300 !important;
-  letter-spacing: -0.055em !important;
-  color: #232326 !important;
-}
-
-.cap-hotfix-gauge-center span {
-  margin-top: 8px !important;
-  font-size: 11px !important;
-  line-height: 1 !important;
-  font-weight: 300 !important;
-  color: rgba(47,47,51,0.56) !important;
-}
-
-@media (max-width: 1180px) {
-  .cap-hotfix-gauge-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-  }
-}
-
-@media (max-width: 700px) {
-  .cap-hotfix-gauge-grid {
-    grid-template-columns: 1fr !important;
-  }
-}
-
-/* === CAPITALITAT_HIDE_DUPLICATE_TOP_GAUGES_V1 === */
-
-/* Mostra només el primer grid bo */
-#view-total #cap-hotfix-gauge-grid ~ #cap-hotfix-gauge-grid,
-#view-total #cap-hotfix-gauge-grid ~ .cap-hotfix-gauge-grid,
-#view-total #cap-hotfix-gauge-grid ~ #cap-final-gauge-grid,
-#view-total #cap-hotfix-gauge-grid ~ .cap-final-gauge-grid,
-#view-total #cap-hotfix-gauge-grid ~ #cap-overview-grid,
-#view-total #cap-hotfix-gauge-grid ~ .cap-overview-grid,
-#view-total #cap-hotfix-gauge-grid ~ .cap-ref-kpi-grid {
-  display: none !important;
-}
-
-/* Si per algun motiu apareixen antics abans o després, també els amaguem */
-#view-total #cap-final-gauge-grid,
-#view-total #cap-overview-grid,
-#view-total .cap-final-gauge-grid,
-#view-total .cap-overview-grid,
-#view-total .cap-ref-kpi-grid {
-  display: none !important;
-}
-
-/* La nostra versió bona sí que s'ha de veure */
-#view-total > #cap-hotfix-gauge-grid,
-#view-total #cap-hotfix-gauge-grid:first-of-type {
-  display: grid !important;
-}
-
-/* === CAPITALITAT_CLEAN_SINGLE_YEAR_CHART_STYLE === */
-
-/* Amaguem qualsevol resta anterior */
-#view-total #cap-year-chart-elegant,
-#view-total #cap-year-final-card,
-#view-total .cap-year-black-card,
-#view-total .cap-year-chart-card:not(#cap-clean-year-card),
-#view-total .cap-month-chart-v3:has(.cap-month-v3-line-yellow),
-#view-total .cap-month-chart-v2,
-#view-total .cap-month-chart-premium,
-#view-total .cap-month-chart {
-  display: none !important;
-}
-
-/* Targeta única bona */
-#cap-clean-year-card.cap-clean-year-card {
-  width: 100% !important;
-  margin-top: 22px !important;
-  padding: 24px !important;
-  border-radius: 32px !important;
-  background:
-    linear-gradient(180deg, rgba(255,255,255,0.15), rgba(255,255,255,0.08)) !important;
-  border: 1px solid rgba(255,255,255,0.10) !important;
-  box-shadow:
-    0 26px 52px rgba(42,42,46,0.09),
-    inset 0 1px 0 rgba(255,255,255,0.08) !important;
-  backdrop-filter: blur(24px) saturate(115%) !important;
-  -webkit-backdrop-filter: blur(24px) saturate(115%) !important;
-}
-
-.cap-clean-year-head {
-  padding: 0 10px 18px;
-}
-
-.cap-clean-year-head span {
-  display: inline-block;
-  margin-right: 12px;
-  color: rgba(48,50,58,0.18);
-  font-size: 12px;
-}
-
-.cap-clean-year-head h3 {
-  display: inline-block;
-  margin: 0;
-  color: #30323a !important;
-  font-size: 22px !important;
-  font-weight: 600 !important;
-  letter-spacing: -0.03em !important;
-}
-
-.cap-clean-year-head p {
-  margin: 8px 0 0 28px;
-  color: rgba(48,50,58,0.62) !important;
-  font-size: 12px;
-}
-
-.cap-clean-year-inner {
-  padding: 28px 30px 20px;
-  border-radius: 28px;
-  background:
-    linear-gradient(180deg, rgba(255,255,255,0.16), rgba(255,255,255,0.09));
-  border: 1px solid rgba(255,255,255,0.10);
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,0.08),
-    0 12px 30px rgba(54,56,62,0.05);
-}
-
-.cap-clean-year-kpis {
-  display: flex;
-  gap: 34px;
-  margin-bottom: 18px;
-  flex-wrap: wrap;
-}
-
-.cap-clean-year-kpis strong {
-  display: block;
-  color: #4a4d5c !important;
-  font-size: 38px;
-  line-height: 1;
-  font-weight: 700;
-  letter-spacing: -0.055em;
-}
-
-.cap-clean-year-kpis span {
-  display: block;
-  margin-top: 6px;
-  color: rgba(74,77,92,0.58) !important;
-  font-size: 10px;
-  letter-spacing: 0.12em;
-}
-
-.cap-clean-year-svg {
-  display: block;
-  width: 100%;
-  height: auto;
-  overflow: visible;
-}
-
-.cap-clean-year-grid {
-  stroke: rgba(44,46,53,0.08);
-  stroke-width: 1;
-}
-
-.cap-clean-year-y {
-  fill: rgba(44,46,53,0.42);
-  font-size: 10px;
-}
-
-.cap-clean-year-ghost {
-  fill: none;
-  stroke: rgba(84,86,96,0.14);
-  stroke-width: 2;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-
-.cap-clean-year-ghost.is-soft {
-  stroke: rgba(84,86,96,0.09);
-}
-
-.cap-clean-year-main {
-  fill: none;
-  stroke: #202228;
-  stroke-width: 4.2;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  filter: drop-shadow(0 2px 3px rgba(0,0,0,0.06));
-}
-
-.cap-clean-year-marker {
-  stroke: rgba(32,34,40,0.88);
-  stroke-width: 1.15;
-  stroke-dasharray: 4 5;
-}
-
-.cap-clean-year-dot {
-  fill: #202228;
-  stroke: rgba(255,255,255,0.88);
-  stroke-width: 1.5;
-}
-
-.cap-clean-year-click,
-.cap-clean-year-month {
-  cursor: pointer;
-}
-
-.cap-clean-year-month text {
-  fill: rgba(44,46,53,0.54);
-  font-size: 11px;
-  font-weight: 500;
-  transition: fill 0.18s ease;
-}
-
-.cap-clean-year-month:hover text,
-.cap-clean-year-month.is-active text {
-  fill: #1d1f24;
-}
-
-.cap-clean-year-legend {
-  margin-top: 10px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.cap-clean-year-legend span {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  color: rgba(44,46,53,0.70);
-  font-size: 11px;
-}
-
-.cap-clean-year-legend i {
-  width: 32px;
-  height: 0;
-  border-top: 2px solid #202228;
-  display: inline-block;
-}
-
-.cap-clean-month-detail {
-  margin-top: 18px;
-  display: grid;
-  grid-template-columns: 1.1fr 1fr 1fr;
-  gap: 14px;
-}
-
-.cap-clean-month-detail > div {
-  padding: 16px;
-  border-radius: 18px;
-  background: rgba(255,255,255,0.10);
-  border: 1px solid rgba(255,255,255,0.10);
-}
-
-.cap-clean-month-detail strong {
-  display: block;
-  color: #30323a;
-  font-size: 22px;
-  line-height: 1;
-  margin-bottom: 6px;
-}
-
-.cap-clean-month-detail h4 {
-  margin: 0 0 10px;
-  color: #30323a;
-  font-size: 13px;
-}
-
-.cap-clean-month-detail p {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  margin: 7px 0;
-  color: rgba(48,50,58,0.68);
-  font-size: 12px;
-}
-
-.cap-clean-month-detail b {
-  color: #30323a;
-}
-
-@media (max-width: 900px) {
-  .cap-clean-month-detail {
-    grid-template-columns: 1fr;
-  }
-}
-
-
-
-/* === CAPITALITAT_FORCE_SINGLE_FULL_WIDTH_YEAR_CARD_STYLE === */
-
-/* El banner bo ha d'ocupar tota l'amplada */
-#view-total #cap-clean-year-card {
-  width: 100% !important;
-  max-width: none !important;
-  grid-column: 1 / -1 !important;
-  display: block !important;
-  margin-top: 24px !important;
-}
-
-/* Si el contenidor pare és grid o flex, que no el limiti */
-#view-total #cap-clean-year-card,
-#view-total #cap-clean-year-card * {
-  box-sizing: border-box;
-}
-
-/* Elimina qualsevol banner buit o antic amb el mateix títol */
-#view-total section:has(h3),
-#view-total div:has(h3) {
-  position: relative;
-}
-
-#view-total section:has(h3):not(#cap-clean-year-card),
-#view-total div:has(h3):not(#cap-clean-year-card) {
-  /* no fem res aquí; la neteja principal la fa JS */
-}
-
-/* El gràfic intern també ample total */
-#cap-clean-year-card .cap-clean-year-inner {
-  width: 100% !important;
-}
-
-#cap-clean-year-card .cap-clean-year-svg {
-  width: 100% !important;
-  height: auto !important;
-}
-
-
-
-
-/* === CAPITALITAT_AVUI_DAILY_CHART_BLACK_STYLE === */
-
-/* Línies dels gràfics petits en negre */
-#chart-modalitat .bar-fill,
-#chart-categoria .bar-fill,
-#chart-districte .bar-fill,
-#chart-encarregada .bar-fill,
-#chart-tipus-entrada .bar-fill,
-#chart-modalitat-auto .bar-fill,
-#chart-categoria-auto .bar-fill,
-#chart-districte-auto .bar-fill,
-#chart-encarregada-auto .bar-fill,
-#chart-tipus-entrada-auto .bar-fill,
-[id^="chart-"] .bar-fill,
-[id^="chart-"] .chart-bar-fill,
-[id^="chart-"] .cap-bar-fill,
-[id^="chart-"] .progress-fill {
-  background: #202228 !important;
-  border-color: #202228 !important;
-}
-
-/* Card d'Avui nou */
-.cap-avui-daily-chart-wrap {
-  margin-top: 12px;
-}
-
-.cap-avui-topline {
-  display: flex;
-  justify-content: space-between;
-  gap: 16px;
-  align-items: flex-start;
-  margin-bottom: 10px;
-}
-
-.cap-avui-mainstat strong,
-.cap-avui-sidepct strong {
-  display: block;
-  color: #202228;
-  font-size: 26px;
-  line-height: 1;
-  font-weight: 500;
-  letter-spacing: -0.04em;
-}
-
-.cap-avui-mainstat span,
-.cap-avui-sidepct span {
-  display: block;
-  margin-top: 5px;
-  color: rgba(32,34,40,0.60);
-  font-size: 11px;
-  line-height: 1.3;
-}
-
-.cap-avui-daily-svg {
-  width: 100%;
-  height: auto;
-  display: block;
-}
-
-.cap-avui-grid {
-  stroke: rgba(32,34,40,0.08);
-  stroke-width: 1;
-}
-
-.cap-avui-axis {
-  stroke: rgba(32,34,40,0.14);
-  stroke-width: 1;
-}
-
-.cap-avui-line {
-  fill: none;
-  stroke: #202228;
-  stroke-width: 2.1;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-
-.cap-avui-marker {
-  stroke: rgba(32,34,40,0.70);
-  stroke-width: 1;
-  stroke-dasharray: 3 4;
-}
-
-.cap-avui-dot {
-  fill: #202228;
-}
-
-.cap-avui-label {
-  fill: #202228;
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-}
-
-.cap-avui-x,
-.cap-avui-y {
-  fill: rgba(32,34,40,0.48);
-  font-size: 9px;
-}
-
-.cap-avui-footnote {
-  margin-top: 6px;
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  color: rgba(32,34,40,0.58);
-  font-size: 11px;
-}
-
-
-
-
-/* === CAPITALITAT_YEAR_CHART_CLEAN_AND_MONTH_BARS_STYLE === */
-
-/* Gràfic anual més net */
-#cap-clean-year-card svg path,
-.cap-clean-year-card svg path {
-  stroke: #202228;
-}
-
-#cap-clean-year-card svg text,
-.cap-clean-year-card svg text {
-  fill: rgba(32,34,40,0.58);
-  font-size: 9px;
-}
-
-/* Línies negres als gràfics petits */
-[id^="chart-"] .bar-fill,
-[id^="chart-"] .chart-bar-fill,
-[id^="chart-"] .cap-bar-fill,
-[id^="chart-"] .progress-fill {
-  background: #202228 !important;
-  border-color: #202228 !important;
-}
-
-/* Panell nou del mes */
-#cap-month-graphs-panel {
-  margin-top: 18px;
-  padding-top: 8px;
-}
-
-.cap-month-panel-head {
-  margin-bottom: 16px;
-}
-
-.cap-month-panel-head h4 {
-  margin: 0;
-  color: #202228;
-  font-size: 28px;
-  line-height: 1;
-  font-weight: 500;
-  letter-spacing: -0.03em;
-}
-
-.cap-month-panel-head p {
-  margin: 6px 0 0;
-  color: rgba(32,34,40,0.58);
-  font-size: 13px;
-}
-
-.cap-month-graphs-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
-}
-
-.cap-month-graph-card {
-  background: rgba(255,255,255,0.22);
-  border: 1px solid rgba(255,255,255,0.35);
-  border-radius: 22px;
-  padding: 18px 18px 16px;
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
-  box-shadow:
-    0 10px 30px rgba(43,45,66,0.08),
-    inset 0 1px 0 rgba(255,255,255,0.45);
-}
-
-.cap-month-graph-top {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 14px;
-}
-
-.cap-month-graph-top h5 {
-  margin: 0;
-  color: #202228;
-  font-size: 18px;
-  font-weight: 500;
-  letter-spacing: -0.02em;
-}
-
-.cap-month-graph-top span {
-  color: rgba(32,34,40,0.55);
-  font-size: 12px;
-}
-
-.cap-vbars-wrap {
-  display: flex;
-  align-items: flex-end;
-  gap: 12px;
-  overflow-x: auto;
-  overflow-y: hidden;
-  padding: 8px 2px 4px;
-}
-
-.cap-vbars-wrap::-webkit-scrollbar {
-  height: 8px;
-}
-
-.cap-vbars-wrap::-webkit-scrollbar-thumb {
-  background: rgba(32,34,40,0.16);
-  border-radius: 999px;
-}
-
-.cap-vbar-item {
-  flex: 0 0 42px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 6px;
-}
-
-.cap-vbar-value {
-  color: #202228;
-  font-size: 12px;
-  line-height: 1;
-  font-weight: 500;
-}
-
-.cap-vbar-track {
-  width: 8px;
-  height: 120px;
-  border-radius: 999px;
-  background: rgba(32,34,40,0.08);
-  display: flex;
-  align-items: flex-end;
-  overflow: hidden;
-}
-
-.cap-vbar-fill {
-  width: 100%;
-  border-radius: 999px;
-  background: #202228;
-  min-height: 6px;
-}
-
-.cap-vbar-label {
-  width: 54px;
-  color: rgba(32,34,40,0.70);
-  font-size: 10px;
-  line-height: 1.15;
-  text-align: center;
-  word-break: break-word;
-}
-
-.cap-vbar-pct {
-  color: rgba(32,34,40,0.48);
-  font-size: 10px;
-  line-height: 1;
-}
-
-.cap-vbars-empty {
-  color: rgba(32,34,40,0.5);
-  font-size: 12px;
-  padding: 12px 0;
-}
-
-@media (max-width: 980px) {
-  .cap-month-graphs-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-
-/* === CAPITALITAT_TOTAL_EDITORIAL_LAYOUT_STYLE === */
-
-/* Amaguem la capçalera antiga perquè no dupliqui el nou layout */
-.cap-original-total-header-hidden {
-  display: none !important;
-}
-
-/* Layout editorial superior */
-#cap-total-editorial-layout.cap-total-editorial-layout {
+#cap-total-stable-dashboard {
   width: 100%;
   display: grid;
-  grid-template-columns: minmax(0, 2fr) minmax(360px, 1fr);
-  gap: 28px;
-  align-items: stretch;
-  margin: 0 0 30px;
+  gap: 30px;
+  color: #2b2d42;
 }
 
-.cap-total-editorial-copy {
-  min-height: 300px;
-  padding: 34px 38px;
-  border-radius: 34px;
-  background:
-    linear-gradient(180deg, rgba(255,255,255,0.11), rgba(255,255,255,0.045));
-  border: 1px solid rgba(255,255,255,0.08);
-  box-shadow:
-    0 22px 48px rgba(43,45,66,0.055),
-    inset 0 1px 0 rgba(255,255,255,0.08);
-  backdrop-filter: blur(22px) saturate(115%);
-  -webkit-backdrop-filter: blur(22px) saturate(115%);
+.cap-final-hero {
+  padding: 10px 0 24px;
 }
 
-.cap-total-eyebrow {
-  margin-bottom: 18px;
-  color: rgba(48,50,58,0.62);
+.cap-final-eyebrow {
+  color: rgba(43,45,66,0.58);
   font-size: 12px;
   letter-spacing: 0.18em;
   text-transform: uppercase;
+  margin-bottom: 18px;
 }
 
-.cap-total-editorial-copy h1 {
+.cap-final-hero h1 {
   margin: 0;
-  color: #30323a !important;
-  font-size: clamp(58px, 7vw, 108px);
+  color: #2b2d42 !important;
+  font-size: clamp(64px, 8vw, 124px);
   line-height: 0.86;
   font-weight: 500;
   letter-spacing: -0.075em;
   text-transform: uppercase;
 }
 
-.cap-total-editorial-copy p {
-  max-width: 620px;
+.cap-final-hero p {
   margin: 28px 0 0;
-  color: rgba(48,50,58,0.64) !important;
+  color: rgba(43,45,66,0.66) !important;
   font-size: 17px;
-  line-height: 1.45;
   font-weight: 300;
 }
 
-.cap-total-editorial-copy small {
+.cap-final-hero small {
   display: block;
-  margin-top: 28px;
-  color: rgba(48,50,58,0.52) !important;
+  margin-top: 26px;
+  color: rgba(43,45,66,0.52) !important;
   font-size: 12px;
-  line-height: 1.4;
 }
 
-/* Slot del gràfic anual a dalt a la dreta */
-#cap-total-year-slot.cap-total-year-slot {
-  min-width: 0;
-  display: flex;
-}
-
-#cap-total-year-slot #cap-clean-year-card.cap-year-top-right-card {
-  width: 100% !important;
-  max-width: none !important;
-  min-height: 300px !important;
-  margin: 0 !important;
-  padding: 18px !important;
-  border-radius: 34px !important;
-}
-
-#cap-total-year-slot #cap-clean-year-card .cap-clean-year-head {
-  padding: 0 4px 12px !important;
-}
-
-#cap-total-year-slot #cap-clean-year-card .cap-clean-year-head h3 {
-  font-size: 17px !important;
-}
-
-#cap-total-year-slot #cap-clean-year-card .cap-clean-year-head p {
-  margin-left: 26px !important;
-  font-size: 11px !important;
-}
-
-#cap-total-year-slot #cap-clean-year-card .cap-clean-year-inner {
-  padding: 18px 18px 14px !important;
-  border-radius: 24px !important;
-}
-
-#cap-total-year-slot #cap-clean-year-card .cap-clean-year-kpis {
-  gap: 22px !important;
-  margin-bottom: 10px !important;
-}
-
-#cap-total-year-slot #cap-clean-year-card .cap-clean-year-kpis strong {
-  font-size: 28px !important;
-}
-
-#cap-total-year-slot #cap-clean-year-card .cap-clean-year-kpis span {
-  font-size: 9px !important;
-}
-
-#cap-total-year-slot #cap-clean-year-card .cap-clean-year-svg {
-  width: 100% !important;
-  height: 165px !important;
-}
-
-#cap-total-year-slot #cap-clean-year-card .cap-clean-year-legend {
-  margin-top: 4px !important;
-}
-
-/* Els detalls mensuals no van dins el banner superior */
-#cap-total-year-slot #cap-clean-year-card .cap-clean-month-detail,
-#cap-total-year-slot #cap-clean-year-card #cap-month-graphs-panel {
-  display: none !important;
-}
-
-/* Àrea KPI: composició 3 + 2 */
-#cap-total-kpi-area.cap-total-kpi-area {
-  width: 100%;
-  margin: 0 0 34px;
-}
-
-#cap-total-kpi-area #cap-hotfix-gauge-grid.cap-kpi-editorial-grid {
-  width: 100% !important;
-  max-width: none !important;
-  display: grid !important;
-  grid-template-columns: repeat(6, minmax(0, 1fr)) !important;
-  gap: 22px !important;
-  margin: 0 !important;
-}
-
-#cap-total-kpi-area #cap-hotfix-gauge-grid > .cap-hotfix-gauge-card {
-  min-height: 250px !important;
-  border-radius: 28px !important;
-}
-
-#cap-total-kpi-area #cap-hotfix-gauge-grid > .cap-hotfix-gauge-card:nth-child(1),
-#cap-total-kpi-area #cap-hotfix-gauge-grid > .cap-hotfix-gauge-card:nth-child(2),
-#cap-total-kpi-area #cap-hotfix-gauge-grid > .cap-hotfix-gauge-card:nth-child(3) {
-  grid-column: span 2;
-}
-
-#cap-total-kpi-area #cap-hotfix-gauge-grid > .cap-hotfix-gauge-card:nth-child(4),
-#cap-total-kpi-area #cap-hotfix-gauge-grid > .cap-hotfix-gauge-card:nth-child(5) {
-  grid-column: span 3;
-}
-
-/* Avui pot créixer perquè conté el gràfic diari */
-#cap-total-kpi-area #cap-hotfix-gauge-grid > .cap-hotfix-gauge-card:nth-child(5) {
-  min-height: 320px !important;
-}
-
-/* Les barres petites, sempre negres */
-[id^="chart-"] .bar-fill,
-[id^="chart-"] .chart-bar-fill,
-[id^="chart-"] .cap-bar-fill,
-[id^="chart-"] .progress-fill,
-[id^="chart-"] .cap-linear-track i {
-  background: #202228 !important;
-  border-color: #202228 !important;
-}
-
-/* Responsive */
-@media (max-width: 1200px) {
-  #cap-total-editorial-layout.cap-total-editorial-layout {
-    grid-template-columns: 1fr;
-  }
-
-  #cap-total-kpi-area #cap-hotfix-gauge-grid.cap-kpi-editorial-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-  }
-
-  #cap-total-kpi-area #cap-hotfix-gauge-grid > .cap-hotfix-gauge-card {
-    grid-column: span 1 !important;
-  }
-}
-
-@media (max-width: 680px) {
-  #cap-total-kpi-area #cap-hotfix-gauge-grid.cap-kpi-editorial-grid {
-    grid-template-columns: 1fr !important;
-  }
-
-  .cap-total-editorial-copy {
-    padding: 26px 24px;
-  }
-
-  .cap-total-editorial-copy h1 {
-    font-size: 52px;
-  }
-}
-
-/* === CAPITALITAT_TOTAL_MASTER_REDESIGN_STYLE === */
-
-.cap-hidden-legacy {
-  display: none !important;
-}
-
-#cap-total-master {
-  width: 100%;
-  margin-top: 28px;
-  display: grid;
-  gap: 28px;
-}
-
-.cap-kpi-grid {
+.cap-final-kpis {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 18px;
 }
 
-.cap-kpi-card,
-.cap-wide-card,
-.cap-stat-card {
+.cap-final-kpi,
+.cap-final-wide-card,
+.cap-final-stat-card {
   background: linear-gradient(180deg, rgba(255,255,255,0.20), rgba(255,255,255,0.08));
   border: 1px solid rgba(43,45,66,0.06);
   border-radius: 28px;
   box-shadow:
     0 16px 36px rgba(43,45,66,0.08),
-    inset 0 1px 0 rgba(255,255,255,0.35);
+    inset 0 1px 0 rgba(255,255,255,0.34);
   backdrop-filter: blur(18px) saturate(110%);
   -webkit-backdrop-filter: blur(18px) saturate(110%);
 }
 
-.cap-kpi-card {
-  min-height: 210px;
-  padding: 18px 18px 14px;
+.cap-final-kpi {
+  min-height: 190px;
+  padding: 18px;
   display: grid;
   grid-template-rows: auto 1fr auto;
-  gap: 10px;
 }
 
-.cap-kpi-top h3 {
-  margin: 0 0 8px;
+.cap-final-kpi-title {
   color: #2b2d42;
   font-size: 14px;
   font-weight: 500;
-  letter-spacing: -0.02em;
 }
 
-.cap-kpi-meta {
+.cap-final-kpi-meta {
   display: flex;
   justify-content: space-between;
   gap: 10px;
-  color: rgba(43,45,66,0.72);
+  margin-top: 8px;
+  color: rgba(43,45,66,0.62);
   font-size: 10px;
 }
 
-.cap-kpi-center {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  gap: 2px;
-}
-
-.cap-kpi-number {
+.cap-final-kpi-value {
+  align-self: end;
+  justify-self: center;
   color: #2b2d42;
   font-size: 54px;
-  line-height: 0.95;
+  line-height: 1;
   font-weight: 300;
-  letter-spacing: -0.05em;
+  letter-spacing: -0.055em;
 }
 
-.cap-kpi-sub {
-  color: rgba(43,45,66,0.80);
-  font-size: 14px;
-  font-weight: 400;
+.cap-final-kpi-percent {
+  justify-self: center;
+  color: rgba(43,45,66,0.66);
+  font-size: 13px;
 }
 
-.cap-kpi-gauge-wrap {
-  display: flex;
-  justify-content: center;
-  align-items: end;
+.cap-final-wide-card {
+  padding: 24px;
 }
 
-.cap-gauge-svg {
-  width: 100%;
-  max-width: 220px;
-  height: auto;
-}
-
-.cap-gauge-track {
-  fill: none;
-  stroke: rgba(43,45,66,0.14);
-  stroke-width: 2.4;
-  stroke-linecap: round;
-}
-
-.cap-gauge-value {
-  fill: none;
-  stroke: #2b2d42;
-  stroke-width: 2.6;
-  stroke-linecap: round;
-}
-
-.cap-wide-card {
-  width: 100%;
-  padding: 22px 24px;
-}
-
-.cap-wide-head {
+.cap-final-section-head {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
-  gap: 24px;
-  margin-bottom: 16px;
+  gap: 28px;
+  margin-bottom: 18px;
 }
 
-.cap-wide-label {
-  color: #2b2d42;
-  font-size: 15px;
+.cap-final-section-head h2 {
+  margin: 0;
+  color: #2b2d42 !important;
+  font-size: 23px;
   font-weight: 500;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.03em;
 }
 
-.cap-wide-head p {
-  margin: 4px 0 0;
-  color: rgba(43,45,66,0.62);
+.cap-final-section-head p {
+  margin: 6px 0 0;
+  color: rgba(43,45,66,0.62) !important;
   font-size: 12px;
 }
 
-.cap-year-kpi-head,
-.cap-daily-summary {
+.cap-final-section-kpis {
   display: flex;
-  gap: 26px;
+  gap: 28px;
   flex-wrap: wrap;
 }
 
-.cap-year-kpi-head strong,
-.cap-daily-summary strong {
+.cap-final-section-kpis strong {
   display: block;
   color: #2b2d42;
   font-size: 38px;
+  line-height: 1;
   font-weight: 300;
   letter-spacing: -0.05em;
-  line-height: 0.95;
 }
 
-.cap-year-kpi-head span,
-.cap-daily-summary span {
+.cap-final-section-kpis span {
   display: block;
-  margin-top: 4px;
-  color: rgba(43,45,66,0.62);
-  font-size: 11px;
+  margin-top: 5px;
+  color: rgba(43,45,66,0.58);
+  font-size: 10px;
   text-transform: uppercase;
   letter-spacing: 0.08em;
 }
 
-.cap-chart-shell {
-  width: 100%;
-}
-
-.cap-year-svg,
-.cap-daily-svg {
+.cap-final-year-svg,
+.cap-final-daily-svg {
   width: 100%;
   height: auto;
   display: block;
 }
 
-.cap-grid-line {
+.cap-final-grid {
   stroke: rgba(43,45,66,0.07);
   stroke-width: 1;
 }
 
-.cap-grid-line.light {
-  stroke: rgba(43,45,66,0.06);
+.cap-final-grid.light {
+  stroke: rgba(43,45,66,0.045);
 }
 
-.cap-axis-label {
-  fill: rgba(43,45,66,0.45);
-  font-size: 11px;
+.cap-final-axis {
+  fill: rgba(43,45,66,0.48);
+  font-size: 10px;
   font-weight: 400;
 }
 
-.cap-year-line {
+.cap-final-year-line {
   fill: none;
   stroke: #2b2d42;
-  stroke-width: 2.1;
+  stroke-width: 2.2;
   stroke-linecap: round;
   stroke-linejoin: round;
 }
 
-.cap-year-point {
-  fill: #2b2d42;
-}
-
-.cap-section-mini-title {
-  margin: 2px 0 4px;
+.cap-final-internal h2 {
+  margin: 0 0 14px;
   color: #2b2d42;
   font-size: 13px;
   font-weight: 500;
@@ -10362,26 +8522,25 @@ textarea {
   text-transform: uppercase;
 }
 
-.cap-stats-grid {
+.cap-final-stats-grid {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 16px;
-  margin-top: 12px;
 }
 
-.cap-stat-card {
-  padding: 16px 16px 14px;
+.cap-final-stat-card {
   min-height: 320px;
+  padding: 16px;
 }
 
-.cap-stat-head h3 {
-  margin: 0 0 8px;
+.cap-final-stat-card h3 {
+  margin: 0 0 12px;
   color: #2b2d42;
   font-size: 14px;
   font-weight: 500;
 }
 
-.cap-stat-list {
+.cap-final-stat-list {
   display: grid;
   gap: 10px;
   max-height: 460px;
@@ -10389,28 +8548,24 @@ textarea {
   padding-right: 4px;
 }
 
-.cap-stat-row {
+.cap-final-stat-row {
   display: flex;
   justify-content: space-between;
   gap: 10px;
-  align-items: baseline;
 }
 
-.cap-stat-name {
-  color: rgba(43,45,66,0.82);
+.cap-final-stat-row span {
+  color: rgba(43,45,66,0.76);
   font-size: 12px;
-  line-height: 1.25;
 }
 
-.cap-stat-value {
+.cap-final-stat-row strong {
   color: #2b2d42;
   font-size: 12px;
   font-weight: 600;
 }
 
-.cap-stat-bar {
-  position: relative;
-  width: 100%;
+.cap-final-stat-bar {
   height: 4px;
   margin-top: 5px;
   background: rgba(43,45,66,0.10);
@@ -10418,85 +8573,58 @@ textarea {
   overflow: hidden;
 }
 
-.cap-stat-bar i {
-  position: absolute;
-  inset: 0 auto 0 0;
+.cap-final-stat-bar i {
+  display: block;
+  height: 100%;
   background: #2b2d42 !important;
   border-radius: 999px;
 }
 
-.cap-stat-pct {
+.cap-final-stat-item small {
+  display: block;
   margin-top: 4px;
   color: rgba(43,45,66,0.48);
   font-size: 10px;
 }
 
-.cap-daily-line {
+.cap-final-daily-line {
   fill: none;
   stroke: #2b2d42;
-  stroke-width: 1.8;
+  stroke-width: 1.45;
   stroke-linecap: round;
   stroke-linejoin: round;
 }
 
-.cap-daily-point {
-  fill: #2b2d42;
-}
-
-.cap-today-guide {
+.cap-final-today-guide {
   stroke: rgba(43,45,66,0.72);
-  stroke-width: 1.2;
+  stroke-width: 1.1;
   stroke-dasharray: 5 5;
 }
 
-.cap-today-dot {
+.cap-final-today-dot {
   fill: #2b2d42;
 }
 
-.cap-today-text {
+.cap-final-today-label {
   fill: #2b2d42;
   font-size: 12px;
   font-weight: 500;
-  letter-spacing: 0.02em;
-}
-
-.cap-total-error {
-  padding: 24px;
-  color: #2b2d42;
-  background: rgba(255,255,255,0.45);
-  border-radius: 22px;
 }
 
 @media (max-width: 1400px) {
-  .cap-kpi-grid,
-  .cap-stats-grid {
+  .cap-final-kpis,
+  .cap-final-stats-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
 
-@media (max-width: 980px) {
-  .cap-kpi-grid,
-  .cap-stats-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .cap-wide-head {
-    flex-direction: column;
-  }
-}
-
-@media (max-width: 680px) {
-  .cap-kpi-grid,
-  .cap-stats-grid {
+@media (max-width: 900px) {
+  .cap-final-kpis,
+  .cap-final-stats-grid {
     grid-template-columns: 1fr;
   }
 
-  .cap-kpi-number {
-    font-size: 42px;
-  }
-
-  .cap-year-kpi-head strong,
-  .cap-daily-summary strong {
-    font-size: 28px;
+  .cap-final-section-head {
+    flex-direction: column;
   }
 }
