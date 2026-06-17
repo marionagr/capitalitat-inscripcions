@@ -9007,462 +9007,13 @@ thead th {
   content: none !important;
 }
 
-/* === CAPITALITAT_OVERVIEW_CARDS_STYLE_V1 === */
 
-.cap-overview-grid {
-  display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 20px;
-  margin: 20px 0 34px 0;
-}
-
-.cap-overview-card {
-  min-height: 250px;
-  padding: 18px 18px 16px;
-  border-radius: 28px;
-  background:
-    linear-gradient(180deg, rgba(237,242,244,0.42), rgba(237,242,244,0.22));
-  border: 1px solid rgba(43,45,66,0.08);
-  box-shadow:
-    0 18px 36px rgba(43,45,66,0.08),
-    0 4px 14px rgba(43,45,66,0.06);
-  backdrop-filter: blur(22px) saturate(145%);
-  -webkit-backdrop-filter: blur(22px) saturate(145%);
-  overflow: hidden;
-  position: relative;
-}
-
-.cap-overview-card-dark {
-  background:
-    radial-gradient(circle at right center, rgba(44,74,110,0.35), transparent 38%),
-    linear-gradient(180deg, #111214 0%, #0b0d11 100%);
-  border: 1px solid rgba(255,255,255,0.06);
-}
-
-.cap-overview-card h3 {
-  margin: 0;
-  font-size: 15px;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  color: #4a4d54;
-}
-
-.cap-overview-card-dark h3,
-.cap-overview-card-dark .cap-overview-subtitle {
-  color: rgba(255,255,255,0.88);
-}
-
-.cap-overview-value {
-  margin-top: 10px;
-  font-size: 76px;
-  line-height: 0.95;
-  font-weight: 800;
-  letter-spacing: -0.05em;
-  color: #111216;
-}
-
-.cap-overview-card-dark .cap-overview-value {
-  color: #ffffff;
-}
-
-.cap-overview-subtitle {
-  margin: 10px 0 10px 0;
-  font-size: 14px;
-  line-height: 1.2;
-  color: #666b75;
-  font-weight: 600;
-  min-height: 34px;
-}
-
-.cap-overview-chart {
-  margin-top: 8px;
-}
-
-.cap-overview-spark {
-  width: 100%;
-  height: 95px;
-  display: block;
-}
-
-@media (max-width: 1400px) {
-  .cap-overview-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-}
-
-@media (max-width: 980px) {
-  .cap-overview-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
-@media (max-width: 640px) {
-  .cap-overview-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .cap-overview-value {
-    font-size: 58px;
-  }
-}
-
-/* === CAPITALITAT_OVERVIEW_FULL_WIDTH_FIX === */
+/* === CAPITALITAT_FINAL_TOP_GAUGES_STYLE === */
 
 /* ============================================================
-   OVERVIEW CARDS · 5 COLUMNES A TOTA AMPLADA
+   TOP GAUGES · estil net com la referència
 ============================================================ */
 
-/* Forcem el bloc de targetes a ocupar tota l'amplada de la vista */
-#view-total #cap-overview-grid,
-#cap-overview-grid.cap-overview-grid,
-.cap-overview-grid {
-  grid-column: 1 / -1 !important;
-  width: 100% !important;
-  max-width: none !important;
-  min-width: 0 !important;
-
-  display: grid !important;
-  grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
-  gap: 28px !important;
-
-  margin: 28px 0 42px !important;
-  align-items: stretch !important;
-}
-
-/* Si algun contenidor pare l'està comprimint */
-#view-total,
-.view-total,
-[data-view="total"] {
-  width: 100% !important;
-  max-width: none !important;
-}
-
-/* Targetes més amples, més baixes i elegants */
-.cap-overview-card {
-  width: 100% !important;
-  min-width: 0 !important;
-  min-height: 285px !important;
-  padding: 26px 28px 22px !important;
-  border-radius: 32px !important;
-  box-sizing: border-box !important;
-}
-
-/* Evitem que el text es trenqui tan malament */
-.cap-overview-card h3 {
-  max-width: none !important;
-  font-size: 15px !important;
-  line-height: 1.1 !important;
-  white-space: normal !important;
-  word-break: normal !important;
-  overflow-wrap: normal !important;
-}
-
-.cap-overview-value {
-  font-size: clamp(58px, 5.8vw, 92px) !important;
-  line-height: 0.9 !important;
-  white-space: nowrap !important;
-}
-
-.cap-overview-subtitle {
-  max-width: 92% !important;
-  font-size: 14px !important;
-  line-height: 1.25 !important;
-  min-height: 38px !important;
-  word-break: normal !important;
-  overflow-wrap: normal !important;
-}
-
-.cap-overview-chart {
-  margin-top: 18px !important;
-}
-
-.cap-overview-spark {
-  width: 100% !important;
-  height: 92px !important;
-}
-
-/* En pantalles mitjanes mantenim 5 columnes una mica més compactes */
-@media (max-width: 1450px) {
-  .cap-overview-grid {
-    grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
-    gap: 20px !important;
-  }
-
-  .cap-overview-card {
-    padding: 22px 22px 20px !important;
-  }
-
-  .cap-overview-value {
-    font-size: clamp(52px, 5vw, 78px) !important;
-  }
-}
-
-/* Només baixem a 2/1 columnes quan realment no hi cap */
-@media (max-width: 1050px) {
-  .cap-overview-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-  }
-}
-
-@media (max-width: 640px) {
-  .cap-overview-grid {
-    grid-template-columns: 1fr !important;
-  }
-}
-
-/* === CAPITALITAT_REFINED_OVERVIEW_GAUGES_STYLE_V2 === */
-
-/* ============================================================
-   REFERÈNCIA NOVA · TIPOGRAFIA + GLASS + GAUGES
-============================================================ */
-
-/* Tipografia refinada */
-@import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap");
-
-html,
-body,
-button,
-input,
-select,
-textarea {
-  font-family: "Plus Jakarta Sans", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
-}
-
-/* Paleta més fidel a la referència */
-html,
-body {
-  background:
-    radial-gradient(circle at top center, rgba(255,255,255,0.22), transparent 28%),
-    radial-gradient(circle at bottom center, rgba(255,228,221,0.18), transparent 26%),
-    linear-gradient(180deg, #b9958c 0%, #b48f86 32%, #a8837b 100%) !important;
-  color: #221d1b !important;
-}
-
-/* El bloc principal de 5 KPI */
-#cap-overview-grid.cap-ref-kpi-grid,
-.cap-ref-kpi-grid {
-  width: 100% !important;
-  max-width: none !important;
-  display: grid !important;
-  grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
-  gap: 22px !important;
-  margin: 18px 0 38px !important;
-  align-items: stretch !important;
-}
-
-/* Targetes */
-.cap-ref-kpi-card {
-  position: relative;
-  min-height: 310px;
-  padding: 18px 18px 18px;
-  border-radius: 32px;
-  background:
-    linear-gradient(180deg, rgba(255,255,255,0.16), rgba(255,255,255,0.08));
-  border: 1px solid rgba(255,255,255,0.14);
-  box-shadow:
-    0 28px 48px rgba(57, 38, 34, 0.14),
-    inset 0 1px 0 rgba(255,255,255,0.10);
-  backdrop-filter: blur(24px) saturate(128%);
-  -webkit-backdrop-filter: blur(24px) saturate(128%);
-  overflow: hidden;
-}
-
-.cap-ref-kpi-card::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background:
-    linear-gradient(135deg,
-      rgba(255,255,255,0.10) 0%,
-      rgba(255,255,255,0.04) 28%,
-      rgba(255,255,255,0.00) 52%,
-      rgba(255,214,205,0.06) 100%);
-}
-
-.cap-ref-kpi-card.is-dark {
-  background:
-    radial-gradient(circle at right center, rgba(42, 63, 86, 0.35), transparent 42%),
-    linear-gradient(180deg, rgba(18,20,26,0.96) 0%, rgba(11,13,18,0.96) 100%);
-  border: 1px solid rgba(255,255,255,0.08);
-}
-
-.cap-ref-kpi-top {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  margin-bottom: 12px;
-  position: relative;
-  z-index: 2;
-}
-
-.cap-ref-kpi-kicker {
-  font-size: 13px;
-  line-height: 1;
-  font-weight: 700;
-  letter-spacing: 0.03em;
-  color: rgba(34,29,27,0.82);
-}
-
-.cap-ref-kpi-card.is-dark .cap-ref-kpi-kicker {
-  color: rgba(255,255,255,0.84);
-}
-
-.cap-ref-kpi-pill {
-  padding: 8px 12px;
-  border-radius: 999px;
-  font-size: 11px;
-  line-height: 1;
-  font-weight: 700;
-  letter-spacing: 0.03em;
-  background: rgba(255,255,255,0.16);
-  border: 1px solid rgba(255,255,255,0.14);
-  color: rgba(34,29,27,0.70);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-}
-
-.cap-ref-kpi-card.is-dark .cap-ref-kpi-pill {
-  color: rgba(255,255,255,0.88);
-  background: rgba(255,255,255,0.12);
-  border-color: rgba(255,255,255,0.10);
-}
-
-.cap-ref-kpi-value {
-  position: relative;
-  z-index: 2;
-  font-size: clamp(52px, 5vw, 78px);
-  line-height: 0.92;
-  font-weight: 800;
-  letter-spacing: -0.06em;
-  color: #0f1116;
-  margin-bottom: 10px;
-}
-
-.cap-ref-kpi-card.is-dark .cap-ref-kpi-value {
-  color: #ffffff;
-}
-
-.cap-ref-kpi-subtitle {
-  position: relative;
-  z-index: 2;
-  min-height: 38px;
-  font-size: 14px;
-  line-height: 1.22;
-  font-weight: 500;
-  color: rgba(34,29,27,0.62);
-  max-width: 95%;
-}
-
-.cap-ref-kpi-card.is-dark .cap-ref-kpi-subtitle {
-  color: rgba(255,255,255,0.72);
-}
-
-/* Gauge */
-.cap-ref-kpi-gauge {
-  position: relative;
-  z-index: 2;
-  margin-top: 20px;
-  height: 118px;
-}
-
-.cap-ref-gauge-svg {
-  width: 100%;
-  height: 118px;
-  display: block;
-}
-
-.cap-ref-gauge-track {
-  fill: none;
-  stroke: rgba(33,29,27,0.12);
-  stroke-width: 4;
-  stroke-linecap: round;
-}
-
-.cap-ref-kpi-card.is-dark .cap-ref-gauge-track {
-  stroke: rgba(255,255,255,0.16);
-}
-
-.cap-ref-gauge-progress {
-  fill: none;
-  stroke: #181513;
-  stroke-width: 4;
-  stroke-linecap: round;
-  filter: drop-shadow(0 0 1px rgba(0,0,0,0.08));
-}
-
-.cap-ref-kpi-card.is-dark .cap-ref-gauge-progress {
-  stroke: rgba(255,255,255,0.95);
-}
-
-.cap-ref-kpi-gauge-center {
-  position: absolute;
-  inset: 34px 0 0 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-start;
-  pointer-events: none;
-}
-
-.cap-ref-kpi-gauge-center strong {
-  font-size: 20px;
-  line-height: 1;
-  font-weight: 500;
-  letter-spacing: -0.03em;
-  color: #181513;
-}
-
-.cap-ref-kpi-gauge-center span {
-  margin-top: 6px;
-  font-size: 11px;
-  line-height: 1;
-  font-weight: 500;
-  letter-spacing: 0.02em;
-  color: rgba(34,29,27,0.46);
-}
-
-.cap-ref-kpi-card.is-dark .cap-ref-kpi-gauge-center strong {
-  color: rgba(255,255,255,0.95);
-}
-
-.cap-ref-kpi-card.is-dark .cap-ref-kpi-gauge-center span {
-  color: rgba(255,255,255,0.50);
-}
-
-/* Responsive */
-@media (max-width: 1500px) {
-  .cap-ref-kpi-grid {
-    grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
-    gap: 18px !important;
-  }
-
-  .cap-ref-kpi-card {
-    min-height: 292px;
-    padding: 16px;
-  }
-
-  .cap-ref-kpi-value {
-    font-size: clamp(46px, 4.4vw, 68px);
-  }
-}
-
-@media (max-width: 1180px) {
-  .cap-ref-kpi-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-  }
-}
-
-@media (max-width: 700px) {
-  .cap-ref-kpi-grid {
-    grid-template-columns: 1fr !important;
-  }
-}
-
-/* === CAPITALITAT_REFINED_OVERVIEW_GAUGES_STYLE_V3 === */
-
-/* Tipografia fina i elegant */
 @import url("https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700&display=swap");
 
 html,
@@ -9474,184 +9025,201 @@ textarea {
   font-family: "Manrope", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
 }
 
-/* Grid dels 5 KPI */
-#cap-overview-grid.cap-ref-kpi-grid,
-.cap-ref-kpi-grid {
+#cap-final-gauge-grid.cap-final-gauge-grid,
+.cap-final-gauge-grid {
   width: 100% !important;
   max-width: none !important;
   display: grid !important;
   grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
-  gap: 16px !important;
-  margin: 18px 0 34px !important;
+  gap: 18px !important;
+  margin: 20px 0 36px !important;
   align-items: stretch !important;
 }
 
-/* Cards més petites i més quadrades */
-.cap-ref-kpi-card {
+.cap-final-gauge-card {
   position: relative;
-  min-height: 230px;
-  padding: 16px 16px 14px;
-  border-radius: 18px;
+  min-height: 220px !important;
+  padding: 18px 18px 14px !important;
+  border-radius: 22px !important;
+  overflow: hidden !important;
+
   background:
-    linear-gradient(180deg, rgba(255,255,255,0.11), rgba(255,255,255,0.06));
-  border: 1px solid rgba(255,255,255,0.09);
+    linear-gradient(180deg, rgba(255,255,255,0.13), rgba(255,255,255,0.065)) !important;
+  border: 1px solid rgba(255,255,255,0.10) !important;
   box-shadow:
-    0 18px 32px rgba(56, 37, 33, 0.10),
-    inset 0 1px 0 rgba(255,255,255,0.05);
-  backdrop-filter: blur(22px) saturate(120%);
-  -webkit-backdrop-filter: blur(22px) saturate(120%);
-  overflow: hidden;
+    0 20px 38px rgba(60, 40, 36, 0.12),
+    inset 0 1px 0 rgba(255,255,255,0.08) !important;
+
+  backdrop-filter: blur(24px) saturate(120%) !important;
+  -webkit-backdrop-filter: blur(24px) saturate(120%) !important;
 }
 
-.cap-ref-kpi-card::before {
+.cap-final-gauge-card::before {
   content: "";
   position: absolute;
   inset: 0;
   pointer-events: none;
   background:
     linear-gradient(135deg,
-      rgba(255,255,255,0.05) 0%,
-      rgba(255,255,255,0.02) 36%,
-      rgba(255,255,255,0.00) 100%);
+      rgba(255,255,255,0.08) 0%,
+      rgba(255,255,255,0.025) 35%,
+      rgba(255,255,255,0.00) 70%);
+  opacity: 1;
 }
 
-/* Capçalera */
-.cap-ref-kpi-topline {
+.cap-final-gauge-header,
+.cap-final-gauge-meta,
+.cap-final-gauge-wrap {
   position: relative;
   z-index: 2;
-  margin-bottom: 12px;
 }
 
-.cap-ref-kpi-topline h3 {
-  margin: 0;
-  font-size: 13px;
-  line-height: 1.1;
-  font-weight: 500;
-  letter-spacing: -0.02em;
-  color: rgba(255,255,255,0.90);
+.cap-final-gauge-header {
+  margin-bottom: 16px;
 }
 
-/* Línia de puntets i números */
-.cap-ref-kpi-meta {
-  position: relative;
-  z-index: 2;
+.cap-final-gauge-header h3 {
+  margin: 0 !important;
+  color: rgba(255,255,255,0.92) !important;
+  font-size: 15px !important;
+  line-height: 1.1 !important;
+  font-weight: 400 !important;
+  letter-spacing: -0.025em !important;
+  text-shadow: none !important;
+}
+
+.cap-final-gauge-meta {
   display: flex;
   justify-content: space-between;
   gap: 12px;
-  margin-bottom: 10px;
+  margin-bottom: 2px;
 }
 
-.cap-ref-kpi-meta-item {
-  display: flex;
+.cap-final-gauge-meta span {
+  display: inline-flex;
   align-items: center;
   gap: 7px;
   min-width: 0;
-}
 
-.cap-ref-kpi-meta-item i {
-  width: 7px;
-  height: 7px;
-  border-radius: 999px;
-  background: rgba(255,255,255,0.95);
-  flex: 0 0 auto;
-}
+  color: rgba(255,255,255,0.74) !important;
+  font-size: 11px !important;
+  font-weight: 300 !important;
+  line-height: 1.1 !important;
+  letter-spacing: -0.01em !important;
 
-.cap-ref-kpi-meta-item span {
-  display: block;
-  font-size: 11px;
-  line-height: 1.15;
-  font-weight: 400;
-  color: rgba(255,255,255,0.82);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-/* Gauge */
-.cap-ref-kpi-gauge {
+.cap-final-gauge-meta i {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  flex: 0 0 auto;
+  background: rgba(255,255,255,0.92);
+  box-shadow: 0 0 8px rgba(255,255,255,0.18);
+}
+
+.cap-final-gauge-wrap {
   position: relative;
-  z-index: 2;
-  margin-top: 4px;
-  height: 152px;
+  height: 150px;
+  margin-top: 0;
 }
 
-.cap-ref-gauge-svg {
+.cap-final-gauge-svg {
   width: 100%;
-  height: 152px;
+  height: 150px;
   display: block;
+  overflow: visible;
 }
 
-.cap-ref-gauge-track {
+.cap-final-gauge-track {
   fill: none;
   stroke: rgba(255,255,255,0.18);
   stroke-width: 3;
   stroke-linecap: round;
 }
 
-.cap-ref-gauge-inner {
+.cap-final-gauge-ticks {
   fill: none;
-  stroke: rgba(255,255,255,0.06);
-  stroke-width: 1.2;
+  stroke: rgba(255,255,255,0.08);
+  stroke-width: 1.1;
   stroke-linecap: round;
-  stroke-dasharray: 0.5 2.3;
+  stroke-dasharray: 0.5 2.4;
 }
 
-.cap-ref-gauge-progress {
+.cap-final-gauge-progress {
   fill: none;
   stroke: rgba(255,255,255,0.96);
   stroke-width: 3.2;
   stroke-linecap: round;
 }
 
-/* Text dins del mig cercle */
-.cap-ref-kpi-gauge-center {
+.cap-final-gauge-center {
   position: absolute;
   inset: 52px 0 0 0;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: flex-start;
   pointer-events: none;
 }
 
-.cap-ref-kpi-gauge-center strong {
-  font-size: 18px;
-  line-height: 1;
-  font-weight: 300;
-  letter-spacing: -0.04em;
-  color: rgba(255,255,255,0.98);
+.cap-final-gauge-center strong {
+  color: rgba(255,255,255,0.98) !important;
+  font-size: 34px !important;
+  line-height: 1 !important;
+  font-weight: 300 !important;
+  letter-spacing: -0.055em !important;
+  text-shadow: none !important;
 }
 
-.cap-ref-kpi-gauge-center span {
+.cap-final-gauge-center span {
   margin-top: 8px;
-  font-size: 11px;
-  line-height: 1;
-  font-weight: 400;
-  letter-spacing: -0.01em;
-  color: rgba(255,255,255,0.68);
+  color: rgba(255,255,255,0.58) !important;
+  font-size: 11px !important;
+  line-height: 1 !important;
+  font-weight: 300 !important;
+  letter-spacing: -0.01em !important;
 }
 
-/* Responsive */
-@media (max-width: 1480px) {
-  .cap-ref-kpi-grid {
-    grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+/* Mata del tot les versions antigues */
+#cap-overview-grid,
+.cap-overview-grid,
+.cap-overview-card,
+.cap-ref-kpi-grid,
+.cap-ref-kpi-card {
+  display: none !important;
+}
+
+/* Però no amaguem el nou */
+#cap-final-gauge-grid {
+  display: grid !important;
+}
+
+@media (max-width: 1450px) {
+  .cap-final-gauge-grid {
     gap: 14px !important;
   }
 
-  .cap-ref-kpi-card {
-    min-height: 220px;
-    padding: 14px;
+  .cap-final-gauge-card {
+    min-height: 210px !important;
+    padding: 16px !important;
+  }
+
+  .cap-final-gauge-center strong {
+    font-size: 30px !important;
   }
 }
 
 @media (max-width: 1180px) {
-  .cap-ref-kpi-grid {
+  .cap-final-gauge-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
   }
 }
 
 @media (max-width: 700px) {
-  .cap-ref-kpi-grid {
+  .cap-final-gauge-grid {
     grid-template-columns: 1fr !important;
   }
 }

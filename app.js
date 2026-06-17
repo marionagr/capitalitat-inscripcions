@@ -4759,20 +4759,23 @@ mostrarExperienciaCapitalitatV5 = function() {
   });
 })();
 
-/* === CAPITALITAT_OVERVIEW_CARDS_V1 === */
+
+/* === CAPITALITAT_FINAL_TOP_GAUGES_START === */
 
 (() => {
-  const END_CAPITALITAT = new Date(2026, 11, 13); // 13 desembre 2026
+  const END_CAPITALITAT = new Date(2026, 11, 13);
 
   function parseDateDMY(value) {
     if (!value) return null;
     const str = String(value).trim();
     const m = str.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
     if (!m) return null;
+
     const d = Number(m[1]);
     const mo = Number(m[2]) - 1;
     const y = Number(m[3]);
     const date = new Date(y, mo, d);
+
     return isNaN(date.getTime()) ? null : date;
   }
 
@@ -4783,515 +4786,82 @@ mostrarExperienciaCapitalitatV5 = function() {
 
   function isTrue(value) {
     return String(value ?? "").trim().toUpperCase() === "TRUE";
-  }
-
-  function getRowsFromJson(data) {
-    if (Array.isArray(data)) return data;
-    if (Array.isArray(data.rows)) return data.rows;
-    return [];
-  }
-
-  function monthCounts(rows, filterFn) {
-    const out = new Array(12).fill(0);
-    rows.forEach((row) => {
-      const start = stripTime(parseDateDMY(row.data_inici));
-      const end = stripTime(parseDateDMY(row.data_final)) || start;
-      if (!start && !end) return;
-      if (filterFn(row, start, end)) {
-        const ref = start || end;
-        if (ref) out[ref.getMonth()]++;
-      }
-    });
-    return out;
-  }
-
-  function buildSparklineSVG(values, color = "#d90429", fill = "rgba(217,4,41,0.10)") {
-    const width = 260;
-    const height = 90;
-    const pad = 8;
-    const max = Math.max(...values, 1);
-    const stepX = (width - pad * 2) / Math.max(values.length - 1, 1);
-
-    const points = values.map((v, i) => {
-      const x = pad + i * stepX;
-      const y = height - pad - ((v / max) * (height - pad * 2));
-      return [x, y];
-    });
-
-    const line = points.map((p, i) => `${i === 0 ? "M" : "L"} ${p[0]} ${p[1]}`).join(" ");
-    const area = `${line} L ${points[points.length - 1][0]} ${height - pad} L ${points[0][0]} ${height - pad} Z`;
-
-    const dots = points.map((p, i) => `
-      <circle cx="${p[0]}" cy="${p[1]}" r="3.5" fill="#fff" stroke="${color}" stroke-width="2">
-        <title>${values[i]}</title>
-      </circle>
-    `).join("");
-
-    return `
-      <svg viewBox="0 0 ${width} ${height}" class="cap-overview-spark" aria-hidden="true">
-        <path d="${area}" fill="${fill}"></path>
-        <path d="${line}" fill="none" stroke="${color}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"></path>
-        ${dots}
-      </svg>
-    `;
-  }
-
-  function buildCard({ title, value, subtitle, series, tone = "red" }) {
-    const toneClass = tone === "dark" ? "cap-overview-card-dark" : "";
-    return `
-      <article class="cap-overview-card ${toneClass}">
-        <div class="cap-overview-head">
-          <h3>${title}</h3>
-        </div>
-        <div class="cap-overview-value">${value}</div>
-        <p class="cap-overview-subtitle">${subtitle}</p>
-        <div class="cap-overview-chart">
-          ${buildSparklineSVG(series)}
-        </div>
-      </article>
-    `;
-  }
-
-  async function renderOverviewCards() {
-    const totalView = document.querySelector("#view-total");
-    if (!totalView) return;
-
-    let response;
-    try {
-      response = await fetch(`data/inscripcions.json?t=${Date.now()}`);
-    } catch (err) {
-      return;
-    }
-    if (!response.ok) return;
-
-    let data;
-    try {
-      data = await response.json();
-    } catch (err) {
-      return;
-    }
-
-    const rows = getRowsFromJson(data);
-    if (!rows.length) return;
-
-    const today = stripTime(new Date());
-
-    const totalPassis = rows.length;
-    const autoRows = rows.filter(r => isTrue(r.propies));
-    const totalAuto = autoRows.length;
-
-    const finalitzadesRows = rows.filter((r) => {
-      const start = stripTime(parseDateDMY(r.data_inici));
-      const end = stripTime(parseDateDMY(r.data_final)) || start;
-      return end && end < today;
-    });
-
-    const pendentsRows = rows.filter((r) => {
-      const start = stripTime(parseDateDMY(r.data_inici));
-      return start && start > today && start <= END_CAPITALITAT;
-    });
-
-    const avuiRows = rows.filter((r) => {
-      const start = stripTime(parseDateDMY(r.data_inici));
-      const end = stripTime(parseDateDMY(r.data_final)) || start;
-      return start && end && start <= today && end >= today;
-    });
-
-    const totalSeries = monthCounts(rows, () => true);
-    const autoSeries = monthCounts(autoRows, () => true);
-    const finalitzadesSeries = monthCounts(rows, (r, start, end) => end && end < today);
-    const pendentsSeries = monthCounts(rows, (r, start) => start && start > today && start <= END_CAPITALITAT);
-    const avuiSeries = monthCounts(rows, (r, start, end) => start && end && start <= today && end >= today);
-
-    const cardsHtml = `
-      <section class="cap-overview-grid" id="cap-overview-grid">
-        ${buildCard({
-          title: "TOTAL PASSIS",
-          value: totalPassis,
-          subtitle: `${totalPassis} files totals al full INSCRIPCIONS.`,
-          series: totalSeries,
-          tone: "dark"
-        })}
-        ${buildCard({
-          title: "TOTAL AUTOGESTIONADES",
-          value: totalAuto,
-          subtitle: `${totalAuto} files marcades com a PRÒPIES.`,
-          series: autoSeries
-        })}
-        ${buildCard({
-          title: "ACTIVITATS FINALITZADES",
-          value: finalitzadesRows.length,
-          subtitle: `Ja han acabat abans d'avui.`,
-          series: finalitzadesSeries
-        })}
-        ${buildCard({
-          title: "ACTIVITATS PENDENTS",
-          value: pendentsRows.length,
-          subtitle: `Pendents fins al 13 de desembre.`,
-          series: pendentsSeries
-        })}
-        ${buildCard({
-          title: "ACTIVITATS AVUI",
-          value: avuiRows.length,
-          subtitle: `Vigents avui mateix.`,
-          series: avuiSeries
-        })}
-      </section>
-    `;
-
-    const old = totalView.querySelector("#cap-overview-grid");
-    if (old) old.remove();
-
-    const insertBefore = totalView.querySelector(".capitalitat-five-charts-row")
-      || totalView.querySelector(".cap-month-chart-v3")
-      || totalView.firstElementChild?.nextElementSibling
-      || null;
-
-    if (insertBefore) {
-      insertBefore.insertAdjacentHTML("beforebegin", cardsHtml);
-    } else {
-      totalView.insertAdjacentHTML("afterbegin", cardsHtml);
-    }
-  }
-
-  function scheduleOverviewCards() {
-    setTimeout(renderOverviewCards, 300);
-    setTimeout(renderOverviewCards, 1000);
-    setTimeout(renderOverviewCards, 2200);
-  }
-
-  document.addEventListener("DOMContentLoaded", scheduleOverviewCards);
-  window.addEventListener("load", scheduleOverviewCards);
-
-  document.addEventListener("click", (event) => {
-    const el = event.target.closest("button, [data-view], .nav-pill");
-    if (!el) return;
-    const txt = (el.textContent || "").toLowerCase();
-    if (txt.includes("total") || txt.includes("passis")) {
-      scheduleOverviewCards();
-    }
-  });
-})();
-
-/* === CAPITALITAT_REFINED_OVERVIEW_GAUGES_V2 === */
-
-(() => {
-  const END_CAPITALITAT = new Date(2026, 11, 13); // 13 desembre 2026
-
-  function parseDateDMY(value) {
-    if (!value) return null;
-    const str = String(value).trim();
-    const m = str.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
-    if (!m) return null;
-    const d = Number(m[1]);
-    const mo = Number(m[2]) - 1;
-    const y = Number(m[3]);
-    const date = new Date(y, mo, d);
-    return isNaN(date.getTime()) ? null : date;
-  }
-
-  function stripTime(date) {
-    if (!date) return null;
-    return new Date(date.getFullYear(), date.getMonth(), date.getDate());
-  }
-
-  function isTrue(value) {
-    return String(value ?? "").trim().toUpperCase() === "TRUE";
-  }
-
-  function getRowsFromJson(data) {
-    if (Array.isArray(data)) return data;
-    if (Array.isArray(data.rows)) return data.rows;
-    return [];
   }
 
   function formatPercent(value) {
     return `${value.toFixed(1).replace(".", ",")}%`;
   }
 
-  function buildGaugeSvg(percent) {
-    const p = Math.max(0, Math.min(100, percent));
-    return `
-      <svg viewBox="0 0 240 150" class="cap-ref-gauge-svg" aria-hidden="true">
-        <path
-          d="M 30 120 A 90 90 0 0 1 210 120"
-          class="cap-ref-gauge-track"
-          pathLength="100"></path>
-
-        <path
-          d="M 30 120 A 90 90 0 0 1 210 120"
-          class="cap-ref-gauge-progress"
-          pathLength="100"
-          stroke-dasharray="${p} 100"></path>
-      </svg>
-    `;
+  function escapeHtml(value) {
+    return String(value ?? "")
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#039;");
   }
 
-  function buildGaugeCard({ title, value, percent, subtitle, dark = false }) {
-    const percentLabel = formatPercent(percent);
-    return `
-      <article class="cap-ref-kpi-card ${dark ? "is-dark" : ""}">
-        <div class="cap-ref-kpi-top">
-          <div class="cap-ref-kpi-kicker">${title}</div>
-          <div class="cap-ref-kpi-pill">CLIC</div>
-        </div>
-
-        <div class="cap-ref-kpi-value">${value}</div>
-        <div class="cap-ref-kpi-subtitle">${subtitle}</div>
-
-        <div class="cap-ref-kpi-gauge">
-          ${buildGaugeSvg(percent)}
-          <div class="cap-ref-kpi-gauge-center">
-            <strong>${percentLabel}</strong>
-            <span>del total</span>
-          </div>
-        </div>
-      </article>
-    `;
-  }
-
-  function hideLegacySummaryCards(view) {
-    const all = [...view.querySelectorAll("*")];
-
-    all.forEach(el => {
-      const txt = (el.textContent || "").replace(/\s+/g, " ").trim().toLowerCase();
-      if (txt === "total de passis" || txt === "passis gestionats per nosaltres") {
-        const card = el.closest(".card, .panel, .summary-card, .stat-card, [class*='card']");
-        if (card) card.style.display = "none";
-      }
-    });
-  }
-
-  async function renderRefinedOverviewGauges() {
-    const totalView = document.querySelector("#view-total");
-    if (!totalView) return;
-
-    let response;
-    try {
-      response = await fetch(`data/inscripcions.json?t=${Date.now()}`);
-    } catch (err) {
-      return;
-    }
-    if (!response.ok) return;
-
-    let data;
-    try {
-      data = await response.json();
-    } catch (err) {
-      return;
-    }
-
-    const rows = getRowsFromJson(data);
-    if (!rows.length) return;
-
-    const today = stripTime(new Date());
-    const totalPassis = rows.length;
-    const autogestionades = rows.filter(r => isTrue(r.propies)).length;
-
-    const finalitzades = rows.filter(r => {
-      const start = stripTime(parseDateDMY(r.data_inici));
-      const end = stripTime(parseDateDMY(r.data_final)) || start;
-      return end && end < today;
-    }).length;
-
-    const pendents = rows.filter(r => {
-      const start = stripTime(parseDateDMY(r.data_inici));
-      return start && start > today && start <= END_CAPITALITAT;
-    }).length;
-
-    const avui = rows.filter(r => {
-      const start = stripTime(parseDateDMY(r.data_inici));
-      const end = stripTime(parseDateDMY(r.data_final)) || start;
-      return start && end && start <= today && end >= today;
-    }).length;
-
-    const cards = [
-      {
-        title: "TOTAL PASSIS",
-        value: totalPassis,
-        percent: 100,
-        subtitle: `${totalPassis} passis totals al full.`,
-        dark: true
-      },
-      {
-        title: "TOTAL AUTOGESTIONADES",
-        value: autogestionades,
-        percent: totalPassis ? (autogestionades / totalPassis) * 100 : 0,
-        subtitle: `${autogestionades} passis marcats com a PRÒPIES.`
-      },
-      {
-        title: "ACTIVITATS FINALITZADES",
-        value: finalitzades,
-        percent: totalPassis ? (finalitzades / totalPassis) * 100 : 0,
-        subtitle: `Ja han acabat fins avui.`
-      },
-      {
-        title: "ACTIVITATS PENDENTS",
-        value: pendents,
-        percent: totalPassis ? (pendents / totalPassis) * 100 : 0,
-        subtitle: `Pendents fins al 13 de desembre.`
-      },
-      {
-        title: "ACTIVITATS AVUI",
-        value: avui,
-        percent: totalPassis ? (avui / totalPassis) * 100 : 0,
-        subtitle: `Passis vigents avui mateix.`
-      }
-    ];
-
-    const html = `
-      <section id="cap-overview-grid" class="cap-ref-kpi-grid">
-        ${cards.map(card => buildGaugeCard(card)).join("")}
-      </section>
-    `;
-
-    const old = totalView.querySelector("#cap-overview-grid");
-    if (old) old.remove();
-
-    hideLegacySummaryCards(totalView);
-
-    const target =
-      totalView.querySelector(".capitalitat-five-charts-row") ||
-      totalView.querySelector(".cap-month-chart-v3") ||
-      totalView.firstElementChild?.nextElementSibling ||
-      null;
-
-    if (target) {
-      target.insertAdjacentHTML("beforebegin", html);
-    } else {
-      totalView.insertAdjacentHTML("afterbegin", html);
-    }
-  }
-
-  function scheduleRefinedOverviewGauges() {
-    setTimeout(renderRefinedOverviewGauges, 400);
-    setTimeout(renderRefinedOverviewGauges, 1200);
-    setTimeout(renderRefinedOverviewGauges, 2600);
-  }
-
-  document.addEventListener("DOMContentLoaded", scheduleRefinedOverviewGauges);
-  window.addEventListener("load", scheduleRefinedOverviewGauges);
-
-  document.addEventListener("click", (event) => {
-    const el = event.target.closest("button, [data-view], .nav-pill");
-    if (!el) return;
-    const txt = (el.textContent || "").toLowerCase();
-    if (txt.includes("total") || txt.includes("passis")) {
-      scheduleRefinedOverviewGauges();
-    }
-  });
-})();
-
-/* === CAPITALITAT_REFINED_OVERVIEW_GAUGES_V3 === */
-
-(() => {
-  const END_CAPITALITAT = new Date(2026, 11, 13); // 13 desembre 2026
-
-  function parseDateDMY(value) {
-    if (!value) return null;
-    const str = String(value).trim();
-    const m = str.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
-    if (!m) return null;
-    const d = Number(m[1]);
-    const mo = Number(m[2]) - 1;
-    const y = Number(m[3]);
-    const date = new Date(y, mo, d);
-    return isNaN(date.getTime()) ? null : date;
-  }
-
-  function stripTime(date) {
-    if (!date) return null;
-    return new Date(date.getFullYear(), date.getMonth(), date.getDate());
-  }
-
-  function isTrue(value) {
-    return String(value ?? "").trim().toUpperCase() === "TRUE";
-  }
-
-  function getRowsFromJson(data) {
+  function getRows(data) {
     if (Array.isArray(data)) return data;
     if (Array.isArray(data.rows)) return data.rows;
     return [];
   }
 
-  function formatPercent(value) {
-    return `${value.toFixed(1).replace(".", ",")}%`;
-  }
-
-  function buildGaugeSvg(percent) {
+  function buildGauge(percent) {
     const p = Math.max(0, Math.min(100, percent));
-    return `
-      <svg viewBox="0 0 260 170" class="cap-ref-gauge-svg" aria-hidden="true">
-        <defs>
-          <linearGradient id="gaugeFade" x1="0" x2="0" y1="0" y2="1">
-            <stop offset="0%" stop-color="rgba(0,0,0,0.04)"/>
-            <stop offset="100%" stop-color="rgba(0,0,0,0)"/>
-          </linearGradient>
-        </defs>
 
+    return `
+      <svg class="cap-final-gauge-svg" viewBox="0 0 260 160" aria-hidden="true">
         <path
-          d="M 28 135 A 102 102 0 0 1 232 135"
-          class="cap-ref-gauge-track"
+          class="cap-final-gauge-track"
+          d="M 32 132 A 98 98 0 0 1 228 132"
           pathLength="100"></path>
 
         <path
-          d="M 28 135 A 102 102 0 0 1 232 135"
-          class="cap-ref-gauge-progress"
+          class="cap-final-gauge-ticks"
+          d="M 42 132 A 88 88 0 0 1 218 132"
+          pathLength="100"></path>
+
+        <path
+          class="cap-final-gauge-progress"
+          d="M 32 132 A 98 98 0 0 1 228 132"
           pathLength="100"
           stroke-dasharray="${p} 100"></path>
-
-        <path
-          d="M 40 135 A 90 90 0 0 1 220 135"
-          class="cap-ref-gauge-inner"
-          pathLength="100"></path>
       </svg>
     `;
   }
 
-  function buildGaugeCard({ title, value, percent, topLeft, topRight, dark = false }) {
-    const percentLabel = formatPercent(percent);
-
+  function buildCard(card) {
     return `
-      <article class="cap-ref-kpi-card ${dark ? "is-dark" : ""}">
-        <div class="cap-ref-kpi-topline">
-          <h3>${title}</h3>
+      <article class="cap-final-gauge-card">
+        <header class="cap-final-gauge-header">
+          <h3>${escapeHtml(card.title)}</h3>
+        </header>
+
+        <div class="cap-final-gauge-meta">
+          <span><i></i>${escapeHtml(card.left)}</span>
+          <span><i></i>${escapeHtml(card.right)}</span>
         </div>
 
-        <div class="cap-ref-kpi-meta">
-          <div class="cap-ref-kpi-meta-item">
-            <i></i>
-            <span>${topLeft}</span>
-          </div>
-          <div class="cap-ref-kpi-meta-item">
-            <i></i>
-            <span>${topRight}</span>
-          </div>
-        </div>
-
-        <div class="cap-ref-kpi-gauge">
-          ${buildGaugeSvg(percent)}
-          <div class="cap-ref-kpi-gauge-center">
-            <strong>${percentLabel}</strong>
-            <span>${value} passis</span>
+        <div class="cap-final-gauge-wrap">
+          ${buildGauge(card.percent)}
+          <div class="cap-final-gauge-center">
+            <strong>${formatPercent(card.percent)}</strong>
+            <span>${escapeHtml(card.value)} passis</span>
           </div>
         </div>
       </article>
     `;
   }
 
-  function hideLegacySummaryCards(view) {
-    const oldTopCards = [
-      ...view.querySelectorAll(".cap-overview-grid, .cap-overview-card, .cap-top-summary-fixed")
-    ];
-    oldTopCards.forEach(el => {
-      if (el.id !== "cap-overview-grid") {
-        el.style.display = "none";
-      }
-    });
+  function removeOldOverview(totalView) {
+    totalView.querySelectorAll(
+      "#cap-overview-grid, .cap-overview-grid, .cap-ref-kpi-grid, .cap-overview-card, .cap-ref-kpi-card"
+    ).forEach(el => el.remove());
 
-    const all = [...view.querySelectorAll("*")];
-    all.forEach(el => {
-      const txt = (el.textContent || "").replace(/\s+/g, " ").trim().toLowerCase();
+    [...totalView.querySelectorAll("*")].forEach(el => {
+      const txt = String(el.textContent || "").replace(/\s+/g, " ").trim().toLowerCase();
+
       if (
         txt === "total de passis" ||
         txt === "passis gestionats per nosaltres"
@@ -5302,103 +4872,95 @@ mostrarExperienciaCapitalitatV5 = function() {
     });
   }
 
-  async function renderRefinedOverviewGaugesV3() {
+  async function renderFinalTopGauges() {
     const totalView = document.querySelector("#view-total");
     if (!totalView) return;
 
-    let response;
-    try {
-      response = await fetch(`data/inscripcions.json?t=${Date.now()}`);
-    } catch (err) {
-      return;
-    }
+    const response = await fetch(`data/inscripcions.json?t=${Date.now()}`);
     if (!response.ok) return;
 
-    let data;
-    try {
-      data = await response.json();
-    } catch (err) {
-      return;
-    }
+    const data = await response.json();
+    const rows = getRows(data);
+    const keys = data.columnKeys || {};
 
-    const rows = getRowsFromJson(data);
     if (!rows.length) return;
 
-    const today = stripTime(new Date());
-    const totalPassis = rows.length;
-    const autogestionades = rows.filter(r => isTrue(r.propies)).length;
+    const startKey = keys.dataInici || "data_inici";
+    const endKey = keys.dataFinal || "data_final";
+    const gestioKey = keys.gestio || "propies";
 
-    const finalitzades = rows.filter(r => {
-      const start = stripTime(parseDateDMY(r.data_inici));
-      const end = stripTime(parseDateDMY(r.data_final)) || start;
+    const today = stripTime(new Date());
+    const total = rows.length;
+
+    const autogestionades = rows.filter(row => isTrue(row[gestioKey])).length;
+
+    const finalitzades = rows.filter(row => {
+      const start = stripTime(parseDateDMY(row[startKey]));
+      const end = stripTime(parseDateDMY(row[endKey])) || start;
       return end && end < today;
     }).length;
 
-    const pendents = rows.filter(r => {
-      const start = stripTime(parseDateDMY(r.data_inici));
+    const pendents = rows.filter(row => {
+      const start = stripTime(parseDateDMY(row[startKey]));
       return start && start > today && start <= END_CAPITALITAT;
     }).length;
 
-    const avui = rows.filter(r => {
-      const start = stripTime(parseDateDMY(r.data_inici));
-      const end = stripTime(parseDateDMY(r.data_final)) || start;
+    const avui = rows.filter(row => {
+      const start = stripTime(parseDateDMY(row[startKey]));
+      const end = stripTime(parseDateDMY(row[endKey])) || start;
       return start && end && start <= today && end >= today;
     }).length;
 
     const cards = [
       {
         title: "Total passis",
-        value: totalPassis,
+        value: total,
         percent: 100,
-        topLeft: `${totalPassis} totals`,
-        topRight: `100% del full`,
-        dark: false
+        left: `${total} totals`,
+        right: `100%`
       },
       {
         title: "Autogestionades",
         value: autogestionades,
-        percent: totalPassis ? (autogestionades / totalPassis) * 100 : 0,
-        topLeft: `${autogestionades} pròpies`,
-        topRight: `${totalPassis - autogestionades} externes`
+        percent: total ? autogestionades / total * 100 : 0,
+        left: `${autogestionades} pròpies`,
+        right: `${formatPercent(total ? autogestionades / total * 100 : 0)}`
       },
       {
         title: "Finalitzades",
         value: finalitzades,
-        percent: totalPassis ? (finalitzades / totalPassis) * 100 : 0,
-        topLeft: `${finalitzades} acabades`,
-        topRight: `fins avui`
+        percent: total ? finalitzades / total * 100 : 0,
+        left: `${finalitzades} acabades`,
+        right: `${formatPercent(total ? finalitzades / total * 100 : 0)}`
       },
       {
         title: "Pendents",
         value: pendents,
-        percent: totalPassis ? (pendents / totalPassis) * 100 : 0,
-        topLeft: `${pendents} pendents`,
-        topRight: `fins al 13/12`
+        percent: total ? pendents / total * 100 : 0,
+        left: `${pendents} pendents`,
+        right: `${formatPercent(total ? pendents / total * 100 : 0)}`
       },
       {
         title: "Avui",
         value: avui,
-        percent: totalPassis ? (avui / totalPassis) * 100 : 0,
-        topLeft: `${avui} vigents`,
-        topRight: `dia actual`
+        percent: total ? avui / total * 100 : 0,
+        left: `${avui} vigents`,
+        right: `${formatPercent(total ? avui / total * 100 : 0)}`
       }
     ];
 
+    removeOldOverview(totalView);
+
     const html = `
-      <section id="cap-overview-grid" class="cap-ref-kpi-grid">
-        ${cards.map(card => buildGaugeCard(card)).join("")}
+      <section id="cap-final-gauge-grid" class="cap-final-gauge-grid">
+        ${cards.map(buildCard).join("")}
       </section>
     `;
-
-    const old = totalView.querySelector("#cap-overview-grid");
-    if (old) old.remove();
-
-    hideLegacySummaryCards(totalView);
 
     const target =
       totalView.querySelector(".capitalitat-five-charts-row") ||
       totalView.querySelector(".cap-month-chart-v3") ||
-      totalView.firstElementChild?.nextElementSibling ||
+      totalView.firstElementChild ||
       null;
 
     if (target) {
@@ -5408,21 +4970,24 @@ mostrarExperienciaCapitalitatV5 = function() {
     }
   }
 
-  function scheduleRefinedOverviewGaugesV3() {
-    setTimeout(renderRefinedOverviewGaugesV3, 300);
-    setTimeout(renderRefinedOverviewGaugesV3, 1000);
-    setTimeout(renderRefinedOverviewGaugesV3, 2200);
+  function scheduleFinalTopGauges() {
+    setTimeout(renderFinalTopGauges, 250);
+    setTimeout(renderFinalTopGauges, 900);
+    setTimeout(renderFinalTopGauges, 1800);
+    setTimeout(renderFinalTopGauges, 3200);
   }
 
-  document.addEventListener("DOMContentLoaded", scheduleRefinedOverviewGaugesV3);
-  window.addEventListener("load", scheduleRefinedOverviewGaugesV3);
+  document.addEventListener("DOMContentLoaded", scheduleFinalTopGauges);
+  window.addEventListener("load", scheduleFinalTopGauges);
 
-  document.addEventListener("click", (event) => {
-    const el = event.target.closest("button, [data-view], .nav-pill");
+  document.addEventListener("click", event => {
+    const el = event.target.closest("button, [data-view], .nav-pill, .sidebar-item, .nav-item");
     if (!el) return;
-    const txt = (el.textContent || "").toLowerCase();
+
+    const txt = String(el.textContent || "").toLowerCase();
+
     if (txt.includes("total") || txt.includes("passis")) {
-      scheduleRefinedOverviewGaugesV3();
+      scheduleFinalTopGauges();
     }
   });
 })();
