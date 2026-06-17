@@ -8786,3 +8786,111 @@ thead th {
 .capitalitat-five-chart-card .cap-linear-value {
   color: var(--cap-burgundy) !important;
 }
+
+/* === CAPITALITAT_SMALL_FIXES_V6 === */
+
+/* ============================================================
+   AJUSTOS CONCRETS
+============================================================ */
+
+/* ------------------------------------------------------------
+   1. REQUADRES SUPERIORS
+------------------------------------------------------------ */
+
+/* text dels requadres */
+.cap-summary-card,
+.cap-summary-card *,
+.summary-card,
+.summary-card *,
+.top-summary-card,
+.top-summary-card *,
+.stat-card,
+.stat-card * {
+  color: #2b2d42 !important;
+}
+
+/* números grans 1872 i 374 */
+.cap-summary-number,
+.cap-summary-card strong,
+.summary-card strong,
+.top-summary-card strong,
+.stat-card strong,
+.summary-value,
+.stat-value,
+.metric-value,
+.kpi-value,
+.big-number,
+.big-stat,
+.value-xl,
+.value-xxl {
+  color: #d90429 !important;
+}
+
+/* ------------------------------------------------------------
+   2. 5 GRÀFICS DE SOTA
+------------------------------------------------------------ */
+
+/* treure la rodona superior esquerra */
+.capitalitat-five-chart-card::before {
+  display: none !important;
+  content: none !important;
+}
+
+/* treure el text “Totes les files del full INSCRIPCIONS.” */
+.capitalitat-five-chart-card .cap-linear-head span,
+.capitalitat-five-chart-card .cap-linear-head p {
+  display: none !important;
+}
+
+/* text principal dels 5 gràfics */
+.capitalitat-five-chart-card,
+.capitalitat-five-chart-card * {
+  color: #2b2d42 !important;
+}
+
+/* valors numèrics en vermell */
+.capitalitat-five-chart-card .cap-linear-value,
+.capitalitat-five-chart-card .cap-linear-row strong,
+.capitalitat-five-chart-card strong,
+.capitalitat-five-chart-card b {
+  color: #d90429 !important;
+}
+
+/* excepte títols */
+.capitalitat-five-chart-card .cap-linear-head strong,
+.capitalitat-five-chart-card .cap-linear-title,
+.capitalitat-five-chart-card h3,
+.capitalitat-five-chart-card h4 {
+  color: #2b2d42 !important;
+}
+
+/* labels de l'esquerra en gris/negre */
+.capitalitat-five-chart-card .cap-linear-label,
+.capitalitat-five-chart-card .cap-linear-label span,
+.capitalitat-five-chart-card .cap-linear-row span {
+  color: #5f6778 !important;
+}
+
+/* base de les barres */
+.capitalitat-five-chart-card .cap-linear-track,
+.capitalitat-five-chart-card .cap-linear-bg {
+  background: rgba(43,45,66,0.08) !important;
+}
+
+/* línia/barra de quantitat: de groc a vermell */
+.capitalitat-five-chart-card .cap-linear-fill,
+.capitalitat-five-chart-card .cap-linear-bar,
+.capitalitat-five-chart-card .cap-linear-progress,
+.capitalitat-five-chart-card .cap-linear-meter {
+  background: linear-gradient(90deg, #ef233c 0%, #d90429 100%) !important;
+  box-shadow: 0 0 10px rgba(217,4,41,0.08) !important;
+}
+
+/* si alguna barra està pintada amb border-top o pseudo-elements */
+.capitalitat-five-chart-card .cap-month-v3-legend i,
+.capitalitat-five-chart-card .cap-month-v2-legend i,
+.capitalitat-five-chart-card .cap-linear-legend i {
+  border-top-color: #d90429 !important;
+  background: #d90429 !important;
+  box-shadow: 0 0 8px rgba(217,4,41,0.08) !important;
+}
