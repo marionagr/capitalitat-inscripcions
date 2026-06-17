@@ -7594,3 +7594,441 @@ iframe,
     border-radius: 24px !important;
   }
 }
+
+/* === CAPITALITAT_GLASS_LIGHT_TYPO_V3 === */
+
+/* ============================================================
+   LIGHT GLASS · COLOR + TYPO HIERARCHY
+   inspirat en la darrera referència
+============================================================ */
+
+:root {
+  --ui-bg-main: #d9d7d8;
+  --ui-bg-soft: #e5e3e4;
+  --ui-bg-panel: rgba(255,255,255,0.22);
+  --ui-bg-panel-strong: rgba(255,255,255,0.34);
+  --ui-bg-panel-deep: rgba(245,245,246,0.58);
+
+  --ui-line-soft: rgba(45,45,55,0.08);
+  --ui-line-mid: rgba(45,45,55,0.14);
+  --ui-line-strong: rgba(45,45,55,0.18);
+
+  --ui-text-main: #1e1f22;
+  --ui-text-strong: #111216;
+  --ui-text-soft: #5e6066;
+  --ui-text-dim: #8a8d93;
+
+  --ui-accent-main: #7c838d;
+  --ui-accent-soft: rgba(124,131,141,0.16);
+  --ui-accent-coral: #ef6d63;
+  --ui-accent-coral-soft: rgba(239,109,99,0.16);
+
+  --ui-shadow-xl:
+    0 28px 60px rgba(40, 40, 50, 0.10),
+    0 10px 24px rgba(40, 40, 50, 0.08);
+
+  --ui-shadow-lg:
+    0 18px 36px rgba(40, 40, 50, 0.08),
+    0 6px 16px rgba(40, 40, 50, 0.06);
+
+  --ui-shadow-md:
+    0 10px 22px rgba(40, 40, 50, 0.06),
+    0 4px 10px rgba(40, 40, 50, 0.05);
+}
+
+/* Fons general */
+html,
+body {
+  background:
+    radial-gradient(circle at top center, rgba(255,255,255,0.34), transparent 28%),
+    radial-gradient(circle at bottom left, rgba(239,109,99,0.08), transparent 26%),
+    linear-gradient(180deg, #dcdadc 0%, #d4d2d3 100%) !important;
+  color: var(--ui-text-main) !important;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background:
+    radial-gradient(circle at 18% 16%, rgba(255,255,255,0.28), transparent 20%),
+    radial-gradient(circle at 72% 24%, rgba(255,255,255,0.14), transparent 18%),
+    radial-gradient(circle at 50% 100%, rgba(239,109,99,0.08), transparent 24%);
+}
+
+/* Text base */
+body,
+main,
+section,
+div,
+p,
+span,
+small,
+label,
+td,
+th,
+li {
+  color: var(--ui-text-main);
+}
+
+/* Jerarquia tipogràfica */
+h1,
+.hero-title,
+.page-title {
+  color: var(--ui-text-strong) !important;
+  font-weight: 600 !important;
+  letter-spacing: -0.045em !important;
+  line-height: 0.96 !important;
+}
+
+h2,
+.section-title,
+.cap-annual-head h3,
+.cap-month-detail-head h3 {
+  color: var(--ui-text-strong) !important;
+  font-weight: 600 !important;
+  letter-spacing: -0.035em !important;
+  line-height: 1.02 !important;
+}
+
+h3,
+h4,
+h5,
+h6,
+.cap-linear-head strong,
+.cap-month-radial-card h4,
+.cap-month-v3-legend strong,
+.cap-month-v2-legend strong {
+  color: var(--ui-text-main) !important;
+  font-weight: 600 !important;
+  letter-spacing: -0.02em !important;
+}
+
+p,
+.hero-subtitle,
+.section-subtitle,
+.cap-annual-head p,
+.cap-month-detail-head span,
+.cap-annual-head span,
+.cap-linear-head span,
+.cap-month-v3-kpis span,
+.cap-month-v2-kpis span,
+.cap-annual-kpis span,
+.cap-month-detail-kpis span,
+.cap-month-v3-legend span,
+.cap-month-v2-legend span {
+  color: var(--ui-text-soft) !important;
+}
+
+small,
+.muted,
+.subtle,
+.cap-month-radial-label,
+.cap-month-v3-axis-y,
+.cap-month-v2-axis-y,
+.cap-month-v2-axis-x,
+.cap-annual-category-label,
+.cap-annual-month-label,
+.cap-month-radial-list span b,
+.cap-month-tooltip span,
+.cap-month-tooltip em,
+.cap-annual-tooltip span,
+.cap-annual-tooltip em {
+  color: var(--ui-text-dim) !important;
+  fill: var(--ui-text-dim) !important;
+}
+
+/* Panells glass */
+.sidebar,
+aside,
+.left-sidebar,
+.menu-sidebar,
+nav,
+.card,
+.panel,
+.widget,
+.cap-annual-card,
+.cap-month-chart-v3,
+.cap-month-chart-v2,
+.cap-month-detail-card,
+.cap-month-radial-card,
+.capitalitat-five-chart-card,
+.cap-month-detail-bottom > div,
+.cap-annual-kpis div,
+.cap-month-detail-kpis div,
+.cap-annual-loading,
+.calendar-card,
+.map-card,
+table,
+.cap-calendar-tabs {
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.30), rgba(255,255,255,0.18)) !important;
+  border: 1px solid var(--ui-line-soft) !important;
+  box-shadow: var(--ui-shadow-xl) !important;
+  backdrop-filter: blur(26px) saturate(145%);
+  -webkit-backdrop-filter: blur(26px) saturate(145%);
+  color: var(--ui-text-main) !important;
+}
+
+/* Reflex subtil */
+.cap-annual-card,
+.cap-month-chart-v3,
+.cap-month-chart-v2,
+.cap-month-detail-card,
+.capitalitat-five-chart-card,
+.cap-month-radial-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.cap-annual-card::before,
+.cap-month-chart-v3::before,
+.cap-month-chart-v2::before,
+.cap-month-detail-card::before,
+.capitalitat-five-chart-card::before,
+.cap-month-radial-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(135deg,
+      rgba(255,255,255,0.28) 0%,
+      rgba(255,255,255,0.08) 24%,
+      rgba(255,255,255,0.02) 44%,
+      rgba(239,109,99,0.05) 62%,
+      rgba(255,255,255,0.00) 100%);
+  opacity: 0.95;
+}
+
+/* Sidebar més clara */
+.sidebar,
+aside,
+.left-sidebar,
+.menu-sidebar,
+nav {
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.26), rgba(255,255,255,0.14)) !important;
+  border-right: 1px solid rgba(40,40,50,0.08) !important;
+  box-shadow:
+    inset -1px 0 0 rgba(255,255,255,0.24),
+    0 20px 40px rgba(40,40,50,0.06) !important;
+}
+
+/* Botons */
+button,
+.nav-pill,
+.cap-calendar-tabs button,
+.cap-month-pills span,
+.cap-month-detail-close,
+input,
+select,
+textarea {
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.40), rgba(255,255,255,0.18)) !important;
+  border: 1px solid var(--ui-line-mid) !important;
+  color: var(--ui-text-main) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.50),
+    0 10px 20px rgba(40,40,50,0.06) !important;
+  backdrop-filter: blur(18px) saturate(145%);
+  -webkit-backdrop-filter: blur(18px) saturate(145%);
+}
+
+button:hover,
+.nav-pill:hover,
+.cap-calendar-tabs button:hover,
+.cap-month-detail-close:hover {
+  border-color: var(--ui-line-strong) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.58),
+    0 14px 24px rgba(40,40,50,0.08) !important;
+}
+
+/* Actius */
+.nav-pill.active,
+.nav-pill.is-active,
+.cap-calendar-tabs button.is-active {
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.52), rgba(255,255,255,0.24)) !important;
+  border-color: rgba(40,40,50,0.18) !important;
+  color: var(--ui-text-strong) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.62),
+    0 16px 26px rgba(40,40,50,0.08),
+    0 0 0 1px rgba(255,255,255,0.14) !important;
+}
+
+/* Inputs */
+input,
+select,
+textarea {
+  color: var(--ui-text-main) !important;
+  border-radius: 18px !important;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--ui-text-dim) !important;
+}
+
+/* KPI texts */
+.cap-annual-kpis strong,
+.cap-month-detail-kpis strong,
+.cap-month-v3-kpis strong,
+.cap-month-v2-kpis strong,
+.cap-month-kpi strong,
+.cap-month-radial-list strong {
+  color: var(--ui-text-strong) !important;
+}
+
+.cap-month-pills strong {
+  color: var(--ui-text-soft) !important;
+}
+
+/* Taules */
+thead th {
+  background: rgba(255,255,255,0.20) !important;
+  color: var(--ui-text-main) !important;
+}
+
+tbody tr:not(:last-child) td {
+  border-bottom: 1px solid rgba(40,40,50,0.06) !important;
+}
+
+td,
+th {
+  color: var(--ui-text-main) !important;
+}
+
+/* Gràfics: línies i eixos */
+.cap-month-v3-grid,
+.cap-month-v2-grid,
+.cap-annual-grid-line,
+.cap-annual-row-line,
+.cap-month-radial-grid,
+.cap-month-radial-axis {
+  stroke: rgba(40,40,50,0.10) !important;
+}
+
+/* Gràfic principal mensual */
+.cap-month-v3-line-yellow,
+.cap-month-v2-line-yellow,
+.cap-month-line-passes {
+  stroke: rgba(30,31,34,0.88) !important;
+  filter:
+    drop-shadow(0 0 4px rgba(255,255,255,0.10))
+    drop-shadow(0 0 10px rgba(40,40,50,0.04)) !important;
+}
+
+.cap-month-v3-area,
+.cap-month-v2-area {
+  fill: rgba(30,31,34,0.08) !important;
+}
+
+.cap-month-point-passes circle:first-child {
+  fill: #ffffff !important;
+  stroke: rgba(30,31,34,0.22) !important;
+  filter:
+    drop-shadow(0 0 8px rgba(255,255,255,0.24))
+    drop-shadow(0 0 10px rgba(40,40,50,0.06)) !important;
+}
+
+/* Radials */
+.cap-month-radial-fill {
+  fill: rgba(124,131,141,0.12) !important;
+}
+
+.cap-month-radial-line {
+  stroke: rgba(30,31,34,0.82) !important;
+  filter: drop-shadow(0 0 4px rgba(40,40,50,0.06)) !important;
+}
+
+.cap-month-radial-point {
+  fill: rgba(239,109,99,0.82) !important;
+  stroke: rgba(255,255,255,0.48) !important;
+}
+
+.cap-month-radial-percent {
+  fill: rgba(239,109,99,0.88) !important;
+}
+
+/* Bubbles anuals: canviem grocs/blavs per grisos/coral subtil */
+.cap-annual-bubble.is-mod-a,
+.cap-annual-legend i.is-mod-a {
+  fill: #7c838d !important;
+  background: #7c838d !important;
+}
+
+.cap-annual-bubble.is-mod-b,
+.cap-annual-legend i.is-mod-b {
+  fill: #b6b8be !important;
+  background: #b6b8be !important;
+}
+
+.cap-annual-bubble.is-mod-c,
+.cap-annual-legend i.is-mod-c {
+  fill: #ef6d63 !important;
+  background: #ef6d63 !important;
+}
+
+.cap-annual-bubble.is-mod-other,
+.cap-annual-legend i.is-mod-other {
+  fill: rgba(110,110,120,0.55) !important;
+  background: rgba(110,110,120,0.55) !important;
+}
+
+/* Tooltips */
+.cap-month-tooltip,
+.cap-annual-tooltip {
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.58), rgba(255,255,255,0.34)) !important;
+  border: 1px solid rgba(45,45,55,0.12) !important;
+  color: var(--ui-text-main) !important;
+  box-shadow: var(--ui-shadow-lg) !important;
+  backdrop-filter: blur(18px) saturate(145%);
+  -webkit-backdrop-filter: blur(18px) saturate(145%);
+}
+
+.cap-month-tooltip strong,
+.cap-annual-tooltip strong {
+  color: var(--ui-text-strong) !important;
+}
+
+/* Llegendes */
+.cap-annual-legend,
+.cap-month-v3-legend,
+.cap-month-v2-legend,
+.cap-month-radial-list,
+.cap-month-detail-bottom h4 {
+  color: var(--ui-text-soft) !important;
+}
+
+.cap-annual-legend p {
+  color: var(--ui-text-dim) !important;
+}
+
+/* Scroll */
+*::-webkit-scrollbar-thumb {
+  background: rgba(70,70,80,0.18);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: rgba(70,70,80,0.26);
+  background-clip: padding-box;
+}
+
+/* Responsive */
+@media (max-width: 860px) {
+  .cap-annual-card,
+  .cap-month-chart-v3,
+  .cap-month-detail-card,
+  .capitalitat-five-chart-card {
+    border-radius: 24px !important;
+  }
+}
