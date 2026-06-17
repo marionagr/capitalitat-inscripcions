@@ -8456,3 +8456,333 @@ th {
   background: rgba(43,45,66,0.26);
   background-clip: padding-box;
 }
+
+/* === CAPITALITAT_FINAL_COLOR_OVERRIDE_V5 === */
+
+/* ============================================================
+   OVERRIDE FINAL · treure blau/groc/blanc
+   i deixar grisos + vermells + glass
+============================================================ */
+
+:root {
+  --cap-text-main: #2b2d42;
+  --cap-text-soft: #5f6778;
+  --cap-text-dim: #8d99ae;
+  --cap-red: #ef233c;
+  --cap-burgundy: #d90429;
+  --cap-red-soft: rgba(239, 35, 60, 0.10);
+  --cap-burgundy-soft: rgba(217, 4, 41, 0.12);
+}
+
+/* ------------------------------------------------------------
+   1. TEXTOS · res de blanc sobre gris clar
+------------------------------------------------------------ */
+
+/* Tot el text dins les targetes principals */
+.capitalitat-five-chart-card,
+.capitalitat-five-chart-card *,
+.cap-annual-card,
+.cap-annual-card *,
+.cap-month-chart-v3,
+.cap-month-chart-v3 *,
+.cap-month-chart-v2,
+.cap-month-chart-v2 *,
+.cap-month-detail-card,
+.cap-month-detail-card *,
+.cap-month-radial-card,
+.cap-month-radial-card *,
+.cap-annual-kpis,
+.cap-annual-kpis *,
+.cap-month-detail-kpis,
+.cap-month-detail-kpis * {
+  color: var(--cap-text-main) !important;
+}
+
+/* Jerarquia */
+.cap-linear-head strong,
+.cap-month-detail-head h3,
+.cap-annual-head h3,
+.cap-month-radial-card h4,
+.cap-month-v3-kpis strong,
+.cap-month-v2-kpis strong,
+.cap-annual-kpis strong,
+.cap-month-detail-kpis strong,
+.cap-month-radial-list strong {
+  color: var(--cap-text-main) !important;
+}
+
+.cap-linear-head span,
+.cap-month-detail-head span,
+.cap-annual-head p,
+.cap-annual-head span,
+.cap-month-v3-kpis span,
+.cap-month-v2-kpis span,
+.cap-annual-kpis span,
+.cap-month-detail-kpis span,
+.cap-month-radial-list span b,
+.cap-month-v3-legend,
+.cap-month-v2-legend,
+.cap-annual-legend,
+.cap-annual-legend div,
+.cap-month-detail-bottom h4 {
+  color: var(--cap-text-soft) !important;
+}
+
+/* Textos petits i secundaris */
+.cap-annual-category-label,
+.cap-annual-month-label,
+.cap-month-radial-label,
+.cap-month-v3-axis-y,
+.cap-month-v2-axis-y,
+.cap-month-v2-axis-x,
+.cap-month-radial-percent,
+.cap-annual-legend p,
+.cap-month-tooltip span,
+.cap-month-tooltip em,
+.cap-annual-tooltip span,
+.cap-annual-tooltip em {
+  color: var(--cap-text-dim) !important;
+  fill: var(--cap-text-dim) !important;
+}
+
+/* Índex 01 02 03 04 05 */
+.capitalitat-five-chart-card::before {
+  color: rgba(43,45,66,0.42) !important;
+  border-color: rgba(43,45,66,0.10) !important;
+  background: rgba(255,255,255,0.18) !important;
+}
+
+/* ------------------------------------------------------------
+   2. NÚMEROS GRANS SUPERIORS · fora blau
+------------------------------------------------------------ */
+
+.cap-summary-number,
+.cap-summary-card strong,
+.summary-value,
+.stat-value,
+.metric-value,
+.kpi-value,
+.hero-stat-value,
+.hero-kpi-value,
+.top-kpi-value,
+.dashboard-kpi-value,
+.dashboard-stat-value,
+.big-number,
+.big-stat,
+.value-xl,
+.value-xxl {
+  color: var(--cap-red) !important;
+}
+
+/* Si hi ha strong dins les dues targetes grans de resum */
+section strong,
+.card strong,
+.panel strong {
+  text-shadow: none !important;
+}
+
+/* ------------------------------------------------------------
+   3. BARRA / LINEARS DELS 5 GRÀFICS
+------------------------------------------------------------ */
+
+/* números de la dreta */
+.cap-linear-value,
+.cap-linear-row strong,
+.cap-linear-chart strong,
+.cap-linear-row b {
+  color: var(--cap-burgundy) !important;
+}
+
+/* etiquetes esquerra */
+.cap-linear-label,
+.cap-linear-label span,
+.cap-linear-row span {
+  color: var(--cap-text-soft) !important;
+}
+
+/* barres base */
+.cap-linear-track,
+.cap-linear-bg {
+  background: rgba(43,45,66,0.08) !important;
+}
+
+/* barres actives */
+.cap-linear-fill,
+.cap-linear-bar,
+.cap-linear-progress,
+.cap-linear-meter {
+  background: linear-gradient(90deg, #ef233c 0%, #d90429 100%) !important;
+  box-shadow: 0 0 0 1px rgba(217,4,41,0.02), 0 0 10px rgba(217,4,41,0.08) !important;
+}
+
+/* si les barres estan dibuixades amb border-top o pseudo-elements */
+.cap-month-v3-legend i,
+.cap-month-v2-legend i,
+.cap-linear-legend i {
+  border-top-color: var(--cap-burgundy) !important;
+  background: var(--cap-burgundy) !important;
+  box-shadow: 0 0 8px rgba(217,4,41,0.08) !important;
+}
+
+/* ------------------------------------------------------------
+   4. GRÀFIC MENSUAL · fora blau/groc
+------------------------------------------------------------ */
+
+/* línia principal */
+.cap-month-v3-line-yellow,
+.cap-month-v2-line-yellow,
+.cap-month-line-passes {
+  stroke: var(--cap-burgundy) !important;
+  filter:
+    drop-shadow(0 0 4px rgba(217,4,41,0.10))
+    drop-shadow(0 0 10px rgba(217,4,41,0.05)) !important;
+}
+
+/* àrea sota la línia */
+.cap-month-v3-area,
+.cap-month-v2-area {
+  fill: rgba(217,4,41,0.10) !important;
+}
+
+/* punts */
+.cap-month-point-passes circle:first-child {
+  fill: #ffffff !important;
+  stroke: rgba(217,4,41,0.32) !important;
+}
+
+/* si hi ha una segona sèrie */
+.cap-month-line-categories,
+.cap-month-point-categories circle:first-child {
+  stroke: #8d99ae !important;
+  fill: #8d99ae !important;
+}
+
+/* tooltips de punts */
+.cap-month-tooltip strong,
+.cap-annual-tooltip strong {
+  color: var(--cap-text-main) !important;
+}
+
+/* ------------------------------------------------------------
+   5. RADIALS / DASHBOARD MENSUAL
+------------------------------------------------------------ */
+
+.cap-month-radial-line {
+  stroke: var(--cap-red) !important;
+}
+
+.cap-month-radial-fill {
+  fill: rgba(239,35,60,0.10) !important;
+}
+
+.cap-month-radial-point {
+  fill: var(--cap-burgundy) !important;
+  stroke: rgba(255,255,255,0.45) !important;
+}
+
+.cap-month-radial-percent {
+  fill: var(--cap-burgundy) !important;
+}
+
+/* ------------------------------------------------------------
+   6. BUBBLES ANUALS
+------------------------------------------------------------ */
+
+.cap-annual-bubble.is-mod-a,
+.cap-annual-legend i.is-mod-a {
+  fill: #8d99ae !important;
+  background: #8d99ae !important;
+}
+
+.cap-annual-bubble.is-mod-b,
+.cap-annual-legend i.is-mod-b {
+  fill: #ef233c !important;
+  background: #ef233c !important;
+}
+
+.cap-annual-bubble.is-mod-c,
+.cap-annual-legend i.is-mod-c {
+  fill: #d90429 !important;
+  background: #d90429 !important;
+}
+
+.cap-annual-bubble.is-mod-other,
+.cap-annual-legend i.is-mod-other {
+  fill: rgba(43,45,66,0.35) !important;
+  background: rgba(43,45,66,0.35) !important;
+}
+
+/* ------------------------------------------------------------
+   7. BOTONS · glass clar i text fosc
+------------------------------------------------------------ */
+
+button,
+.nav-pill,
+.cap-calendar-tabs button,
+.cap-month-pills span,
+.cap-month-detail-close,
+input,
+select,
+textarea {
+  color: var(--cap-text-main) !important;
+  background:
+    linear-gradient(180deg, rgba(237,242,244,0.58), rgba(237,242,244,0.22)) !important;
+  border: 1px solid rgba(43,45,66,0.14) !important;
+}
+
+/* actiu en vermellós subtil */
+.nav-pill.active,
+.nav-pill.is-active,
+.cap-calendar-tabs button.is-active {
+  background:
+    linear-gradient(180deg, rgba(239,35,60,0.14), rgba(237,242,244,0.24)) !important;
+  border-color: rgba(217,4,41,0.24) !important;
+  color: var(--cap-text-main) !important;
+}
+
+/* ------------------------------------------------------------
+   8. TAULES I TEXTOS BLANCS RESIDUALS
+------------------------------------------------------------ */
+
+table,
+table *,
+thead th,
+tbody td {
+  color: var(--cap-text-main) !important;
+}
+
+thead th {
+  color: var(--cap-text-soft) !important;
+}
+
+/* per si queda algun text blanc residual */
+[style*="color: white"],
+[style*="color:white"],
+[style*="color:#fff"],
+[style*="color: #fff"],
+[style*="color:#ffffff"],
+[style*="color: #ffffff"] {
+  color: var(--cap-text-main) !important;
+}
+
+/* ------------------------------------------------------------
+   9. VALORS NUMÈRICS DINS DELS 5 BLOCS
+------------------------------------------------------------ */
+
+.capitalitat-five-chart-card .cap-linear-row strong,
+.capitalitat-five-chart-card .cap-linear-value,
+.capitalitat-five-chart-card b,
+.capitalitat-five-chart-card strong {
+  color: var(--cap-burgundy) !important;
+}
+
+.capitalitat-five-chart-card .cap-linear-head strong,
+.capitalitat-five-chart-card .cap-linear-head * {
+  color: var(--cap-text-main) !important;
+}
+
+/* excepte els valors de dades */
+.capitalitat-five-chart-card .cap-linear-row strong,
+.capitalitat-five-chart-card .cap-linear-value {
+  color: var(--cap-burgundy) !important;
+}
