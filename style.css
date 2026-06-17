@@ -9380,3 +9380,31 @@ textarea {
     grid-template-columns: 1fr !important;
   }
 }
+
+/* === CAPITALITAT_HIDE_DUPLICATE_TOP_GAUGES_V1 === */
+
+/* Mostra només el primer grid bo */
+#view-total #cap-hotfix-gauge-grid ~ #cap-hotfix-gauge-grid,
+#view-total #cap-hotfix-gauge-grid ~ .cap-hotfix-gauge-grid,
+#view-total #cap-hotfix-gauge-grid ~ #cap-final-gauge-grid,
+#view-total #cap-hotfix-gauge-grid ~ .cap-final-gauge-grid,
+#view-total #cap-hotfix-gauge-grid ~ #cap-overview-grid,
+#view-total #cap-hotfix-gauge-grid ~ .cap-overview-grid,
+#view-total #cap-hotfix-gauge-grid ~ .cap-ref-kpi-grid {
+  display: none !important;
+}
+
+/* Si per algun motiu apareixen antics abans o després, també els amaguem */
+#view-total #cap-final-gauge-grid,
+#view-total #cap-overview-grid,
+#view-total .cap-final-gauge-grid,
+#view-total .cap-overview-grid,
+#view-total .cap-ref-kpi-grid {
+  display: none !important;
+}
+
+/* La nostra versió bona sí que s'ha de veure */
+#view-total > #cap-hotfix-gauge-grid,
+#view-total #cap-hotfix-gauge-grid:first-of-type {
+  display: grid !important;
+}

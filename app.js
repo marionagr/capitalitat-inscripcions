@@ -5195,3 +5195,88 @@ mostrarExperienciaCapitalitatV5 = function() {
     }
   });
 })();
+
+/* === CAPITALITAT_REMOVE_DUPLICATE_TOP_GAUGES_V1 === */
+
+(() => {
+  function cleanupDuplicateTopGaugeGrids() {
+    const totalView = document.querySelector("#view-total");
+    if (!totalView) return;
+
+    const selectors = [
+      "#cap-hotfix-gauge-grid",
+      "#cap-final-gauge-grid",
+      "#cap-overview-grid",
+      ".cap-hotfix-gauge-grid",
+      ".cap-final-gauge-grid",
+      ".cap-overview-grid",
+      ".cap-ref-kpi-grid"
+    ];
+
+    const found = [];
+    selectors.forEach(sel => {
+      totalView.querySelectorAll(sel).forEach(el => {
+        if (!found.includes(el)) found.push(el);
+      });
+    });
+
+    if (!found.length) return;
+
+    // Ordenem pel lloc on apareixen al DOM
+    const ordered = found.sort((a, b) => {
+      if (a === b) return 0;
+      const pos = a.compareDocumentPosition(b);
+      if (pos & Node.DOCUMENT_POSITION_FOLLOWING) return -1;
+      if (pos & Node.DOCUMENT_POSITION_PRECEDING) return 1;
+      return 0;
+    });
+
+    // Deixem només el primer
+    const first = ordered[0];
+    ordered.slice(1).forEach(el => el.remove());
+
+    // Si per algun motiu hi ha elements antics dins del view-total, també els traiem
+    totalView.querySelectorAll(".cap-hotfix-gauge-card, .cap-final-gauge-card, .cap-ref-kpi-card").forEach(card => {
+      const parentGrid = card.closest("#cap-hotfix-gauge-grid, #cap-final-gauge-grid, #cap-overview-grid, .cap-hotfix-gauge-grid, .cap-final-gauge-grid, .cap-overview-grid, .cap-ref-kpi-grid");
+      if (parentGrid && parentGrid !== first) {
+        parentGrid.remove();
+      }
+    });
+  }
+
+  function startGaugeCleanupWatcher() {
+    cleanupDuplicateTopGaugeGrids();
+
+    const totalView = document.querySelector("#view-total");
+    if (!totalView) return;
+
+    const observer = new MutationObserver(() => {
+      cleanupDuplicateTopGaugeGrids();
+    });
+
+    observer.observe(totalView, {
+      childList: true,
+      subtree: true
+    });
+
+    // Reforç durant uns segons per matar qualsevol script antic
+    let count = 0;
+    const interval = setInterval(() => {
+      cleanupDuplicateTopGaugeGrids();
+      count += 1;
+      if (count > 20) clearInterval(interval);
+    }, 500);
+  }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    setTimeout(startGaugeCleanupWatcher, 300);
+    setTimeout(cleanupDuplicateTopGaugeGrids, 1000);
+    setTimeout(cleanupDuplicateTopGaugeGrids, 2500);
+  });
+
+  window.addEventListener("load", () => {
+    setTimeout(startGaugeCleanupWatcher, 300);
+    setTimeout(cleanupDuplicateTopGaugeGrids, 1200);
+    setTimeout(cleanupDuplicateTopGaugeGrids, 3000);
+  });
+})();
