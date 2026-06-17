@@ -5382,3 +5382,190 @@ mostrarExperienciaCapitalitatV5 = function() {
   });
 })();
 
+
+/* === CAPITALITAT_TOTAL_EDITORIAL_LAYOUT === */
+
+(() => {
+  let observerStarted = false;
+
+  function norm(value) {
+    return String(value ?? "")
+      .replace(/\u00a0/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+  }
+
+  function findStatusText(totalView) {
+    const found = Array.from(totalView.querySelectorAll("p, div, span, small"))
+      .find(el => {
+        if (el.closest("#cap-total-editorial-layout")) return false;
+        return norm(el.textContent).includes("Dades carregades correctament");
+      });
+
+    return found ? norm(found.textContent) : "Dades carregades correctament · passis: 1872 · autogestionades: 374";
+  }
+
+  function hideOriginalHeader(totalView) {
+    Array.from(totalView.querySelectorAll("h1, h2, p, div, span, small")).forEach(el => {
+      if (el.closest("#cap-total-editorial-layout")) return;
+
+      const txt = norm(el.textContent);
+
+      if (
+        txt === "INSCRIPCIONS" ||
+        txt === "CAPITALITAT MUNDIAL DE L'ARQUITECTURA 2026" ||
+        txt === "CAPITALITAT MUNDIAL DE L’ARQUITECTURA 2026" ||
+        txt === "Seguiment d’activitats, passis i espais vinculats al full d’INSCRIPCIONS." ||
+        txt.includes("Dades carregades correctament")
+      ) {
+        el.classList.add("cap-original-total-header-hidden");
+      }
+    });
+  }
+
+  function ensureEditorialHero(totalView) {
+    let hero = totalView.querySelector("#cap-total-editorial-layout");
+
+    if (!hero) {
+      hero = document.createElement("section");
+      hero.id = "cap-total-editorial-layout";
+      hero.className = "cap-total-editorial-layout";
+
+      hero.innerHTML = `
+        <div class="cap-total-editorial-copy">
+          <div class="cap-total-eyebrow">Capitalitat Mundial de l’Arquitectura 2026</div>
+          <h1>Inscripcions</h1>
+          <p>Seguiment d’activitats, passis i espais vinculats al full d’INSCRIPCIONS.</p>
+          <small data-cap-total-status></small>
+        </div>
+
+        <div class="cap-total-year-slot" id="cap-total-year-slot"></div>
+      `;
+
+      totalView.prepend(hero);
+    }
+
+    const status = hero.querySelector("[data-cap-total-status]");
+    if (status) status.textContent = findStatusText(totalView);
+
+    return hero;
+  }
+
+  function ensureKpiArea(totalView, hero) {
+    let area = totalView.querySelector("#cap-total-kpi-area");
+
+    if (!area) {
+      area = document.createElement("section");
+      area.id = "cap-total-kpi-area";
+      area.className = "cap-total-kpi-area";
+      hero.insertAdjacentElement("afterend", area);
+    }
+
+    return area;
+  }
+
+  function moveYearChart(totalView, hero) {
+    const slot = hero.querySelector("#cap-total-year-slot");
+    if (!slot) return;
+
+    const chart =
+      totalView.querySelector("#cap-clean-year-card") ||
+      totalView.querySelector(".cap-clean-year-card");
+
+    if (!chart) return;
+
+    if (!slot.contains(chart)) {
+      slot.appendChild(chart);
+    }
+
+    chart.classList.add("cap-year-top-right-card");
+
+    // Dins del banner petit no volem que el detall mensual faci créixer el bloc.
+    chart.querySelectorAll(".cap-clean-month-detail, #cap-month-graphs-panel").forEach(el => {
+      el.remove();
+    });
+  }
+
+  function moveKpiGrid(totalView, area) {
+    const grid = totalView.querySelector("#cap-hotfix-gauge-grid");
+    if (!grid) return;
+
+    if (!area.contains(grid)) {
+      area.appendChild(grid);
+    }
+
+    grid.classList.add("cap-kpi-editorial-grid");
+
+    Array.from(grid.children).forEach((card, index) => {
+      card.classList.add("cap-kpi-editorial-card");
+      card.dataset.kpiPosition = String(index + 1);
+    });
+  }
+
+  function removeDuplicateBlocks(totalView) {
+    const goodYear = totalView.querySelector("#cap-total-year-slot #cap-clean-year-card");
+    const goodKpi = totalView.querySelector("#cap-total-kpi-area #cap-hotfix-gauge-grid");
+
+    totalView.querySelectorAll("#cap-clean-year-card, .cap-clean-year-card").forEach(el => {
+      if (goodYear && el !== goodYear) el.remove();
+    });
+
+    totalView.querySelectorAll("#cap-hotfix-gauge-grid, .cap-hotfix-gauge-grid").forEach(el => {
+      if (goodKpi && el !== goodKpi) el.remove();
+    });
+
+    totalView.querySelectorAll(
+      "#cap-year-chart-elegant, #cap-year-final-card, .cap-year-black-card, .cap-year-chart-card:not(#cap-clean-year-card), .cap-month-chart-v3:has(.cap-month-v3-line-yellow), .cap-month-chart-v2, .cap-month-chart-premium, .cap-month-chart"
+    ).forEach(el => {
+      if (!el.closest("#cap-total-year-slot")) el.remove();
+    });
+  }
+
+  function applyTotalEditorialLayout() {
+    const totalView = document.querySelector("#view-total");
+    if (!totalView) return;
+
+    hideOriginalHeader(totalView);
+
+    const hero = ensureEditorialHero(totalView);
+    const area = ensureKpiArea(totalView, hero);
+
+    moveYearChart(totalView, hero);
+    moveKpiGrid(totalView, area);
+    removeDuplicateBlocks(totalView);
+
+    if (!observerStarted) {
+      observerStarted = true;
+
+      const observer = new MutationObserver(() => {
+        setTimeout(applyTotalEditorialLayout, 80);
+      });
+
+      observer.observe(totalView, {
+        childList: true,
+        subtree: true
+      });
+    }
+  }
+
+  function scheduleTotalEditorialLayout() {
+    setTimeout(applyTotalEditorialLayout, 300);
+    setTimeout(applyTotalEditorialLayout, 1000);
+    setTimeout(applyTotalEditorialLayout, 2200);
+    setTimeout(applyTotalEditorialLayout, 3600);
+  }
+
+  document.addEventListener("DOMContentLoaded", scheduleTotalEditorialLayout);
+  window.addEventListener("load", scheduleTotalEditorialLayout);
+
+  document.addEventListener("click", event => {
+    const el = event.target.closest("button, .nav-pill, [data-view], .sidebar-item, .nav-item");
+    if (!el) return;
+
+    const text = norm(el.textContent).toLowerCase();
+
+    if (text.includes("total") || text.includes("passis")) {
+      scheduleTotalEditorialLayout();
+    }
+  });
+})();
