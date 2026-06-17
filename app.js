@@ -3137,858 +3137,6 @@ mostrarExperienciaCapitalitatV5 = function() {
   });
 })();
 
-/* === CAPITALITAT_MONTH_CHART_X_MONTHS_START === */
-
-/* ============================================================
-   GRÀFIC MENSUAL · X = MESOS / Y = NUMERACIÓ
-   Groc = passis
-   Blanc discontinu = categories per mes
-============================================================ */
-
-(() => {
-  const MONTHS_CA_FULL = [
-    "Gener", "Febrer", "Març", "Abril", "Maig", "Juny",
-    "Juliol", "Agost", "Setembre", "Octubre", "Novembre", "Desembre"
-  ];
-
-  const MONTHS_CA_SHORT = [
-    "GEN", "FEB", "MAR", "ABR", "MAI", "JUN",
-    "JUL", "AGO", "SET", "OCT", "NOV", "DES"
-  ];
-
-  function normValue(value) {
-    return String(value ?? "")
-      .replace(/\u00a0/g, " ")
-      .replace(/\s+/g, " ")
-      .trim();
-  }
-
-  function normCategory(value) {
-    const v = normValue(value);
-    if (!v) return "Sense categoria";
-
-    const low = v.toLowerCase();
-
-    if (low === "rutes" || low === "ruta") return "Rutes";
-    if (low === "exposicio" || low === "exposició" || low === "exposicions") return "Exposicions";
-    if (low === "conferencia" || low === "conferència" || low === "conferències") return "Conferències";
-    if (low === "instal·lacio" || low === "instal·lació" || low === "instal·lacions") return "Instal·lacions";
-    if (low === "taller" || low === "tallers") return "Tallers";
-
-    return v;
-  }
-
-  function parseDateCA(value) {
-    const raw = normValue(value);
-    if (!raw) return null;
-
-    const match = raw.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})/);
-    if (!match) return null;
-
-    const day = Number(match[1]);
-    const month = Number(match[2]) - 1;
-    let year = Number(match[3]);
-
-    if (year < 100) year += 2000;
-    if (month < 0 || month > 11) return null;
-
-    return new Date(year, month, day);
-  }
-
-  function smoothPath(points) {
-    if (!points.length) return "";
-    if (points.length === 1) return `M ${points[0].x} ${points[0].y}`;
-
-    let d = `M ${points[0].x.toFixed(2)} ${points[0].y.toFixed(2)}`;
-
-    for (let i = 0; i < points.length - 1; i += 1) {
-      const p0 = points[i - 1] || points[i];
-      const p1 = points[i];
-      const p2 = points[i + 1];
-      const p3 = points[i + 2] || p2;
-
-      const cp1x = p1.x + (p2.x - p0.x) / 6;
-      const cp1y = p1.y + (p2.y - p0.y) / 6;
-      const cp2x = p2.x - (p3.x - p1.x) / 6;
-      const cp2y = p2.y - (p3.y - p1.y) / 6;
-
-      d += ` C ${cp1x.toFixed(2)} ${cp1y.toFixed(2)}, ${cp2x.toFixed(2)} ${cp2y.toFixed(2)}, ${p2.x.toFixed(2)} ${p2.y.toFixed(2)}`;
-    }
-
-    return d;
-  }
-
-  function findMonthChart() {
-    return (
-      document.getElementById("chart-any-complet") ||
-      document.getElementById("chart-mesos-total") ||
-      document.getElementById("chart-mesos")
-    );
-  }
-
-  async function loadCapitalitatRows() {
-    const response = await fetch("data/inscripcions.json?v=" + Date.now());
-    const data = await response.json();
-
-    return {
-      rows: Array.isArray(data.rows) ? data.rows : [],
-      keys: data.columnKeys || {}
-    };
-  }
-
-  function installTooltip(chartEl) {
-    let tooltip = document.querySelector(".cap-month-tooltip");
-
-    if (!tooltip) {
-      tooltip = document.createElement("div");
-      tooltip.className = "cap-month-tooltip";
-      document.body.appendChild(tooltip);
-    }
-
-    chartEl.querySelectorAll(".cap-month-point").forEach(point => {
-      point.addEventListener("mouseenter", () => {
-        tooltip.innerHTML = `
-          <strong>${point.dataset.value}</strong>
-          <span>${point.dataset.series}</span>
-          <em>${point.dataset.month}</em>
-        `;
-        tooltip.classList.add("is-visible");
-      });
-
-      point.addEventListener("mousemove", event => {
-        tooltip.style.left = `${event.clientX + 16}px`;
-        tooltip.style.top = `${event.clientY - 18}px`;
-      });
-
-      point.addEventListener("mouseleave", () => {
-        tooltip.classList.remove("is-visible");
-      });
-    });
-  }
-
-  async function renderMonthChartXMonths() {
-    const chartEl = findMonthChart();
-    if (!chartEl) return;
-
-    const { rows, keys } = await loadCapitalitatRows();
-
-    const dateKey = keys.dataInici || "data_inici";
-    const categoryKey = keys.categoria || "categoria";
-
-    const passisPerMes = Array.from({ length: 12 }, () => 0);
-    const categoriesPerMes = Array.from({ length: 12 }, () => new Set());
-
-    rows.forEach(row => {
-      const date = parseDateCA(row[dateKey]);
-      if (!date) return;
-
-      const monthIndex = date.getMonth();
-      passisPerMes[monthIndex] += 1;
-
-      const category = normCategory(row[categoryKey]);
-      if (category && category !== "Sense categoria") {
-        categoriesPerMes[monthIndex].add(category);
-      }
-    });
-
-    const categoriesCount = categoriesPerMes.map(set => set.size);
-
-    const totalPassis = rows.length;
-    const maxPassis = Math.max(1, ...passisPerMes);
-    const maxCategories = Math.max(1, ...categoriesCount);
-
-    const tickStep = maxPassis > 600 ? 500 : 100;
-    const maxY = Math.max(tickStep, Math.ceil(maxPassis / tickStep) * tickStep);
-
-    const width = 1080;
-    const height = 430;
-
-    const padLeft = 72;
-    const padRight = 42;
-    const padTop = 46;
-    const padBottom = 62;
-
-    const plotW = width - padLeft - padRight;
-    const plotH = height - padTop - padBottom;
-
-    const xStep = plotW / 11;
-    const bottomY = padTop + plotH;
-
-    const passPoints = passisPerMes.map((value, index) => ({
-      month: MONTHS_CA_FULL[index],
-      monthShort: MONTHS_CA_SHORT[index],
-      value,
-      x: padLeft + xStep * index,
-      y: bottomY - (value / maxY) * plotH
-    }));
-
-    // Línia blanca normalitzada visualment perquè es pugui llegir al mateix gràfic.
-    // El tooltip mostra el valor real de categories.
-    const categoryPoints = categoriesCount.map((value, index) => ({
-      month: MONTHS_CA_FULL[index],
-      monthShort: MONTHS_CA_SHORT[index],
-      value,
-      x: padLeft + xStep * index,
-      y: bottomY - (value / maxCategories) * plotH * 0.72
-    }));
-
-    const passLine = smoothPath(passPoints);
-    const categoryLine = smoothPath(categoryPoints);
-
-    const areaPath = `
-      ${passLine}
-      L ${passPoints[passPoints.length - 1].x.toFixed(2)} ${bottomY}
-      L ${passPoints[0].x.toFixed(2)} ${bottomY}
-      Z
-    `;
-
-    const yTicks = [];
-    for (let v = 0; v <= maxY; v += tickStep) {
-      yTicks.push(v);
-    }
-
-    const peak = Math.max(...passisPerMes);
-    const peakIndex = passisPerMes.indexOf(peak);
-    const average = Math.round(totalPassis / 12);
-
-    chartEl.innerHTML = `
-      <div class="cap-month-chart-v2">
-        <div class="cap-month-v2-head">
-          <div class="cap-month-v2-kpis">
-            <div>
-              <strong>${totalPassis}</strong>
-              <span>PASSIS TOTALS</span>
-            </div>
-
-            <div>
-              <strong>${peak}</strong>
-              <span>PIC MENSUAL · ${MONTHS_CA_FULL[peakIndex].toUpperCase()}</span>
-            </div>
-
-            <div class="is-small">
-              <strong>${average}</strong>
-              <span>MITJANA / MES</span>
-            </div>
-          </div>
-        </div>
-
-        <div class="cap-month-v2-svg-wrap">
-          <svg class="cap-month-v2-svg" viewBox="0 0 ${width} ${height}" preserveAspectRatio="none" aria-label="Passis per mes">
-            <defs>
-              <linearGradient id="capYellowLineV2" x1="0" x2="1" y1="0" y2="0">
-                <stop offset="0%" stop-color="rgba(255,228,92,0.34)" />
-                <stop offset="48%" stop-color="rgba(255,228,92,1)" />
-                <stop offset="100%" stop-color="rgba(255,228,92,0.72)" />
-              </linearGradient>
-
-              <linearGradient id="capYellowAreaV2" x1="0" x2="0" y1="0" y2="1">
-                <stop offset="0%" stop-color="rgba(255,228,92,0.30)" />
-                <stop offset="42%" stop-color="rgba(255,228,92,0.10)" />
-                <stop offset="100%" stop-color="rgba(255,228,92,0)" />
-              </linearGradient>
-            </defs>
-
-            ${yTicks.map(v => {
-              const y = bottomY - (v / maxY) * plotH;
-              return `
-                <line class="cap-month-v2-grid" x1="${padLeft}" y1="${y}" x2="${width - padRight}" y2="${y}" />
-                <text class="cap-month-v2-axis-y" x="${padLeft - 18}" y="${y + 4}" text-anchor="end">${v}</text>
-              `;
-            }).join("")}
-
-            ${passPoints.map(p => `
-              <text class="cap-month-v2-axis-x" x="${p.x}" y="${height - 22}" text-anchor="middle">${p.monthShort}</text>
-            `).join("")}
-
-            <path class="cap-month-v2-area" d="${areaPath}" />
-            <path class="cap-month-v2-line-white" d="${categoryLine}" />
-            <path class="cap-month-v2-line-yellow" d="${passLine}" />
-
-            ${categoryPoints.map(p => `
-              <g class="cap-month-point cap-month-point-categories"
-                 data-series="Categories diferents"
-                 data-month="${p.month}"
-                 data-value="${p.value}"
-                 transform="translate(${p.x}, ${p.y})">
-                <circle r="4.2"></circle>
-              </g>
-            `).join("")}
-
-            ${passPoints.map(p => `
-              <g class="cap-month-point cap-month-point-passes"
-                 data-series="Passis"
-                 data-month="${p.month}"
-                 data-value="${p.value}"
-                 transform="translate(${p.x}, ${p.y})">
-                <circle r="5.8"></circle>
-                <circle r="14"></circle>
-              </g>
-            `).join("")}
-          </svg>
-        </div>
-
-        <div class="cap-month-v2-legend">
-          <div>
-            <i class="is-yellow"></i>
-            <span><strong>Passis per mes</strong> · total de passis segons la data d’inici</span>
-          </div>
-
-          <div>
-            <i class="is-white"></i>
-            <span><strong>Categories diferents per mes</strong> · línia blanca discontínua</span>
-          </div>
-        </div>
-      </div>
-    `;
-
-    installTooltip(chartEl);
-  }
-
-  function scheduleMonthChartXMonths() {
-    setTimeout(renderMonthChartXMonths, 500);
-    setTimeout(renderMonthChartXMonths, 1400);
-  }
-
-  document.addEventListener("DOMContentLoaded", scheduleMonthChartXMonths);
-  window.addEventListener("load", scheduleMonthChartXMonths);
-
-  document.addEventListener("click", event => {
-    const target = event.target.closest("button, a, .nav-item, .sidebar-item");
-    if (!target) return;
-
-    const text = normValue(target.textContent).toLowerCase();
-
-    if (text.includes("total") || text.includes("passis")) {
-      scheduleMonthChartXMonths();
-    }
-  });
-})();
-
-/* === CAPITALITAT_MONTH_CLICK_DASHBOARD_START === */
-
-/* ============================================================
-   GRÀFIC MENSUAL · MESOS CLICABLES + DASHBOARD PER MES
-============================================================ */
-
-(() => {
-  const MONTHS_FULL = [
-    "Gener", "Febrer", "Març", "Abril", "Maig", "Juny",
-    "Juliol", "Agost", "Setembre", "Octubre", "Novembre", "Desembre"
-  ];
-
-  const MONTHS_SHORT = [
-    "GEN", "FEB", "MAR", "ABR", "MAI", "JUN",
-    "JUL", "AGO", "SET", "OCT", "NOV", "DES"
-  ];
-
-  function html(value) {
-    return String(value ?? "")
-      .replaceAll("&", "&amp;")
-      .replaceAll("<", "&lt;")
-      .replaceAll(">", "&gt;")
-      .replaceAll('"', "&quot;")
-      .replaceAll("'", "&#039;");
-  }
-
-  function norm(value) {
-    return String(value ?? "")
-      .replace(/\u00a0/g, " ")
-      .replace(/\s+/g, " ")
-      .trim();
-  }
-
-  function normCategory(value) {
-    const v = norm(value);
-    if (!v) return "Sense categoria";
-
-    const low = v.toLowerCase();
-
-    if (low === "rutes" || low === "ruta") return "Rutes";
-    if (low === "exposicio" || low === "exposició" || low === "exposicions") return "Exposicions";
-    if (low === "conferencia" || low === "conferència" || low === "conferències") return "Conferències";
-    if (low === "instal·lacio" || low === "instal·lació" || low === "instal·lacions") return "Instal·lacions";
-    if (low === "taller" || low === "tallers") return "Tallers";
-
-    return v;
-  }
-
-  function normEntrada(value) {
-    const v = norm(value);
-    if (!v) return "Sense informació";
-
-    const low = v.toLowerCase();
-
-    if (low.includes("inscrip")) return "Gratuïta amb inscripció prèvia";
-    if (low.includes("pagament")) return "De pagament";
-    if (low === "gratuïta" || low === "gratuita" || low === "gratuït" || low === "gratuit") return "Gratuïta";
-
-    return v;
-  }
-
-  function parseDate(value) {
-    const raw = norm(value);
-    if (!raw) return null;
-
-    const match = raw.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})/);
-    if (!match) return null;
-
-    const day = Number(match[1]);
-    const month = Number(match[2]) - 1;
-    let year = Number(match[3]);
-
-    if (year < 100) year += 2000;
-    if (month < 0 || month > 11) return null;
-
-    return new Date(year, month, day);
-  }
-
-  function countBy(rows, key, normalizer = norm) {
-    const map = new Map();
-
-    rows.forEach(row => {
-      const label = normalizer(row[key]);
-      map.set(label, (map.get(label) || 0) + 1);
-    });
-
-    return [...map.entries()]
-      .map(([label, value]) => ({ label, value }))
-      .sort((a, b) => b.value - a.value || a.label.localeCompare(b.label, "ca"));
-  }
-
-  function smoothPath(points) {
-    if (!points.length) return "";
-    if (points.length === 1) return `M ${points[0].x} ${points[0].y}`;
-
-    let d = `M ${points[0].x.toFixed(2)} ${points[0].y.toFixed(2)}`;
-
-    for (let i = 0; i < points.length - 1; i += 1) {
-      const p0 = points[i - 1] || points[i];
-      const p1 = points[i];
-      const p2 = points[i + 1];
-      const p3 = points[i + 2] || p2;
-
-      const cp1x = p1.x + (p2.x - p0.x) / 6;
-      const cp1y = p1.y + (p2.y - p0.y) / 6;
-      const cp2x = p2.x - (p3.x - p1.x) / 6;
-      const cp2y = p2.y - (p3.y - p1.y) / 6;
-
-      d += ` C ${cp1x.toFixed(2)} ${cp1y.toFixed(2)}, ${cp2x.toFixed(2)} ${cp2y.toFixed(2)}, ${p2.x.toFixed(2)} ${p2.y.toFixed(2)}`;
-    }
-
-    return d;
-  }
-
-  async function loadRows() {
-    const response = await fetch("data/inscripcions.json?v=" + Date.now());
-    const data = await response.json();
-
-    return {
-      rows: Array.isArray(data.rows) ? data.rows : [],
-      keys: data.columnKeys || {}
-    };
-  }
-
-  function findMonthChart() {
-    return (
-      document.getElementById("chart-any-complet") ||
-      document.getElementById("chart-mesos-total") ||
-      document.getElementById("chart-mesos")
-    );
-  }
-
-  function installTooltip(chartEl) {
-    let tooltip = document.querySelector(".cap-month-tooltip");
-
-    if (!tooltip) {
-      tooltip = document.createElement("div");
-      tooltip.className = "cap-month-tooltip";
-      document.body.appendChild(tooltip);
-    }
-
-    chartEl.querySelectorAll(".cap-month-point").forEach(point => {
-      point.addEventListener("mouseenter", () => {
-        tooltip.innerHTML = `
-          <strong>${html(point.dataset.value)}</strong>
-          <span>${html(point.dataset.series)}</span>
-          <em>${html(point.dataset.month)}</em>
-        `;
-        tooltip.classList.add("is-visible");
-      });
-
-      point.addEventListener("mousemove", event => {
-        tooltip.style.left = `${event.clientX + 16}px`;
-        tooltip.style.top = `${event.clientY - 18}px`;
-      });
-
-      point.addEventListener("mouseleave", () => {
-        tooltip.classList.remove("is-visible");
-      });
-    });
-  }
-
-  function radialChart(title, items, emptyText) {
-    const data = items.slice(0, 9);
-    const totalItems = data.reduce((sum, item) => sum + item.value, 0) || 1;
-    const size = 330;
-    const cx = 165;
-    const cy = 165;
-    const radius = 104;
-    const max = Math.max(1, ...data.map(item => item.value));
-
-    if (!data.length) {
-      return `
-        <div class="cap-month-radial-card">
-          <h4>${html(title)}</h4>
-          <div class="cap-month-empty">${html(emptyText)}</div>
-        </div>
-      `;
-    }
-
-    const points = data.map((item, index) => {
-      const angle = (-90 + (360 / data.length) * index) * Math.PI / 180;
-      const r = 22 + (item.value / max) * radius;
-      const x = cx + Math.cos(angle) * r;
-      const y = cy + Math.sin(angle) * r;
-
-      const lx = cx + Math.cos(angle) * (radius + 42);
-      const ly = cy + Math.sin(angle) * (radius + 42);
-
-      return {
-        ...item,
-        x,
-        y,
-        lx,
-        ly,
-        angle,
-        percent: Math.round((item.value / totalItems) * 100)
-      };
-    });
-
-    const polygon = points.map(p => `${p.x.toFixed(2)},${p.y.toFixed(2)}`).join(" ");
-
-    return `
-      <div class="cap-month-radial-card">
-        <h4>${html(title)}</h4>
-
-        <svg class="cap-month-radial-svg" viewBox="0 0 ${size} ${size}" aria-hidden="true">
-          ${[0.25, 0.5, 0.75, 1].map(scale => `
-            <circle class="cap-month-radial-grid" cx="${cx}" cy="${cy}" r="${radius * scale}" />
-          `).join("")}
-
-          ${points.map(p => `
-            <line class="cap-month-radial-axis" x1="${cx}" y1="${cy}" x2="${p.lx}" y2="${p.ly}" />
-          `).join("")}
-
-          <polygon class="cap-month-radial-fill" points="${polygon}" />
-          <polyline class="cap-month-radial-line" points="${polygon} ${points[0].x.toFixed(2)},${points[0].y.toFixed(2)}" />
-
-          ${points.map(p => `
-            <circle class="cap-month-radial-point" cx="${p.x}" cy="${p.y}" r="4.7">
-              <title>${html(p.label)}: ${p.value}</title>
-            </circle>
-          `).join("")}
-
-          ${points.map(p => {
-            const shortLabel = p.label.length > 14 ? p.label.slice(0, 13) + "…" : p.label;
-            const anchor = p.lx > cx + 8 ? "start" : p.lx < cx - 8 ? "end" : "middle";
-            return `
-              <text class="cap-month-radial-label"
-                    x="${p.lx}"
-                    y="${p.ly - 2}"
-                    text-anchor="${anchor}">
-                <tspan x="${p.lx}" dy="0">${html(shortLabel)}</tspan>
-                <tspan class="cap-month-radial-percent" x="${p.lx}" dy="13">${p.percent}%</tspan>
-              </text>
-            `;
-          }).join("")}
-        </svg>
-
-        <div class="cap-month-radial-list">
-          ${data.slice(0, 5).map(item => `
-            <div>
-              <span>
-                <b>${html(item.label)}</b>
-                <small>${Math.round((item.value / totalItems) * 100)}% del total</small>
-              </span>
-              <strong>${item.value}</strong>
-            </div>
-          `).join("")}
-        </div>
-      </div>
-    `;
-  }
-
-  function renderMonthDashboard(chartEl, monthIndex, rows, keys) {
-    const dateKey = keys.dataInici || "data_inici";
-    const categoryKey = keys.categoria || "categoria";
-    const districtKey = keys.districte || "districte";
-    const modalitatKey = keys.modalitat || "modalitat";
-    const entradaKey = keys.entrada || "entrada";
-    const responsableKey = keys.responsable || "encarregada";
-
-    const monthRows = rows.filter(row => {
-      const date = parseDate(row[dateKey]);
-      return date && date.getMonth() === monthIndex;
-    });
-
-    const total = monthRows.length;
-
-    const categories = countBy(monthRows, categoryKey, normCategory);
-    const districtes = countBy(monthRows, districtKey, norm);
-    const modalitats = countBy(monthRows, modalitatKey, norm);
-    const entrades = countBy(monthRows, entradaKey, normEntrada);
-    const responsables = countBy(monthRows, responsableKey, norm);
-
-    const mainModalitat = modalitats[0]?.label || "—";
-    const mainEntrada = entrades[0]?.label || "—";
-    const mainResponsable = responsables[0]?.label || "—";
-
-    const dashboard = chartEl.querySelector("[data-cap-month-dashboard]");
-    if (!dashboard) return;
-
-    chartEl.querySelectorAll(".cap-month-v3-month-tab").forEach(tab => {
-      tab.classList.toggle("is-selected", Number(tab.dataset.monthIndex) === monthIndex);
-    });
-
-    dashboard.innerHTML = `
-      <div class="cap-month-detail-card">
-        <div class="cap-month-detail-head">
-          <div>
-            <span>Dashboard mensual</span>
-            <h3>${html(MONTHS_FULL[monthIndex])}</h3>
-          </div>
-
-          <button class="cap-month-detail-close" type="button" data-cap-month-close>×</button>
-        </div>
-
-        <div class="cap-month-detail-kpis">
-          <div>
-            <strong>${total}</strong>
-            <span>Passis del mes</span>
-          </div>
-
-          <div>
-            <strong>${categories.length}</strong>
-            <span>Categories diferents</span>
-          </div>
-
-          <div>
-            <strong>${districtes.length}</strong>
-            <span>Districtes diferents</span>
-          </div>
-
-        </div>
-
-        <div class="cap-month-detail-main">
-          ${radialChart("Categories", categories, "Sense categories aquest mes")}
-          ${radialChart("Districtes", districtes, "Sense districtes aquest mes")}
-        </div>
-
-        <div class="cap-month-detail-bottom">
-          <div>
-            <h4>Modalitats</h4>
-            <div class="cap-month-pills">
-              ${modalitats.map(item => `
-                <span>${html(item.label)} <strong>${item.value}</strong></span>
-              `).join("") || "<em>Sense dades</em>"}
-            </div>
-          </div>
-
-          <div>
-            <h4>Tipus d’entrada</h4>
-            <div class="cap-month-pills">
-              ${entrades.map(item => `
-                <span>${html(item.label)} <strong>${item.value}</strong></span>
-              `).join("") || "<em>Sense dades</em>"}
-            </div>
-          </div>
-        </div>
-      </div>
-    `;
-
-    const closeBtn = dashboard.querySelector("[data-cap-month-close]");
-    if (closeBtn) {
-      closeBtn.addEventListener("click", () => {
-        dashboard.innerHTML = "";
-        chartEl.querySelectorAll(".cap-month-v3-month-tab").forEach(tab => tab.classList.remove("is-selected"));
-      });
-    }
-  }
-
-  async function renderMonthChartClickable() {
-    const chartEl = findMonthChart();
-    if (!chartEl) return;
-
-    const { rows, keys } = await loadRows();
-
-    const dateKey = keys.dataInici || "data_inici";
-
-    const passisPerMes = Array.from({ length: 12 }, () => 0);
-
-    rows.forEach(row => {
-      const date = parseDate(row[dateKey]);
-      if (!date) return;
-      passisPerMes[date.getMonth()] += 1;
-    });
-
-    const totalPassis = rows.length;
-    const maxPassis = Math.max(1, ...passisPerMes);
-
-    const tickStep = maxPassis > 600 ? 500 : 100;
-    const maxY = Math.max(tickStep, Math.ceil(maxPassis / tickStep) * tickStep);
-
-    const width = 1080;
-    const height = 430;
-
-    const padLeft = 72;
-    const padRight = 42;
-    const padTop = 46;
-    const padBottom = 62;
-
-    const plotW = width - padLeft - padRight;
-    const plotH = height - padTop - padBottom;
-
-    const xStep = plotW / 11;
-    const bottomY = padTop + plotH;
-
-    const points = passisPerMes.map((value, index) => ({
-      month: MONTHS_FULL[index],
-      monthShort: MONTHS_SHORT[index],
-      value,
-      x: padLeft + xStep * index,
-      y: bottomY - (value / maxY) * plotH
-    }));
-
-    const line = smoothPath(points);
-
-    const area = `
-      ${line}
-      L ${points[points.length - 1].x.toFixed(2)} ${bottomY}
-      L ${points[0].x.toFixed(2)} ${bottomY}
-      Z
-    `;
-
-    const yTicks = [];
-    for (let v = 0; v <= maxY; v += tickStep) {
-      yTicks.push(v);
-    }
-
-    const peak = Math.max(...passisPerMes);
-    const peakIndex = passisPerMes.indexOf(peak);
-    const average = Math.round(totalPassis / 12);
-
-    chartEl.innerHTML = `
-      <div class="cap-month-chart-v3">
-        <div class="cap-month-v3-head">
-          <div class="cap-month-v3-kpis">
-            <div>
-              <strong>${totalPassis}</strong>
-              <span>PASSIS TOTALS</span>
-            </div>
-
-            <div>
-              <strong>${peak}</strong>
-              <span>PIC MENSUAL · ${MONTHS_FULL[peakIndex].toUpperCase()}</span>
-            </div>
-
-            <div class="is-small">
-              <strong>${average}</strong>
-              <span>MITJANA / MES</span>
-            </div>
-          </div>
-        </div>
-
-        <div class="cap-month-v3-svg-wrap">
-          <svg class="cap-month-v3-svg" viewBox="0 0 ${width} ${height}" preserveAspectRatio="none" aria-label="Passis per mes">
-            <defs>
-              <linearGradient id="capYellowLineV3" x1="0" x2="1" y1="0" y2="0">
-                <stop offset="0%" stop-color="rgba(255,228,92,0.34)" />
-                <stop offset="48%" stop-color="rgba(255,228,92,1)" />
-                <stop offset="100%" stop-color="rgba(255,228,92,0.72)" />
-              </linearGradient>
-
-              <linearGradient id="capYellowAreaV3" x1="0" x2="0" y1="0" y2="1">
-                <stop offset="0%" stop-color="rgba(255,228,92,0.34)" />
-                <stop offset="45%" stop-color="rgba(255,228,92,0.12)" />
-                <stop offset="100%" stop-color="rgba(255,228,92,0)" />
-              </linearGradient>
-            </defs>
-
-            ${yTicks.map(v => {
-              const y = bottomY - (v / maxY) * plotH;
-              return `
-                <line class="cap-month-v3-grid" x1="${padLeft}" y1="${y}" x2="${width - padRight}" y2="${y}" />
-                <text class="cap-month-v3-axis-y" x="${padLeft - 18}" y="${y + 4}" text-anchor="end">${v}</text>
-              `;
-            }).join("")}
-
-            <path class="cap-month-v3-area" d="${area}" />
-            <path class="cap-month-v3-line-yellow" d="${line}" />
-
-            ${points.map(p => `
-              <g class="cap-month-point cap-month-point-passes"
-                 data-series="Passis"
-                 data-month="${p.month}"
-                 data-value="${p.value}"
-                 transform="translate(${p.x}, ${p.y})">
-                <circle r="5.8"></circle>
-                <circle r="14"></circle>
-              </g>
-            `).join("")}
-
-            ${points.map((p, index) => `
-              <g class="cap-month-v3-month-tab"
-                 data-month-index="${index}"
-                 transform="translate(${p.x}, ${height - 24})">
-                <rect x="-26" y="-17" width="52" height="30" rx="15"></rect>
-                <text text-anchor="middle" y="4">${p.monthShort}</text>
-              </g>
-            `).join("")}
-          </svg>
-        </div>
-
-        <div class="cap-month-v3-legend">
-          <div>
-            <i></i>
-            <span><strong>Passis per mes</strong> · clica un mes per veure el dashboard mensual</span>
-          </div>
-        </div>
-
-        <div class="cap-month-dashboard-mount" data-cap-month-dashboard></div>
-      </div>
-    `;
-
-    installTooltip(chartEl);
-
-    chartEl.querySelectorAll(".cap-month-v3-month-tab").forEach(tab => {
-      tab.addEventListener("click", () => {
-        const monthIndex = Number(tab.dataset.monthIndex);
-        renderMonthDashboard(chartEl, monthIndex, rows, keys);
-      });
-    });
-  }
-
-  function scheduleClickableMonthChart() {
-    setTimeout(renderMonthChartClickable, 900);
-    setTimeout(renderMonthChartClickable, 2200);
-    setTimeout(renderMonthChartClickable, 3600);
-  }
-
-  document.addEventListener("DOMContentLoaded", scheduleClickableMonthChart);
-  window.addEventListener("load", scheduleClickableMonthChart);
-
-  document.addEventListener("click", event => {
-    const target = event.target.closest("button, a, .nav-item, .sidebar-item");
-    if (!target) return;
-
-    const text = norm(target.textContent).toLowerCase();
-
-    if (text.includes("total") || text.includes("passis")) {
-      scheduleClickableMonthChart();
-    }
-  });
-})();
-
 /* === CAPITALITAT_CALENDAR_ANNUAL_MATRIX_START === */
 
 /* ============================================================
@@ -5281,231 +4429,20 @@ mostrarExperienciaCapitalitatV5 = function() {
   });
 })();
 
-/* === CAPITALITAT_YEAR_CHART_ELEGANT_V1 === */
+
+/* === CAPITALITAT_CLEAN_SINGLE_YEAR_CHART === */
 
 (() => {
-  const MONTHS_CAT = [
-    "Gen", "Feb", "Març", "Abr", "Maig", "Juny",
-    "Jul", "Ago", "Set", "Oct", "Nov", "Des"
-  ];
+  const MONTHS = ["GEN", "FEB", "MAR", "ABR", "MAI", "JUN", "JUL", "AGO", "SET", "OCT", "NOV", "DES"];
+  const MONTHS_FULL = ["Gener", "Febrer", "Març", "Abril", "Maig", "Juny", "Juliol", "Agost", "Setembre", "Octubre", "Novembre", "Desembre"];
+  let selectedMonth = 5;
+  let observerStarted = false;
 
-  function parseDateDMY_chart(value) {
-    if (!value) return null;
-    const str = String(value).trim();
-    const m = str.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
-    if (!m) return null;
-    const d = Number(m[1]);
-    const mo = Number(m[2]) - 1;
-    const y = Number(m[3]);
-    const dt = new Date(y, mo, d);
-    return isNaN(dt.getTime()) ? null : dt;
+  function norm(value) {
+    return String(value ?? "").replace(/\u00a0/g, " ").replace(/\s+/g, " ").trim();
   }
 
-  function getRows_chart(data) {
-    if (Array.isArray(data)) return data;
-    if (Array.isArray(data.rows)) return data.rows;
-    return [];
-  }
-
-  function smoothPath_chart(points) {
-    if (!points.length) return "";
-    if (points.length === 1) return `M ${points[0].x} ${points[0].y}`;
-
-    let d = `M ${points[0].x} ${points[0].y}`;
-    for (let i = 0; i < points.length - 1; i++) {
-      const p0 = points[i === 0 ? i : i - 1];
-      const p1 = points[i];
-      const p2 = points[i + 1];
-      const p3 = points[i + 2] || p2;
-
-      const cp1x = p1.x + (p2.x - p0.x) / 6;
-      const cp1y = p1.y + (p2.y - p0.y) / 6;
-      const cp2x = p2.x - (p3.x - p1.x) / 6;
-      const cp2y = p2.y - (p3.y - p1.y) / 6;
-
-      d += ` C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${p2.x} ${p2.y}`;
-    }
-    return d;
-  }
-
-  function buildYearChartSvg(monthCounts) {
-    const width = 920;
-    const height = 330;
-
-    const margin = { top: 34, right: 28, bottom: 52, left: 48 };
-    const innerW = width - margin.left - margin.right;
-    const innerH = height - margin.top - margin.bottom;
-
-    const maxValueRaw = Math.max(...monthCounts, 10);
-    const roundedMax = Math.ceil(maxValueRaw / 100) * 100 || 100;
-    const steps = 4;
-    const yStep = roundedMax / steps;
-
-    const x = (i) => margin.left + (innerW / 11) * i;
-    const y = (v) => margin.top + innerH - (v / roundedMax) * innerH;
-
-    const points = monthCounts.map((value, i) => ({ x: x(i), y: y(value), value, month: MONTHS_CAT[i] }));
-    const path = smoothPath_chart(points);
-
-    const areaPath = `${path} L ${points[points.length - 1].x} ${margin.top + innerH} L ${points[0].x} ${margin.top + innerH} Z`;
-
-    const gridLines = [];
-    for (let i = 0; i <= steps; i++) {
-      const value = i * yStep;
-      const yy = y(value);
-      gridLines.push(`
-        <line x1="${margin.left}" y1="${yy}" x2="${width - margin.right}" y2="${yy}" class="cap-year-grid-line" />
-        <text x="${margin.left - 10}" y="${yy + 4}" text-anchor="end" class="cap-year-axis-label">${Math.round(value)}</text>
-      `);
-    }
-
-    const xLabels = points.map((p) => `
-      <text x="${p.x}" y="${height - 18}" text-anchor="middle" class="cap-year-axis-label x">${p.month}</text>
-    `).join("");
-
-    const dots = points.map((p, idx) => `
-      <g class="cap-year-point-group" transform="translate(${p.x}, ${p.y})">
-        <circle r="4.5" class="cap-year-point-dot"></circle>
-        <circle r="10" class="cap-year-point-hit"></circle>
-        <title>${p.month}: ${p.value} passis</title>
-      </g>
-    `).join("");
-
-    return `
-      <div class="cap-year-chart-head">
-        <div>
-          <div class="cap-year-chart-kicker">Activitats al llarg de l'any</div>
-          <div class="cap-year-chart-sub">Distribució mensual de passis del full INSCRIPCIONS.</div>
-        </div>
-        <div class="cap-year-chart-total">
-          <strong>${monthCounts.reduce((a,b) => a+b, 0)}</strong>
-          <span>passis totals</span>
-        </div>
-      </div>
-
-      <div class="cap-year-chart-shell">
-        <svg viewBox="0 0 ${width} ${height}" class="cap-year-chart-svg" role="img" aria-label="Passis per mes">
-          <defs>
-            <linearGradient id="capYearAreaFill" x1="0" x2="0" y1="0" y2="1">
-              <stop offset="0%" stop-color="rgba(30,30,34,0.16)" />
-              <stop offset="100%" stop-color="rgba(30,30,34,0.01)" />
-            </linearGradient>
-          </defs>
-
-          ${gridLines.join("")}
-
-          <path d="${areaPath}" class="cap-year-area"></path>
-          <path d="${path}" class="cap-year-line-shadow"></path>
-          <path d="${path}" class="cap-year-line-main"></path>
-
-          ${dots}
-          ${xLabels}
-        </svg>
-      </div>
-
-      <div class="cap-year-chart-legend">
-        <span class="legend-item">
-          <i class="legend-line-main"></i>
-          Passis per mes
-        </span>
-        <span class="legend-item">
-          <i class="legend-line-grid"></i>
-          Escala mensual
-        </span>
-      </div>
-    `;
-  }
-
-  async function renderElegantYearChart() {
-    const totalView = document.querySelector("#view-total");
-    if (!totalView) return;
-
-    const response = await fetch(`data/inscripcions.json?t=${Date.now()}`);
-    if (!response.ok) return;
-
-    const data = await response.json();
-    const rows = getRows_chart(data);
-    const keys = data.columnKeys || {};
-    const startKey = keys.dataInici || "data_inici";
-
-    const monthCounts = Array.from({ length: 12 }, () => 0);
-
-    rows.forEach(row => {
-      const dt = parseDateDMY_chart(row[startKey]);
-      if (!dt) return;
-      monthCounts[dt.getMonth()] += 1;
-    });
-
-    const possibleContainers = [
-      totalView.querySelector(".cap-month-chart-v3"),
-      totalView.querySelector("#chart-any-total"),
-      totalView.querySelector("[data-chart='year-total']"),
-      totalView.querySelector(".capitalitat-year-chart")
-    ].filter(Boolean);
-
-    let container = possibleContainers[0];
-
-    if (!container) {
-      const chartsRow = totalView.querySelector(".capitalitat-five-charts-row");
-      if (!chartsRow) return;
-
-      container = document.createElement("section");
-      container.className = "cap-month-chart-v3 cap-year-chart-card";
-      chartsRow.insertAdjacentElement("afterend", container);
-    }
-
-    container.classList.add("cap-year-chart-card");
-    container.innerHTML = buildYearChartSvg(monthCounts);
-  }
-
-  function scheduleElegantYearChart() {
-    setTimeout(renderElegantYearChart, 300);
-    setTimeout(renderElegantYearChart, 1200);
-    setTimeout(renderElegantYearChart, 2600);
-  }
-
-  document.addEventListener("DOMContentLoaded", scheduleElegantYearChart);
-  window.addEventListener("load", scheduleElegantYearChart);
-
-  document.addEventListener("click", (event) => {
-    const btn = event.target.closest("button, .nav-pill, [data-view]");
-    if (!btn) return;
-    const txt = String(btn.textContent || "").toLowerCase();
-    if (txt.includes("total") || txt.includes("passis")) {
-      scheduleElegantYearChart();
-    }
-  });
-})();
-
-/* === CAPITALITAT_YEAR_CHART_BLACK_SINGLE_V2 === */
-
-(() => {
-  const MONTHS = ["GEN", "FEB", "MARÇ", "ABR", "MAIG", "JUNY", "JUL", "AGO", "SET", "OCT", "NOV", "DES"];
-  let YEAR_CHART_STATE = {
-    selectedMonth: new Date().getMonth(),
-    rows: [],
-    keys: {}
-  };
-
-  function parseDateDMY_blackYear(value) {
-    if (!value) return null;
-    const str = String(value).trim();
-    const m = str.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
-    if (!m) return null;
-    const d = Number(m[1]);
-    const mo = Number(m[2]) - 1;
-    const y = Number(m[3]);
-    const dt = new Date(y, mo, d);
-    return isNaN(dt.getTime()) ? null : dt;
-  }
-
-  function getRows_blackYear(data) {
-    if (Array.isArray(data)) return data;
-    if (Array.isArray(data.rows)) return data.rows;
-    return [];
-  }
-
-  function esc_blackYear(value) {
+  function esc(value) {
     return String(value ?? "")
       .replaceAll("&", "&amp;")
       .replaceAll("<", "&lt;")
@@ -5514,342 +4451,47 @@ mostrarExperienciaCapitalitatV5 = function() {
       .replaceAll("'", "&#039;");
   }
 
-  function smoothPath_blackYear(points) {
-    if (!points.length) return "";
-    if (points.length === 1) return `M ${points[0].x} ${points[0].y}`;
-
-    let d = `M ${points[0].x} ${points[0].y}`;
-
-    for (let i = 0; i < points.length - 1; i++) {
-      const p0 = points[i === 0 ? i : i - 1];
-      const p1 = points[i];
-      const p2 = points[i + 1];
-      const p3 = points[i + 2] || p2;
-
-      const cp1x = p1.x + (p2.x - p0.x) / 6;
-      const cp1y = p1.y + (p2.y - p0.y) / 6;
-      const cp2x = p2.x - (p3.x - p1.x) / 6;
-      const cp2y = p2.y - (p3.y - p1.y) / 6;
-
-      d += ` C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${p2.x} ${p2.y}`;
-    }
-
-    return d;
-  }
-
-  function buildGhostSeries_blackYear(values) {
-    const g1 = values.map((v, i) => Math.max(0, Math.round((v * 0.78) + (Math.sin(i * 0.9) * 22) + 20)));
-    const g2 = values.map((v, i) => Math.max(0, Math.round((v * 0.62) + (Math.cos(i * 0.7) * 18) + 35)));
-    const g3 = values.map((v, i) => Math.max(0, Math.round((v * 0.52) + (Math.sin(i * 1.15) * 16) + 28)));
-    return [g1, g2, g3];
-  }
-
-  function buildPoints_blackYear(values, width, height, margin, maxValue) {
-    const innerW = width - margin.left - margin.right;
-    const innerH = height - margin.top - margin.bottom;
-
-    const x = (i) => margin.left + (innerW / 11) * i;
-    const y = (v) => margin.top + innerH - (v / maxValue) * innerH;
-
-    return values.map((value, i) => ({
-      x: x(i),
-      y: y(value),
-      value,
-      month: MONTHS[i],
-      idx: i
-    }));
-  }
-
-  function buildYearSvg_blackYear(values, selectedMonth) {
-    const width = 1080;
-    const height = 370;
-    const margin = { top: 36, right: 32, bottom: 62, left: 56 };
-    const maxValueRaw = Math.max(...values, 10);
-    const maxValue = Math.ceil(maxValueRaw / 100) * 100 || 100;
-
-    const mainPoints = buildPoints_blackYear(values, width, height, margin, maxValue);
-    const mainPath = smoothPath_blackYear(mainPoints);
-
-    const ghostSeries = buildGhostSeries_blackYear(values);
-    const ghostPaths = ghostSeries.map(series => {
-      const pts = buildPoints_blackYear(series, width, height, margin, maxValue);
-      return smoothPath_blackYear(pts);
-    });
-
-    const selected = mainPoints[selectedMonth] || mainPoints[0];
-    const innerH = height - margin.top - margin.bottom;
-    const baseY = margin.top + innerH;
-
-    const gridValues = [0.25, 0.50, 0.75, 1.00].map(r => Math.round(maxValue * r));
-    const gridLines = gridValues.map(value => {
-      const y = margin.top + innerH - (value / maxValue) * innerH;
-      return `
-        <line x1="${margin.left}" y1="${y}" x2="${width - margin.right}" y2="${y}" class="cap-year-black-grid" />
-        <text x="${margin.left - 10}" y="${y + 4}" text-anchor="end" class="cap-year-black-ylabel">${Math.round((value / maxValue) * 100)}%</text>
-      `;
-    }).join("");
-
-    const monthGroups = mainPoints.map(p => `
-      <g class="cap-year-black-month-hit ${p.idx === selectedMonth ? 'is-active' : ''}" data-month-index="${p.idx}">
-        <rect x="${p.x - 34}" y="${baseY + 10}" width="68" height="28" rx="10" fill="transparent"></rect>
-        <text x="${p.x}" y="${baseY + 30}" text-anchor="middle" class="cap-year-black-xlabel">${p.month}</text>
-      </g>
-    `).join("");
-
-    const hitTargets = mainPoints.map(p => `
-      <g class="cap-year-black-point-hit" data-month-index="${p.idx}">
-        <rect x="${p.x - 26}" y="${margin.top}" width="52" height="${baseY - margin.top + 16}" fill="transparent"></rect>
-      </g>
-    `).join("");
-
-    return `
-      <svg viewBox="0 0 ${width} ${height}" class="cap-year-black-svg" role="img" aria-label="Activitats al llarg de l'any">
-        ${gridLines}
-
-        ${ghostPaths.map(d => `<path d="${d}" class="cap-year-black-ghost"></path>`).join("")}
-
-        <path d="${mainPath}" class="cap-year-black-main"></path>
-
-        <line
-          x1="${selected.x}" y1="${selected.y}"
-          x2="${selected.x}" y2="${baseY}"
-          class="cap-year-black-vertical"
-        ></line>
-
-        <circle
-          cx="${selected.x}" cy="${selected.y}" r="5.2"
-          class="cap-year-black-selected-dot"
-        ></circle>
-
-        ${hitTargets}
-        ${monthGroups}
-      </svg>
-    `;
-  }
-
-  function buildYearCard_blackYear(values, selectedMonth) {
-    const total = values.reduce((a, b) => a + b, 0);
-    const peak = Math.max(...values);
-    const peakMonth = MONTHS[values.indexOf(peak)];
-    const avg = Math.round(total / 12);
-
-    return `
-      <div class="cap-year-black-head">
-        <div>
-          <div class="cap-year-black-title">Activitats al llarg de l'any</div>
-          <div class="cap-year-black-sub">Distribució mensual de totes les files segons la data d'inici.</div>
-        </div>
-      </div>
-
-      <div class="cap-year-black-inner">
-        <div class="cap-year-black-stats">
-          <div class="cap-year-black-stat">
-            <strong>${total}</strong>
-            <span>PASSIS TOTALS</span>
-          </div>
-          <div class="cap-year-black-stat">
-            <strong>${peak}</strong>
-            <span>PIC MENSUAL · ${peakMonth}</span>
-          </div>
-          <div class="cap-year-black-stat">
-            <strong>${avg}</strong>
-            <span>MITJANA / MES</span>
-          </div>
-        </div>
-
-        ${buildYearSvg_blackYear(values, selectedMonth)}
-
-        <div class="cap-year-black-legend">
-          <span class="cap-year-black-legend-item">
-            <i class="legend-main"></i>
-            Passis per mes · clica un mes per veure el dashboard mensual
-          </span>
-        </div>
-      </div>
-    `;
-  }
-
-  function getMonthlyCounts_blackYear(rows, startKey) {
-    const counts = Array.from({ length: 12 }, () => 0);
-    rows.forEach(row => {
-      const dt = parseDateDMY_blackYear(row[startKey]);
-      if (!dt) return;
-      counts[dt.getMonth()] += 1;
-    });
-    return counts;
-  }
-
-  function removeExtraYearCharts_blackYear(totalView, keepEl) {
-    totalView.querySelectorAll(".cap-year-chart-card, #cap-year-chart-elegant").forEach(el => {
-      if (el !== keepEl) el.remove();
-    });
-  }
-
-  function openMonthDashboard_blackYear(monthIndex) {
-    document.dispatchEvent(new CustomEvent("capitalitat:month-selected", {
-      detail: { monthIndex }
-    }));
-
-    if (typeof window.renderMonthDashboard === "function") {
-      try { window.renderMonthDashboard(monthIndex); } catch (e) {}
-    }
-    if (typeof window.renderMonthlyDashboard === "function") {
-      try { window.renderMonthlyDashboard(monthIndex); } catch (e) {}
-    }
-    if (typeof window.showMonthDashboard === "function") {
-      try { window.showMonthDashboard(monthIndex); } catch (e) {}
-    }
-    if (typeof window.selectMonthDashboard === "function") {
-      try { window.selectMonthDashboard(monthIndex); } catch (e) {}
-    }
-  }
-
-  function bindChartClicks_blackYear(host) {
-    host.querySelectorAll("[data-month-index]").forEach(el => {
-      el.addEventListener("click", () => {
-        const idx = Number(el.getAttribute("data-month-index"));
-        YEAR_CHART_STATE.selectedMonth = idx;
-        renderElegantSingleYearChart_blackYear();
-        openMonthDashboard_blackYear(idx);
-      });
-    });
-  }
-
-  async function renderElegantSingleYearChart_blackYear() {
-    const totalView = document.querySelector("#view-total");
-    if (!totalView) return;
-
-    const response = await fetch(`data/inscripcions.json?t=${Date.now()}`);
-    if (!response.ok) return;
-
-    const data = await response.json();
-    const rows = getRows_blackYear(data);
-    const keys = data.columnKeys || {};
-    const startKey = keys.dataInici || "data_inici";
-
-    YEAR_CHART_STATE.rows = rows;
-    YEAR_CHART_STATE.keys = keys;
-
-    const values = getMonthlyCounts_blackYear(rows, startKey);
-
-    // elimina previews o versions petites anteriors
-    totalView.querySelectorAll(".cap-year-chart-preview, .cap-year-chart-small, .cap-year-chart-shell-small").forEach(el => el.remove());
-
-    let host = totalView.querySelector(".cap-month-chart-v3");
-    if (!host) {
-      const chartsRow = totalView.querySelector(".capitalitat-five-charts-row");
-      if (!chartsRow) return;
-      host = document.createElement("section");
-      host.className = "cap-month-chart-v3";
-      chartsRow.insertAdjacentElement("afterend", host);
-    }
-
-    host.id = "cap-year-chart-elegant";
-    host.classList.add("cap-year-chart-card", "cap-year-black-card");
-    host.innerHTML = buildYearCard_blackYear(values, YEAR_CHART_STATE.selectedMonth);
-
-    removeExtraYearCharts_blackYear(totalView, host);
-    bindChartClicks_blackYear(host);
-  }
-
-  function scheduleElegantSingleYearChart_blackYear() {
-    setTimeout(renderElegantSingleYearChart_blackYear, 300);
-    setTimeout(renderElegantSingleYearChart_blackYear, 1200);
-    setTimeout(renderElegantSingleYearChart_blackYear, 2600);
-  }
-
-  document.addEventListener("DOMContentLoaded", scheduleElegantSingleYearChart_blackYear);
-  window.addEventListener("load", scheduleElegantSingleYearChart_blackYear);
-
-  document.addEventListener("click", (event) => {
-    const btn = event.target.closest("button, .nav-pill, [data-view]");
-    if (!btn) return;
-    const txt = String(btn.textContent || "").toLowerCase();
-    if (txt.includes("total") || txt.includes("passis")) {
-      scheduleElegantSingleYearChart_blackYear();
-    }
-  });
-})();
-
-/* === CAPITALITAT_REMOVE_BIG_RED_YEAR_CHART === */
-
-(() => {
-  function removeBigRedYearChart() {
-    const totalView = document.querySelector("#view-total");
-    if (!totalView) return;
-
-    // Esborra qualsevol gràfic anual antic/vermell.
-    totalView.querySelectorAll(
-      ".cap-month-chart-v3, .cap-month-chart-v2, .cap-month-chart-premium, .cap-month-chart, .cap-year-chart-card"
-    ).forEach(card => {
-      const hasBlackChart = card.querySelector(".cap-year-black-main, .cap-year-line-main");
-      const hasOldRedChart = card.querySelector(".cap-month-v3-line-yellow, .cap-month-v2-line-yellow, .cap-month-v3-area, .cap-month-v2-area");
-
-      const text = String(card.textContent || "").toLowerCase();
-      const isYearChart = text.includes("activitats al llarg de l'any") || text.includes("activitats al llarg de l’any");
-
-      // Manté el gràfic negre petit. Esborra el gran vermell.
-      if (isYearChart && hasOldRedChart && !hasBlackChart) {
-        card.remove();
-      }
-    });
-
-    // Per si el gràfic vermell queda dins un wrapper diferent.
-    totalView.querySelectorAll(".cap-month-v3-line-yellow, .cap-month-v2-line-yellow").forEach(line => {
-      const card = line.closest(".cap-month-chart-v3, .cap-month-chart-v2, .cap-month-chart-premium, .card, .panel, section, article");
-      if (!card) return;
-
-      const hasBlackChart = card.querySelector(".cap-year-black-main, .cap-year-line-main");
-      if (!hasBlackChart) {
-        card.remove();
-      }
-    });
-  }
-
-  function scheduleRemoveBigRedYearChart() {
-    setTimeout(removeBigRedYearChart, 200);
-    setTimeout(removeBigRedYearChart, 800);
-    setTimeout(removeBigRedYearChart, 1600);
-    setTimeout(removeBigRedYearChart, 3000);
-  }
-
-  document.addEventListener("DOMContentLoaded", scheduleRemoveBigRedYearChart);
-  window.addEventListener("load", scheduleRemoveBigRedYearChart);
-
-  document.addEventListener("click", event => {
-    const el = event.target.closest("button, .nav-pill, [data-view], .sidebar-item, .nav-item");
-    if (!el) return;
-
-    const txt = String(el.textContent || "").toLowerCase();
-
-    if (txt.includes("total") || txt.includes("passis")) {
-      scheduleRemoveBigRedYearChart();
-    }
-  });
-})();
-
-/* === CAPITALITAT_YEAR_CHART_FINAL_SINGLE_REPLACE === */
-
-(() => {
-  const MONTHS = ["GEN", "FEB", "MAR", "ABR", "MAI", "JUN", "JUL", "AGO", "SET", "OCT", "NOV", "DES"];
-  let selectedMonthFinal = new Date().getMonth();
-
-  function parseDateFinal(value) {
-    const raw = String(value ?? "").trim();
-    const match = raw.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+  function parseDate(value) {
+    const raw = norm(value);
+    const match = raw.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/);
     if (!match) return null;
-
     const date = new Date(Number(match[3]), Number(match[2]) - 1, Number(match[1]));
     return isNaN(date.getTime()) ? null : date;
   }
 
-  function getRowsFinal(data) {
+  function getRows(data) {
     if (Array.isArray(data)) return data;
     if (Array.isArray(data.rows)) return data.rows;
     return [];
   }
 
-  function smoothPathFinal(points) {
+  function cleanCategory(value) {
+    const v = norm(value);
+    if (!v) return "Sense categoria";
+    const low = v.toLowerCase();
+
+    if (low === "rutes" || low === "ruta") return "Rutes";
+    if (low.includes("debat")) return "Debats i conferències";
+    if (low.includes("expos")) return "Exposicions";
+    if (low.includes("taller")) return "Tallers";
+
+    return v;
+  }
+
+  function countBy(rows, key, cleaner = norm) {
+    const map = new Map();
+
+    rows.forEach(row => {
+      const label = cleaner(row[key]) || "Sense informació";
+      map.set(label, (map.get(label) || 0) + 1);
+    });
+
+    return [...map.entries()]
+      .map(([label, value]) => ({ label, value }))
+      .sort((a, b) => b.value - a.value || a.label.localeCompare(b.label, "ca"));
+  }
+
+  function smoothPath(points) {
     if (!points.length) return "";
     let d = `M ${points[0].x} ${points[0].y}`;
 
@@ -5870,7 +4512,7 @@ mostrarExperienciaCapitalitatV5 = function() {
     return d;
   }
 
-  function buildPointsFinal(values, width, height, margin, maxValue) {
+  function buildPoints(values, width, height, margin, maxValue) {
     const innerW = width - margin.left - margin.right;
     const innerH = height - margin.top - margin.bottom;
     const baseY = margin.top + innerH;
@@ -5884,14 +4526,33 @@ mostrarExperienciaCapitalitatV5 = function() {
     }));
   }
 
-  function buildGhostValuesFinal(values, factor, shift) {
+  function ghostValues(values, factor, shift) {
     return values.map((value, index) => {
-      const wave = Math.sin(index * 0.9 + shift) * 18;
-      return Math.max(0, Math.round(value * factor + wave + 24));
+      const wave = Math.sin(index * 0.9 + shift) * 14;
+      return Math.max(0, Math.round(value * factor + wave + 18));
     });
   }
 
-  function buildChartFinal(values) {
+  function removeOldYearCharts() {
+    const totalView = document.querySelector("#view-total");
+    if (!totalView) return;
+
+    totalView.querySelectorAll(
+      "#cap-year-chart-elegant, #cap-year-final-card, .cap-year-black-card, .cap-year-chart-card, .cap-month-chart-v3, .cap-month-chart-v2, .cap-month-chart-premium, .cap-month-chart"
+    ).forEach(el => {
+      if (el.id === "cap-clean-year-card") return;
+
+      const text = norm(el.textContent).toLowerCase();
+      const hasYearChart =
+        text.includes("activitats al llarg de l'any") ||
+        text.includes("activitats al llarg de l’any") ||
+        el.querySelector(".cap-month-v3-line-yellow, .cap-year-black-main, .cap-year-line-main, .cap-final-year-main, .cap-clean-year-main");
+
+      if (hasYearChart) el.remove();
+    });
+  }
+
+  function buildChart(values, rows, keys) {
     const width = 1080;
     const height = 370;
     const margin = { top: 34, right: 34, bottom: 64, left: 58 };
@@ -5902,33 +4563,33 @@ mostrarExperienciaCapitalitatV5 = function() {
     const average = Math.round(total / 12);
 
     const maxValue = Math.ceil(Math.max(peak, 100) / 100) * 100;
-    const points = buildPointsFinal(values, width, height, margin, maxValue);
-    const mainPath = smoothPathFinal(points);
+    const points = buildPoints(values, width, height, margin, maxValue);
+    const mainPath = smoothPath(points);
 
-    const ghost1 = smoothPathFinal(buildPointsFinal(buildGhostValuesFinal(values, 0.75, 0.4), width, height, margin, maxValue));
-    const ghost2 = smoothPathFinal(buildPointsFinal(buildGhostValuesFinal(values, 0.55, 1.1), width, height, margin, maxValue));
-    const ghost3 = smoothPathFinal(buildPointsFinal(buildGhostValuesFinal(values, 0.45, 1.8), width, height, margin, maxValue));
+    const ghost1 = smoothPath(buildPoints(ghostValues(values, 0.75, 0.4), width, height, margin, maxValue));
+    const ghost2 = smoothPath(buildPoints(ghostValues(values, 0.55, 1.1), width, height, margin, maxValue));
+    const ghost3 = smoothPath(buildPoints(ghostValues(values, 0.45, 1.8), width, height, margin, maxValue));
 
-    const selected = points[selectedMonthFinal] || points[0];
+    const selected = points[selectedMonth] || points[0];
     const baseY = height - margin.bottom;
 
     const grid = [0.25, 0.50, 0.75, 1].map(ratio => {
       const y = margin.top + (baseY - margin.top) * (1 - ratio);
       return `
-        <line class="cap-final-year-grid" x1="${margin.left}" y1="${y}" x2="${width - margin.right}" y2="${y}" />
-        <text class="cap-final-year-y" x="${margin.left - 12}" y="${y + 4}" text-anchor="end">${Math.round(ratio * 100)}%</text>
+        <line class="cap-clean-year-grid" x1="${margin.left}" y1="${y}" x2="${width - margin.right}" y2="${y}" />
+        <text class="cap-clean-year-y" x="${margin.left - 12}" y="${y + 4}" text-anchor="end">${Math.round(ratio * 100)}%</text>
       `;
     }).join("");
 
     const months = points.map(point => `
-      <g class="cap-final-year-month ${point.index === selectedMonthFinal ? "is-active" : ""}" data-month-index="${point.index}">
+      <g class="cap-clean-year-month ${point.index === selectedMonth ? "is-active" : ""}" data-month-index="${point.index}">
         <rect x="${point.x - 34}" y="${baseY + 14}" width="68" height="30" rx="12" fill="transparent"></rect>
         <text x="${point.x}" y="${baseY + 34}" text-anchor="middle">${point.month}</text>
       </g>
     `).join("");
 
     const clickZones = points.map(point => `
-      <rect class="cap-final-year-click"
+      <rect class="cap-clean-year-click"
             data-month-index="${point.index}"
             x="${point.x - 28}"
             y="${margin.top}"
@@ -5937,8 +4598,20 @@ mostrarExperienciaCapitalitatV5 = function() {
             fill="transparent"></rect>
     `).join("");
 
+    const startKey = keys.dataInici || "data_inici";
+    const categoryKey = keys.categoria || "categoria";
+    const districtKey = keys.districte || "districte";
+
+    const monthRows = rows.filter(row => {
+      const date = parseDate(row[startKey]);
+      return date && date.getMonth() === selectedMonth;
+    });
+
+    const categories = countBy(monthRows, categoryKey, cleanCategory).slice(0, 5);
+    const districtes = countBy(monthRows, districtKey, value => norm(value) || "Sense districte").slice(0, 5);
+
     return `
-      <div class="cap-final-year-head">
+      <div class="cap-clean-year-head">
         <div>
           <span>06</span>
           <h3>Activitats al llarg de l’any</h3>
@@ -5946,8 +4619,8 @@ mostrarExperienciaCapitalitatV5 = function() {
         </div>
       </div>
 
-      <div class="cap-final-year-inner">
-        <div class="cap-final-year-kpis">
+      <div class="cap-clean-year-inner">
+        <div class="cap-clean-year-kpis">
           <div>
             <strong>${total}</strong>
             <span>PASSIS TOTALS</span>
@@ -5962,22 +4635,22 @@ mostrarExperienciaCapitalitatV5 = function() {
           </div>
         </div>
 
-        <svg class="cap-final-year-svg" viewBox="0 0 ${width} ${height}" aria-label="Activitats al llarg de l'any">
+        <svg class="cap-clean-year-svg" viewBox="0 0 ${width} ${height}" aria-label="Activitats al llarg de l'any">
           ${grid}
 
-          <path class="cap-final-year-ghost" d="${ghost1}"></path>
-          <path class="cap-final-year-ghost" d="${ghost2}"></path>
-          <path class="cap-final-year-ghost is-soft" d="${ghost3}"></path>
+          <path class="cap-clean-year-ghost" d="${ghost1}"></path>
+          <path class="cap-clean-year-ghost" d="${ghost2}"></path>
+          <path class="cap-clean-year-ghost is-soft" d="${ghost3}"></path>
 
-          <path class="cap-final-year-main" d="${mainPath}"></path>
+          <path class="cap-clean-year-main" d="${mainPath}"></path>
 
-          <line class="cap-final-year-marker"
+          <line class="cap-clean-year-marker"
                 x1="${selected.x}"
                 y1="${selected.y}"
                 x2="${selected.x}"
                 y2="${baseY}"></line>
 
-          <circle class="cap-final-year-dot"
+          <circle class="cap-clean-year-dot"
                   cx="${selected.x}"
                   cy="${selected.y}"
                   r="5"></circle>
@@ -5986,80 +4659,99 @@ mostrarExperienciaCapitalitatV5 = function() {
           ${months}
         </svg>
 
-        <div class="cap-final-year-legend">
+        <div class="cap-clean-year-legend">
           <span><i></i>Passis per mes · clica un mes per veure el dashboard mensual</span>
+        </div>
+
+        <div class="cap-clean-month-detail">
+          <div>
+            <strong>${MONTHS_FULL[selectedMonth]}</strong>
+            <span>${monthRows.length} passis aquest mes</span>
+          </div>
+          <div>
+            <h4>Categories</h4>
+            ${categories.map(item => `<p><span>${esc(item.label)}</span><b>${item.value}</b></p>`).join("") || "<em>Sense dades</em>"}
+          </div>
+          <div>
+            <h4>Districtes</h4>
+            ${districtes.map(item => `<p><span>${esc(item.label)}</span><b>${item.value}</b></p>`).join("") || "<em>Sense dades</em>"}
+          </div>
         </div>
       </div>
     `;
   }
 
-  async function renderFinalSingleYearChart() {
+  async function renderCleanSingleYearChart() {
     const totalView = document.querySelector("#view-total");
     if (!totalView) return;
+
+    removeOldYearCharts();
 
     const response = await fetch(`data/inscripcions.json?t=${Date.now()}`);
     if (!response.ok) return;
 
     const data = await response.json();
-    const rows = getRowsFinal(data);
+    const rows = getRows(data);
     const keys = data.columnKeys || {};
     const startKey = keys.dataInici || "data_inici";
 
     const values = Array.from({ length: 12 }, () => 0);
 
     rows.forEach(row => {
-      const date = parseDateFinal(row[startKey]);
+      const date = parseDate(row[startKey]);
       if (!date) return;
       values[date.getMonth()] += 1;
     });
 
-    // Esborrem absolutament totes les versions anteriors del gràfic anual.
-    totalView.querySelectorAll(
-      "#cap-year-final-card, #cap-year-chart-elegant, .cap-year-black-card, .cap-year-chart-card, .cap-month-chart-v3, .cap-month-chart-v2, .cap-month-chart-premium, .cap-month-chart"
-    ).forEach(el => {
-      const text = String(el.textContent || "").toLowerCase();
-      if (
-        text.includes("activitats al llarg de l'any") ||
-        text.includes("activitats al llarg de l’any") ||
-        el.querySelector(".cap-month-v3-line-yellow, .cap-year-black-main, .cap-year-line-main, .cap-final-year-main")
-      ) {
-        el.remove();
+    let card = totalView.querySelector("#cap-clean-year-card");
+
+    if (!card) {
+      card = document.createElement("section");
+      card.id = "cap-clean-year-card";
+      card.className = "cap-clean-year-card";
+
+      const chartsRow = totalView.querySelector(".capitalitat-five-charts-row");
+      if (chartsRow) {
+        chartsRow.insertAdjacentElement("afterend", card);
+      } else {
+        totalView.appendChild(card);
       }
-    });
-
-    const card = document.createElement("section");
-    card.id = "cap-year-final-card";
-    card.className = "cap-final-year-card";
-    card.innerHTML = buildChartFinal(values);
-
-    const chartsRow = totalView.querySelector(".capitalitat-five-charts-row");
-
-    if (chartsRow) {
-      chartsRow.insertAdjacentElement("afterend", card);
-    } else {
-      totalView.appendChild(card);
     }
+
+    card.innerHTML = buildChart(values, rows, keys);
 
     card.querySelectorAll("[data-month-index]").forEach(el => {
       el.addEventListener("click", () => {
-        selectedMonthFinal = Number(el.dataset.monthIndex);
-        renderFinalSingleYearChart();
-
-        document.dispatchEvent(new CustomEvent("capitalitat:month-selected", {
-          detail: { monthIndex: selectedMonthFinal }
-        }));
+        selectedMonth = Number(el.dataset.monthIndex);
+        renderCleanSingleYearChart();
       });
     });
+
+    startCleanupObserver();
   }
 
-  function scheduleFinalSingleYearChart() {
-    setTimeout(renderFinalSingleYearChart, 250);
-    setTimeout(renderFinalSingleYearChart, 1000);
-    setTimeout(renderFinalSingleYearChart, 2400);
+  function startCleanupObserver() {
+    if (observerStarted) return;
+    observerStarted = true;
+
+    const totalView = document.querySelector("#view-total");
+    if (!totalView) return;
+
+    const observer = new MutationObserver(() => {
+      removeOldYearCharts();
+    });
+
+    observer.observe(totalView, { childList: true, subtree: true });
   }
 
-  document.addEventListener("DOMContentLoaded", scheduleFinalSingleYearChart);
-  window.addEventListener("load", scheduleFinalSingleYearChart);
+  function scheduleCleanSingleYearChart() {
+    setTimeout(renderCleanSingleYearChart, 300);
+    setTimeout(renderCleanSingleYearChart, 1200);
+    setTimeout(renderCleanSingleYearChart, 2600);
+  }
+
+  document.addEventListener("DOMContentLoaded", scheduleCleanSingleYearChart);
+  window.addEventListener("load", scheduleCleanSingleYearChart);
 
   document.addEventListener("click", event => {
     const el = event.target.closest("button, .nav-pill, [data-view], .sidebar-item, .nav-item");
@@ -6068,7 +4760,7 @@ mostrarExperienciaCapitalitatV5 = function() {
     const text = String(el.textContent || "").toLowerCase();
 
     if (text.includes("total") || text.includes("passis")) {
-      scheduleFinalSingleYearChart();
+      scheduleCleanSingleYearChart();
     }
   });
 })();
