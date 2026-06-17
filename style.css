@@ -9459,3 +9459,199 @@ body {
     grid-template-columns: 1fr !important;
   }
 }
+
+/* === CAPITALITAT_REFINED_OVERVIEW_GAUGES_STYLE_V3 === */
+
+/* Tipografia fina i elegant */
+@import url("https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700&display=swap");
+
+html,
+body,
+button,
+input,
+select,
+textarea {
+  font-family: "Manrope", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+}
+
+/* Grid dels 5 KPI */
+#cap-overview-grid.cap-ref-kpi-grid,
+.cap-ref-kpi-grid {
+  width: 100% !important;
+  max-width: none !important;
+  display: grid !important;
+  grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+  gap: 16px !important;
+  margin: 18px 0 34px !important;
+  align-items: stretch !important;
+}
+
+/* Cards més petites i més quadrades */
+.cap-ref-kpi-card {
+  position: relative;
+  min-height: 230px;
+  padding: 16px 16px 14px;
+  border-radius: 18px;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.11), rgba(255,255,255,0.06));
+  border: 1px solid rgba(255,255,255,0.09);
+  box-shadow:
+    0 18px 32px rgba(56, 37, 33, 0.10),
+    inset 0 1px 0 rgba(255,255,255,0.05);
+  backdrop-filter: blur(22px) saturate(120%);
+  -webkit-backdrop-filter: blur(22px) saturate(120%);
+  overflow: hidden;
+}
+
+.cap-ref-kpi-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(135deg,
+      rgba(255,255,255,0.05) 0%,
+      rgba(255,255,255,0.02) 36%,
+      rgba(255,255,255,0.00) 100%);
+}
+
+/* Capçalera */
+.cap-ref-kpi-topline {
+  position: relative;
+  z-index: 2;
+  margin-bottom: 12px;
+}
+
+.cap-ref-kpi-topline h3 {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.1;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  color: rgba(255,255,255,0.90);
+}
+
+/* Línia de puntets i números */
+.cap-ref-kpi-meta {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.cap-ref-kpi-meta-item {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+}
+
+.cap-ref-kpi-meta-item i {
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.95);
+  flex: 0 0 auto;
+}
+
+.cap-ref-kpi-meta-item span {
+  display: block;
+  font-size: 11px;
+  line-height: 1.15;
+  font-weight: 400;
+  color: rgba(255,255,255,0.82);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Gauge */
+.cap-ref-kpi-gauge {
+  position: relative;
+  z-index: 2;
+  margin-top: 4px;
+  height: 152px;
+}
+
+.cap-ref-gauge-svg {
+  width: 100%;
+  height: 152px;
+  display: block;
+}
+
+.cap-ref-gauge-track {
+  fill: none;
+  stroke: rgba(255,255,255,0.18);
+  stroke-width: 3;
+  stroke-linecap: round;
+}
+
+.cap-ref-gauge-inner {
+  fill: none;
+  stroke: rgba(255,255,255,0.06);
+  stroke-width: 1.2;
+  stroke-linecap: round;
+  stroke-dasharray: 0.5 2.3;
+}
+
+.cap-ref-gauge-progress {
+  fill: none;
+  stroke: rgba(255,255,255,0.96);
+  stroke-width: 3.2;
+  stroke-linecap: round;
+}
+
+/* Text dins del mig cercle */
+.cap-ref-kpi-gauge-center {
+  position: absolute;
+  inset: 52px 0 0 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  pointer-events: none;
+}
+
+.cap-ref-kpi-gauge-center strong {
+  font-size: 18px;
+  line-height: 1;
+  font-weight: 300;
+  letter-spacing: -0.04em;
+  color: rgba(255,255,255,0.98);
+}
+
+.cap-ref-kpi-gauge-center span {
+  margin-top: 8px;
+  font-size: 11px;
+  line-height: 1;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  color: rgba(255,255,255,0.68);
+}
+
+/* Responsive */
+@media (max-width: 1480px) {
+  .cap-ref-kpi-grid {
+    grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+    gap: 14px !important;
+  }
+
+  .cap-ref-kpi-card {
+    min-height: 220px;
+    padding: 14px;
+  }
+}
+
+@media (max-width: 1180px) {
+  .cap-ref-kpi-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (max-width: 700px) {
+  .cap-ref-kpi-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
