@@ -5770,3 +5770,60 @@ mostrarExperienciaCapitalitatV5 = function() {
     }
   });
 })();
+
+/* === CAPITALITAT_REMOVE_BIG_RED_YEAR_CHART === */
+
+(() => {
+  function removeBigRedYearChart() {
+    const totalView = document.querySelector("#view-total");
+    if (!totalView) return;
+
+    // Esborra qualsevol gràfic anual antic/vermell.
+    totalView.querySelectorAll(
+      ".cap-month-chart-v3, .cap-month-chart-v2, .cap-month-chart-premium, .cap-month-chart, .cap-year-chart-card"
+    ).forEach(card => {
+      const hasBlackChart = card.querySelector(".cap-year-black-main, .cap-year-line-main");
+      const hasOldRedChart = card.querySelector(".cap-month-v3-line-yellow, .cap-month-v2-line-yellow, .cap-month-v3-area, .cap-month-v2-area");
+
+      const text = String(card.textContent || "").toLowerCase();
+      const isYearChart = text.includes("activitats al llarg de l'any") || text.includes("activitats al llarg de l’any");
+
+      // Manté el gràfic negre petit. Esborra el gran vermell.
+      if (isYearChart && hasOldRedChart && !hasBlackChart) {
+        card.remove();
+      }
+    });
+
+    // Per si el gràfic vermell queda dins un wrapper diferent.
+    totalView.querySelectorAll(".cap-month-v3-line-yellow, .cap-month-v2-line-yellow").forEach(line => {
+      const card = line.closest(".cap-month-chart-v3, .cap-month-chart-v2, .cap-month-chart-premium, .card, .panel, section, article");
+      if (!card) return;
+
+      const hasBlackChart = card.querySelector(".cap-year-black-main, .cap-year-line-main");
+      if (!hasBlackChart) {
+        card.remove();
+      }
+    });
+  }
+
+  function scheduleRemoveBigRedYearChart() {
+    setTimeout(removeBigRedYearChart, 200);
+    setTimeout(removeBigRedYearChart, 800);
+    setTimeout(removeBigRedYearChart, 1600);
+    setTimeout(removeBigRedYearChart, 3000);
+  }
+
+  document.addEventListener("DOMContentLoaded", scheduleRemoveBigRedYearChart);
+  window.addEventListener("load", scheduleRemoveBigRedYearChart);
+
+  document.addEventListener("click", event => {
+    const el = event.target.closest("button, .nav-pill, [data-view], .sidebar-item, .nav-item");
+    if (!el) return;
+
+    const txt = String(el.textContent || "").toLowerCase();
+
+    if (txt.includes("total") || txt.includes("passis")) {
+      scheduleRemoveBigRedYearChart();
+    }
+  });
+})();
