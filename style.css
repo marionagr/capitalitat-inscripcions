@@ -6563,3 +6563,105 @@ tr:hover td {
     font-size: 28px;
   }
 }
+
+/* === CAPITALITAT_TOTAL_PASSIS_FINAL_FIXES_STYLE === */
+
+/* ============================================================
+   TOTAL PASSIS · AJUSTOS FINALS VISUALS
+============================================================ */
+
+/* Gràfic de passis per mes: línia blanca en comptes de groga */
+.cap-month-v3-line-yellow,
+.cap-month-v2-line-yellow {
+  stroke: rgba(255,255,255,0.92) !important;
+  filter:
+    drop-shadow(0 0 9px rgba(255,255,255,0.32))
+    drop-shadow(0 0 26px rgba(255,255,255,0.10)) !important;
+}
+
+.cap-month-point-passes circle:first-child {
+  fill: rgba(255,255,255,0.94) !important;
+  stroke: rgba(12,12,12,0.9) !important;
+  filter:
+    drop-shadow(0 0 8px rgba(255,255,255,0.45))
+    drop-shadow(0 0 18px rgba(255,255,255,0.12)) !important;
+}
+
+/* Llegenda del gràfic mensual en blanc */
+.cap-month-v3-legend i,
+.cap-month-v2-legend i.is-yellow {
+  border-top-color: rgba(255,255,255,0.92) !important;
+  box-shadow: 0 0 14px rgba(255,255,255,0.18) !important;
+}
+
+/* Dashboard mensual: ara només 3 KPIs */
+.cap-month-detail-kpis {
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+}
+
+/* Radials: percentatge sota el nom */
+.cap-month-radial-percent {
+  fill: rgba(255,228,92,0.78) !important;
+  font-size: 9.5px !important;
+  letter-spacing: 0.02em;
+}
+
+.cap-month-radial-list span {
+  display: grid !important;
+  gap: 2px;
+  min-width: 0;
+}
+
+.cap-month-radial-list span b {
+  color: rgba(255,255,255,0.68);
+  font-weight: 400;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cap-month-radial-list span small {
+  color: rgba(255,228,92,0.70);
+  font-size: 10.5px;
+}
+
+/* Districte buit: que no es vegi com una línia rara */
+.cap-linear-label span:empty::before {
+  content: "Sense districte";
+}
+
+/* Numeració de targetes si algun número antic no es deixa substituir */
+.capitalitat-five-chart-card {
+  position: relative;
+}
+
+.capitalitat-five-chart-card::before {
+  content: attr(data-cap-chart-index);
+  position: absolute;
+  top: 24px;
+  left: 24px;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  color: rgba(255,255,255,0.84);
+  font-size: 12px;
+  letter-spacing: -0.02em;
+  background: rgba(0,0,0,0.24);
+  border: 1px solid rgba(255,255,255,0.10);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.04),
+    0 0 16px rgba(255,228,92,0.06);
+}
+
+/* Donem aire superior perquè el número no trepitgi el contingut */
+.capitalitat-five-chart-card .cap-linear-chart {
+  padding-top: 42px;
+}
+
+@media (max-width: 860px) {
+  .cap-month-detail-kpis {
+    grid-template-columns: 1fr !important;
+  }
+}

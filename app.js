@@ -3628,6 +3628,7 @@ mostrarExperienciaCapitalitatV5 = function() {
 
   function radialChart(title, items, emptyText) {
     const data = items.slice(0, 9);
+    const totalItems = data.reduce((sum, item) => sum + item.value, 0) || 1;
     const size = 330;
     const cx = 165;
     const cy = 165;
@@ -3658,7 +3659,8 @@ mostrarExperienciaCapitalitatV5 = function() {
         y,
         lx,
         ly,
-        angle
+        angle,
+        percent: Math.round((item.value / totalItems) * 100)
       };
     });
 
@@ -3692,9 +3694,10 @@ mostrarExperienciaCapitalitatV5 = function() {
             return `
               <text class="cap-month-radial-label"
                     x="${p.lx}"
-                    y="${p.ly + 4}"
+                    y="${p.ly - 2}"
                     text-anchor="${anchor}">
-                ${html(shortLabel)}
+                <tspan x="${p.lx}" dy="0">${html(shortLabel)}</tspan>
+                <tspan class="cap-month-radial-percent" x="${p.lx}" dy="13">${p.percent}%</tspan>
               </text>
             `;
           }).join("")}
@@ -3703,7 +3706,10 @@ mostrarExperienciaCapitalitatV5 = function() {
         <div class="cap-month-radial-list">
           ${data.slice(0, 5).map(item => `
             <div>
-              <span>${html(item.label)}</span>
+              <span>
+                <b>${html(item.label)}</b>
+                <small>${Math.round((item.value / totalItems) * 100)}% del total</small>
+              </span>
               <strong>${item.value}</strong>
             </div>
           `).join("")}
@@ -3771,20 +3777,6 @@ mostrarExperienciaCapitalitatV5 = function() {
             <span>Districtes diferents</span>
           </div>
 
-          <div>
-            <strong>${html(mainModalitat)}</strong>
-            <span>Modalitat principal</span>
-          </div>
-
-          <div>
-            <strong>${html(mainEntrada)}</strong>
-            <span>Entrada principal</span>
-          </div>
-
-          <div>
-            <strong>${html(mainResponsable)}</strong>
-            <span>Encarregada principal</span>
-          </div>
         </div>
 
         <div class="cap-month-detail-main">
@@ -4520,6 +4512,96 @@ mostrarExperienciaCapitalitatV5 = function() {
 
     if (text.includes("calendari") || text.includes("calendar")) {
       capScheduleEnhanceCalendar();
+    }
+  });
+})();
+
+/* === CAPITALITAT_TOTAL_PASSIS_FINAL_FIXES_START === */
+
+/* ============================================================
+   TOTAL PASSIS · AJUSTOS FINALS
+   Numeració, districte buit i neteja visual
+============================================================ */
+
+(() => {
+  function capFixTotalPassisCards() {
+    const row = document.querySelector(".capitalitat-five-charts-row");
+    if (!row) return;
+
+    const order = [
+      { title: "Modalitat", number: "01" },
+      { title: "Categoria", number: "02" },
+      { title: "Districte", number: "03" },
+      { title: "Encarregada", number: "04" },
+      { title: "Tipus d’entrada", number: "05" }
+    ];
+
+    const cards = [...row.children];
+
+    order.forEach((item, index) => {
+      const card = cards[index];
+      if (!card) return;
+
+      card.dataset.capChartIndex = item.number;
+
+      const possibleNumber = [...card.querySelectorAll("*")].find(el => {
+        const text = (el.textContent || "").trim();
+        return /^\d{2}$/.test(text) && el.children.length === 0;
+      });
+
+      if (possibleNumber) {
+        possibleNumber.textContent = item.number;
+      }
+
+      const title = card.querySelector(".cap-linear-head strong");
+      if (title) title.textContent = item.title;
+    });
+
+    // Districte buit → Sense districte
+    const districtCard = cards[2];
+    if (districtCard) {
+      districtCard.querySelectorAll(".cap-linear-label span").forEach(label => {
+        const clean = (label.textContent || "").replace(/\u00a0/g, " ").trim();
+        if (!clean) {
+          label.textContent = "Sense districte";
+        }
+      });
+
+      districtCard.querySelectorAll(".cap-linear-row").forEach(row => {
+        const label = row.querySelector(".cap-linear-label span");
+        if (!label) return;
+
+        const clean = (label.textContent || "").replace(/\u00a0/g, " ").trim();
+        if (!clean) {
+          label.textContent = "Sense districte";
+        }
+
+        const title = row.getAttribute("title") || "";
+        if (title.startsWith(":")) {
+          row.setAttribute("title", "Sense districte" + title);
+        }
+      });
+    }
+  }
+
+  function capScheduleTotalPassisFinalFixes() {
+    setTimeout(capFixTotalPassisCards, 300);
+    setTimeout(capFixTotalPassisCards, 1000);
+    setTimeout(capFixTotalPassisCards, 2200);
+    setTimeout(capFixTotalPassisCards, 3800);
+  }
+
+  document.addEventListener("DOMContentLoaded", capScheduleTotalPassisFinalFixes);
+  window.addEventListener("load", capScheduleTotalPassisFinalFixes);
+
+  document.addEventListener("click", event => {
+    const target = event.target.closest("button, a, .nav-item, .sidebar-item");
+    if (!target) return;
+
+    const text = String(target.textContent || "").toLowerCase();
+
+    if (text.includes("total") || text.includes("passis")) {
+      capScheduleTotalPassisFinalFixes();
     }
   });
 })();
