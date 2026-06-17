@@ -4972,3 +4972,212 @@ mostrarExperienciaCapitalitatV5 = function() {
     }
   });
 })();
+
+/* === CAPITALITAT_REFINED_OVERVIEW_GAUGES_V2 === */
+
+(() => {
+  const END_CAPITALITAT = new Date(2026, 11, 13); // 13 desembre 2026
+
+  function parseDateDMY(value) {
+    if (!value) return null;
+    const str = String(value).trim();
+    const m = str.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+    if (!m) return null;
+    const d = Number(m[1]);
+    const mo = Number(m[2]) - 1;
+    const y = Number(m[3]);
+    const date = new Date(y, mo, d);
+    return isNaN(date.getTime()) ? null : date;
+  }
+
+  function stripTime(date) {
+    if (!date) return null;
+    return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  }
+
+  function isTrue(value) {
+    return String(value ?? "").trim().toUpperCase() === "TRUE";
+  }
+
+  function getRowsFromJson(data) {
+    if (Array.isArray(data)) return data;
+    if (Array.isArray(data.rows)) return data.rows;
+    return [];
+  }
+
+  function formatPercent(value) {
+    return `${value.toFixed(1).replace(".", ",")}%`;
+  }
+
+  function buildGaugeSvg(percent) {
+    const p = Math.max(0, Math.min(100, percent));
+    return `
+      <svg viewBox="0 0 240 150" class="cap-ref-gauge-svg" aria-hidden="true">
+        <path
+          d="M 30 120 A 90 90 0 0 1 210 120"
+          class="cap-ref-gauge-track"
+          pathLength="100"></path>
+
+        <path
+          d="M 30 120 A 90 90 0 0 1 210 120"
+          class="cap-ref-gauge-progress"
+          pathLength="100"
+          stroke-dasharray="${p} 100"></path>
+      </svg>
+    `;
+  }
+
+  function buildGaugeCard({ title, value, percent, subtitle, dark = false }) {
+    const percentLabel = formatPercent(percent);
+    return `
+      <article class="cap-ref-kpi-card ${dark ? "is-dark" : ""}">
+        <div class="cap-ref-kpi-top">
+          <div class="cap-ref-kpi-kicker">${title}</div>
+          <div class="cap-ref-kpi-pill">CLIC</div>
+        </div>
+
+        <div class="cap-ref-kpi-value">${value}</div>
+        <div class="cap-ref-kpi-subtitle">${subtitle}</div>
+
+        <div class="cap-ref-kpi-gauge">
+          ${buildGaugeSvg(percent)}
+          <div class="cap-ref-kpi-gauge-center">
+            <strong>${percentLabel}</strong>
+            <span>del total</span>
+          </div>
+        </div>
+      </article>
+    `;
+  }
+
+  function hideLegacySummaryCards(view) {
+    const all = [...view.querySelectorAll("*")];
+
+    all.forEach(el => {
+      const txt = (el.textContent || "").replace(/\s+/g, " ").trim().toLowerCase();
+      if (txt === "total de passis" || txt === "passis gestionats per nosaltres") {
+        const card = el.closest(".card, .panel, .summary-card, .stat-card, [class*='card']");
+        if (card) card.style.display = "none";
+      }
+    });
+  }
+
+  async function renderRefinedOverviewGauges() {
+    const totalView = document.querySelector("#view-total");
+    if (!totalView) return;
+
+    let response;
+    try {
+      response = await fetch(`data/inscripcions.json?t=${Date.now()}`);
+    } catch (err) {
+      return;
+    }
+    if (!response.ok) return;
+
+    let data;
+    try {
+      data = await response.json();
+    } catch (err) {
+      return;
+    }
+
+    const rows = getRowsFromJson(data);
+    if (!rows.length) return;
+
+    const today = stripTime(new Date());
+    const totalPassis = rows.length;
+    const autogestionades = rows.filter(r => isTrue(r.propies)).length;
+
+    const finalitzades = rows.filter(r => {
+      const start = stripTime(parseDateDMY(r.data_inici));
+      const end = stripTime(parseDateDMY(r.data_final)) || start;
+      return end && end < today;
+    }).length;
+
+    const pendents = rows.filter(r => {
+      const start = stripTime(parseDateDMY(r.data_inici));
+      return start && start > today && start <= END_CAPITALITAT;
+    }).length;
+
+    const avui = rows.filter(r => {
+      const start = stripTime(parseDateDMY(r.data_inici));
+      const end = stripTime(parseDateDMY(r.data_final)) || start;
+      return start && end && start <= today && end >= today;
+    }).length;
+
+    const cards = [
+      {
+        title: "TOTAL PASSIS",
+        value: totalPassis,
+        percent: 100,
+        subtitle: `${totalPassis} passis totals al full.`,
+        dark: true
+      },
+      {
+        title: "TOTAL AUTOGESTIONADES",
+        value: autogestionades,
+        percent: totalPassis ? (autogestionades / totalPassis) * 100 : 0,
+        subtitle: `${autogestionades} passis marcats com a PRÒPIES.`
+      },
+      {
+        title: "ACTIVITATS FINALITZADES",
+        value: finalitzades,
+        percent: totalPassis ? (finalitzades / totalPassis) * 100 : 0,
+        subtitle: `Ja han acabat fins avui.`
+      },
+      {
+        title: "ACTIVITATS PENDENTS",
+        value: pendents,
+        percent: totalPassis ? (pendents / totalPassis) * 100 : 0,
+        subtitle: `Pendents fins al 13 de desembre.`
+      },
+      {
+        title: "ACTIVITATS AVUI",
+        value: avui,
+        percent: totalPassis ? (avui / totalPassis) * 100 : 0,
+        subtitle: `Passis vigents avui mateix.`
+      }
+    ];
+
+    const html = `
+      <section id="cap-overview-grid" class="cap-ref-kpi-grid">
+        ${cards.map(card => buildGaugeCard(card)).join("")}
+      </section>
+    `;
+
+    const old = totalView.querySelector("#cap-overview-grid");
+    if (old) old.remove();
+
+    hideLegacySummaryCards(totalView);
+
+    const target =
+      totalView.querySelector(".capitalitat-five-charts-row") ||
+      totalView.querySelector(".cap-month-chart-v3") ||
+      totalView.firstElementChild?.nextElementSibling ||
+      null;
+
+    if (target) {
+      target.insertAdjacentHTML("beforebegin", html);
+    } else {
+      totalView.insertAdjacentHTML("afterbegin", html);
+    }
+  }
+
+  function scheduleRefinedOverviewGauges() {
+    setTimeout(renderRefinedOverviewGauges, 400);
+    setTimeout(renderRefinedOverviewGauges, 1200);
+    setTimeout(renderRefinedOverviewGauges, 2600);
+  }
+
+  document.addEventListener("DOMContentLoaded", scheduleRefinedOverviewGauges);
+  window.addEventListener("load", scheduleRefinedOverviewGauges);
+
+  document.addEventListener("click", (event) => {
+    const el = event.target.closest("button, [data-view], .nav-pill");
+    if (!el) return;
+    const txt = (el.textContent || "").toLowerCase();
+    if (txt.includes("total") || txt.includes("passis")) {
+      scheduleRefinedOverviewGauges();
+    }
+  });
+})();
