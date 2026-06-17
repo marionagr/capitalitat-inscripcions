@@ -9408,3 +9408,154 @@ textarea {
 #view-total #cap-hotfix-gauge-grid:first-of-type {
   display: grid !important;
 }
+
+/* === CAPITALITAT_YEAR_CHART_ELEGANT_STYLE_V1 === */
+
+.cap-year-chart-card {
+  margin-top: 20px !important;
+  padding: 24px 26px 18px !important;
+  border-radius: 28px !important;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.14), rgba(255,255,255,0.08)) !important;
+  border: 1px solid rgba(255,255,255,0.10) !important;
+  box-shadow:
+    0 24px 48px rgba(48, 43, 43, 0.10),
+    inset 0 1px 0 rgba(255,255,255,0.08) !important;
+  backdrop-filter: blur(22px) saturate(115%) !important;
+  -webkit-backdrop-filter: blur(22px) saturate(115%) !important;
+}
+
+.cap-year-chart-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 14px;
+}
+
+.cap-year-chart-kicker {
+  font-size: 15px;
+  line-height: 1.1;
+  font-weight: 500;
+  color: #24262b;
+  letter-spacing: -0.02em;
+  margin-bottom: 6px;
+}
+
+.cap-year-chart-sub {
+  font-size: 12px;
+  line-height: 1.35;
+  font-weight: 400;
+  color: rgba(36,38,43,0.62);
+}
+
+.cap-year-chart-total {
+  text-align: right;
+  flex: 0 0 auto;
+}
+
+.cap-year-chart-total strong {
+  display: block;
+  font-size: 30px;
+  line-height: 1;
+  font-weight: 300;
+  letter-spacing: -0.05em;
+  color: #1f2126;
+}
+
+.cap-year-chart-total span {
+  display: block;
+  margin-top: 5px;
+  font-size: 11px;
+  font-weight: 400;
+  color: rgba(36,38,43,0.60);
+}
+
+.cap-year-chart-shell {
+  width: 100%;
+}
+
+.cap-year-chart-svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.cap-year-grid-line {
+  stroke: rgba(24,26,30,0.10);
+  stroke-width: 1;
+}
+
+.cap-year-axis-label {
+  fill: rgba(24,26,30,0.52);
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+}
+
+.cap-year-axis-label.x {
+  fill: rgba(24,26,30,0.64);
+}
+
+.cap-year-area {
+  fill: url(#capYearAreaFill);
+}
+
+.cap-year-line-shadow {
+  fill: none;
+  stroke: rgba(24,26,30,0.08);
+  stroke-width: 7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.cap-year-line-main {
+  fill: none;
+  stroke: #1f2024;
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.cap-year-point-dot {
+  fill: #ffffff;
+  stroke: #1f2024;
+  stroke-width: 1.6;
+}
+
+.cap-year-point-hit {
+  fill: transparent;
+  cursor: pointer;
+}
+
+.cap-year-point-group:hover .cap-year-point-dot {
+  r: 5.5;
+}
+
+.cap-year-chart-legend {
+  display: flex;
+  gap: 18px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+
+.cap-year-chart-legend .legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  color: rgba(24,26,30,0.62);
+}
+
+.cap-year-chart-legend i {
+  display: inline-block;
+  width: 26px;
+  height: 0;
+  border-top: 2px solid #1f2024;
+  border-radius: 999px;
+}
+
+.cap-year-chart-legend .legend-line-grid {
+  border-top: 1px solid rgba(24,26,30,0.16);
+}
