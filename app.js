@@ -4764,3 +4764,62 @@ mostrarExperienciaCapitalitatV5 = function() {
     }
   });
 })();
+
+
+
+/* === CAPITALITAT_FORCE_SINGLE_FULL_WIDTH_YEAR_CARD === */
+(() => {
+  function cleanYearArea() {
+    const totalView = document.querySelector("#view-total");
+    if (!totalView) return;
+
+    const goodCard = totalView.querySelector("#cap-clean-year-card");
+    if (!goodCard) return;
+
+    // 1) El gràfic bo sempre ocupa tota l'amplada
+    goodCard.style.width = "100%";
+    goodCard.style.maxWidth = "none";
+    goodCard.style.gridColumn = "1 / -1";
+    goodCard.style.display = "block";
+
+    // 2) Esborrem qualsevol banner duplicat o buit amb el mateix títol
+    const candidates = totalView.querySelectorAll("section, div");
+    candidates.forEach(el => {
+      if (el.id === "cap-clean-year-card") return;
+
+      const text = (el.textContent || "").toLowerCase().replace(/\s+/g, " ").trim();
+      const hasTitle =
+        text.includes("activitats al llarg de l'any") ||
+        text.includes("activitats al llarg de l’any");
+
+      const hasGoodChart =
+        el.querySelector(".cap-clean-year-svg") ||
+        el.querySelector(".cap-clean-year-main") ||
+        el.querySelector(".cap-clean-month-detail");
+
+      if (hasTitle && !hasGoodChart) {
+        el.remove();
+      }
+    });
+  }
+
+  function runCleanYearArea() {
+    setTimeout(cleanYearArea, 200);
+    setTimeout(cleanYearArea, 800);
+    setTimeout(cleanYearArea, 1800);
+  }
+
+  document.addEventListener("DOMContentLoaded", runCleanYearArea);
+  window.addEventListener("load", runCleanYearArea);
+
+  document.addEventListener("click", (e) => {
+    const btn = e.target.closest("button, .nav-pill, [data-view]");
+    if (!btn) return;
+
+    const txt = (btn.textContent || "").toLowerCase();
+    if (txt.includes("total") || txt.includes("passis")) {
+      runCleanYearArea();
+    }
+  });
+})();
+

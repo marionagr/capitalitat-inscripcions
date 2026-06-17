@@ -9635,3 +9635,44 @@ textarea {
     grid-template-columns: 1fr;
   }
 }
+
+
+
+/* === CAPITALITAT_FORCE_SINGLE_FULL_WIDTH_YEAR_CARD_STYLE === */
+
+/* El banner bo ha d'ocupar tota l'amplada */
+#view-total #cap-clean-year-card {
+  width: 100% !important;
+  max-width: none !important;
+  grid-column: 1 / -1 !important;
+  display: block !important;
+  margin-top: 24px !important;
+}
+
+/* Si el contenidor pare és grid o flex, que no el limiti */
+#view-total #cap-clean-year-card,
+#view-total #cap-clean-year-card * {
+  box-sizing: border-box;
+}
+
+/* Elimina qualsevol banner buit o antic amb el mateix títol */
+#view-total section:has(h3),
+#view-total div:has(h3) {
+  position: relative;
+}
+
+#view-total section:has(h3):not(#cap-clean-year-card),
+#view-total div:has(h3):not(#cap-clean-year-card) {
+  /* no fem res aquí; la neteja principal la fa JS */
+}
+
+/* El gràfic intern també ample total */
+#cap-clean-year-card .cap-clean-year-inner {
+  width: 100% !important;
+}
+
+#cap-clean-year-card .cap-clean-year-svg {
+  width: 100% !important;
+  height: auto !important;
+}
+
