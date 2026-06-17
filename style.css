@@ -8032,3 +8032,427 @@ th {
     border-radius: 24px !important;
   }
 }
+
+/* === CAPITALITAT_PALETTE_REDO_V4 === */
+
+/* ============================================================
+   PALETA FINAL FIDEL A LA REFERÈNCIA
+   #2B2D42 #8D99AE #EDF2F4 #EF233C #D90429
+============================================================ */
+
+:root {
+  --cap-bg-main: #edf2f4;
+  --cap-bg-soft: #e3e8eb;
+  --cap-bg-blush: #e7d7d9;
+
+  --cap-text-main: #2b2d42;
+  --cap-text-soft: #5f6778;
+  --cap-text-dim: #8d99ae;
+
+  --cap-line-soft: rgba(43, 45, 66, 0.08);
+  --cap-line-mid: rgba(43, 45, 66, 0.14);
+  --cap-line-strong: rgba(43, 45, 66, 0.20);
+
+  --cap-glass: rgba(237, 242, 244, 0.34);
+  --cap-glass-strong: rgba(237, 242, 244, 0.50);
+  --cap-glass-deep: rgba(255, 255, 255, 0.42);
+
+  --cap-red: #ef233c;
+  --cap-burgundy: #d90429;
+  --cap-red-soft: rgba(239, 35, 60, 0.12);
+  --cap-burgundy-soft: rgba(217, 4, 41, 0.12);
+
+  --cap-shadow-xl:
+    0 24px 54px rgba(43,45,66,0.10),
+    0 8px 18px rgba(43,45,66,0.07);
+
+  --cap-shadow-lg:
+    0 18px 36px rgba(43,45,66,0.08),
+    0 4px 14px rgba(43,45,66,0.06);
+
+  --cap-shadow-md:
+    0 10px 20px rgba(43,45,66,0.06),
+    0 4px 10px rgba(43,45,66,0.04);
+}
+
+/* FONS GENERAL */
+html,
+body {
+  background:
+    radial-gradient(circle at top center, rgba(255,255,255,0.35), transparent 28%),
+    linear-gradient(180deg, #edf2f4 0%, #e8edef 62%, #e3d0d2 100%) !important;
+  color: var(--cap-text-main) !important;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background:
+    radial-gradient(circle at 20% 18%, rgba(255,255,255,0.22), transparent 18%),
+    radial-gradient(circle at 80% 16%, rgba(255,255,255,0.12), transparent 16%),
+    radial-gradient(circle at 50% 100%, rgba(239,35,60,0.08), transparent 24%);
+}
+
+/* TEXT GENERAL */
+body,
+main,
+section,
+div,
+p,
+span,
+small,
+label,
+td,
+th,
+li {
+  color: var(--cap-text-main);
+}
+
+h1,
+.hero-title,
+.page-title {
+  color: var(--cap-text-main) !important;
+  font-weight: 600 !important;
+  letter-spacing: -0.045em !important;
+}
+
+h2,
+h3,
+h4,
+h5,
+h6,
+.section-title,
+.cap-annual-head h3,
+.cap-month-detail-head h3,
+.cap-linear-head strong,
+.cap-month-radial-card h4 {
+  color: var(--cap-text-main) !important;
+  font-weight: 600 !important;
+  letter-spacing: -0.03em !important;
+}
+
+p,
+.hero-subtitle,
+.section-subtitle,
+.cap-annual-head p,
+.cap-annual-head span,
+.cap-month-detail-head span,
+.cap-linear-head span,
+.cap-annual-kpis span,
+.cap-month-detail-kpis span,
+.cap-month-v3-kpis span,
+.cap-month-v2-kpis span,
+.cap-month-v3-legend span,
+.cap-month-v2-legend span {
+  color: var(--cap-text-soft) !important;
+}
+
+small,
+.muted,
+.subtle,
+.cap-annual-category-label,
+.cap-annual-month-label,
+.cap-month-radial-label,
+.cap-month-v3-axis-y,
+.cap-month-v2-axis-y,
+.cap-month-v2-axis-x,
+.cap-month-radial-list span b,
+.cap-month-tooltip span,
+.cap-month-tooltip em,
+.cap-annual-tooltip span,
+.cap-annual-tooltip em {
+  color: var(--cap-text-dim) !important;
+  fill: var(--cap-text-dim) !important;
+}
+
+/* PANELS / CARDS / SIDEBAR · GLASS */
+.sidebar,
+aside,
+.left-sidebar,
+.menu-sidebar,
+nav,
+.card,
+.panel,
+.widget,
+.cap-annual-card,
+.cap-month-chart-v3,
+.cap-month-chart-v2,
+.cap-month-detail-card,
+.cap-month-radial-card,
+.capitalitat-five-chart-card,
+.cap-month-detail-bottom > div,
+.cap-annual-kpis div,
+.cap-month-detail-kpis div,
+.cap-annual-loading,
+.calendar-card,
+.map-card,
+table,
+.cap-calendar-tabs {
+  background:
+    linear-gradient(180deg, rgba(237,242,244,0.42), rgba(237,242,244,0.22)) !important;
+  border: 1px solid var(--cap-line-soft) !important;
+  box-shadow: var(--cap-shadow-xl) !important;
+  backdrop-filter: blur(24px) saturate(145%);
+  -webkit-backdrop-filter: blur(24px) saturate(145%);
+  color: var(--cap-text-main) !important;
+}
+
+.sidebar,
+aside,
+.left-sidebar,
+.menu-sidebar,
+nav {
+  background:
+    linear-gradient(180deg, rgba(237,242,244,0.30), rgba(237,242,244,0.16)) !important;
+  border-right: 1px solid rgba(43,45,66,0.08) !important;
+  box-shadow:
+    inset -1px 0 0 rgba(255,255,255,0.30),
+    0 18px 40px rgba(43,45,66,0.05) !important;
+}
+
+/* REFLEX SUAU */
+.cap-annual-card,
+.cap-month-chart-v3,
+.cap-month-chart-v2,
+.cap-month-detail-card,
+.capitalitat-five-chart-card,
+.cap-month-radial-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.cap-annual-card::before,
+.cap-month-chart-v3::before,
+.cap-month-chart-v2::before,
+.cap-month-detail-card::before,
+.capitalitat-five-chart-card::before,
+.cap-month-radial-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(135deg,
+      rgba(255,255,255,0.30) 0%,
+      rgba(255,255,255,0.10) 24%,
+      rgba(255,255,255,0.02) 48%,
+      rgba(239,35,60,0.05) 70%,
+      rgba(255,255,255,0.00) 100%);
+  opacity: 0.9;
+}
+
+/* BOTONS / PILLS / INPUTS */
+button,
+.nav-pill,
+.cap-calendar-tabs button,
+.cap-month-pills span,
+.cap-month-detail-close,
+input,
+select,
+textarea {
+  background:
+    linear-gradient(180deg, rgba(237,242,244,0.58), rgba(237,242,244,0.22)) !important;
+  border: 1px solid var(--cap-line-mid) !important;
+  color: var(--cap-text-main) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.58),
+    0 10px 18px rgba(43,45,66,0.05) !important;
+  backdrop-filter: blur(18px) saturate(145%);
+  -webkit-backdrop-filter: blur(18px) saturate(145%);
+  border-radius: 999px !important;
+}
+
+button:hover,
+.nav-pill:hover,
+.cap-calendar-tabs button:hover,
+.cap-month-detail-close:hover {
+  border-color: var(--cap-line-strong) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.66),
+    0 12px 22px rgba(43,45,66,0.08) !important;
+}
+
+.nav-pill.active,
+.nav-pill.is-active,
+.cap-calendar-tabs button.is-active {
+  background:
+    linear-gradient(180deg, rgba(239,35,60,0.18), rgba(237,242,244,0.26)) !important;
+  border-color: rgba(217,4,41,0.30) !important;
+  color: var(--cap-text-main) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.60),
+    0 12px 22px rgba(217,4,41,0.10),
+    0 0 0 1px rgba(239,35,60,0.08) !important;
+}
+
+/* INPUTS */
+input,
+select,
+textarea {
+  color: var(--cap-text-main) !important;
+  border-radius: 18px !important;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--cap-text-dim) !important;
+}
+
+/* TAULES */
+thead th {
+  background: rgba(237,242,244,0.28) !important;
+  color: var(--cap-text-main) !important;
+}
+
+tbody tr:not(:last-child) td {
+  border-bottom: 1px solid rgba(43,45,66,0.06) !important;
+}
+
+td,
+th {
+  color: var(--cap-text-main) !important;
+}
+
+/* KPI TEXTS */
+.cap-annual-kpis strong,
+.cap-month-detail-kpis strong,
+.cap-month-v3-kpis strong,
+.cap-month-v2-kpis strong,
+.cap-month-kpi strong,
+.cap-month-radial-list strong {
+  color: var(--cap-text-main) !important;
+}
+
+.cap-month-pills strong {
+  color: var(--cap-text-soft) !important;
+}
+
+/* GRÀFICS · LÍNIES I EIXOS */
+.cap-month-v3-grid,
+.cap-month-v2-grid,
+.cap-annual-grid-line,
+.cap-annual-row-line,
+.cap-month-radial-grid,
+.cap-month-radial-axis {
+  stroke: rgba(43,45,66,0.10) !important;
+}
+
+/* GRÀFIC PRINCIPAL MENSUAL · vermell elegant */
+.cap-month-v3-line-yellow,
+.cap-month-v2-line-yellow,
+.cap-month-line-passes {
+  stroke: var(--cap-burgundy) !important;
+  filter:
+    drop-shadow(0 0 4px rgba(217,4,41,0.10))
+    drop-shadow(0 0 12px rgba(217,4,41,0.06)) !important;
+}
+
+.cap-month-v3-area,
+.cap-month-v2-area {
+  fill: rgba(217,4,41,0.10) !important;
+}
+
+.cap-month-point-passes circle:first-child {
+  fill: #ffffff !important;
+  stroke: rgba(217,4,41,0.28) !important;
+  filter:
+    drop-shadow(0 0 8px rgba(255,255,255,0.18))
+    drop-shadow(0 0 8px rgba(217,4,41,0.06)) !important;
+}
+
+/* Si tens una segona línia/categories, que sigui gris elegant */
+.cap-month-line-categories,
+.cap-month-point-categories circle:first-child {
+  stroke: var(--cap-text-dim) !important;
+  fill: var(--cap-text-dim) !important;
+}
+
+/* RADIALS */
+.cap-month-radial-fill {
+  fill: rgba(239,35,60,0.10) !important;
+}
+
+.cap-month-radial-line {
+  stroke: var(--cap-red) !important;
+  filter: drop-shadow(0 0 4px rgba(239,35,60,0.06)) !important;
+}
+
+.cap-month-radial-point {
+  fill: var(--cap-burgundy) !important;
+  stroke: rgba(255,255,255,0.48) !important;
+}
+
+.cap-month-radial-percent {
+  fill: var(--cap-burgundy) !important;
+}
+
+/* BUBBLES ANUALS */
+.cap-annual-bubble.is-mod-a,
+.cap-annual-legend i.is-mod-a {
+  fill: #8d99ae !important;
+  background: #8d99ae !important;
+}
+
+.cap-annual-bubble.is-mod-b,
+.cap-annual-legend i.is-mod-b {
+  fill: #ef233c !important;
+  background: #ef233c !important;
+}
+
+.cap-annual-bubble.is-mod-c,
+.cap-annual-legend i.is-mod-c {
+  fill: #d90429 !important;
+  background: #d90429 !important;
+}
+
+.cap-annual-bubble.is-mod-other,
+.cap-annual-legend i.is-mod-other {
+  fill: rgba(43,45,66,0.36) !important;
+  background: rgba(43,45,66,0.36) !important;
+}
+
+/* TOOLTIPS */
+.cap-month-tooltip,
+.cap-annual-tooltip {
+  background:
+    linear-gradient(180deg, rgba(237,242,244,0.70), rgba(237,242,244,0.42)) !important;
+  border: 1px solid rgba(43,45,66,0.10) !important;
+  color: var(--cap-text-main) !important;
+  box-shadow: var(--cap-shadow-lg) !important;
+  backdrop-filter: blur(18px) saturate(145%);
+  -webkit-backdrop-filter: blur(18px) saturate(145%);
+}
+
+.cap-month-tooltip strong,
+.cap-annual-tooltip strong {
+  color: var(--cap-text-main) !important;
+}
+
+/* LLEGENDES */
+.cap-annual-legend,
+.cap-month-v3-legend,
+.cap-month-v2-legend,
+.cap-month-radial-list,
+.cap-month-detail-bottom h4 {
+  color: var(--cap-text-soft) !important;
+}
+
+.cap-annual-legend p {
+  color: var(--cap-text-dim) !important;
+}
+
+/* SCROLL */
+*::-webkit-scrollbar-thumb {
+  background: rgba(43,45,66,0.18);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: rgba(43,45,66,0.26);
+  background-clip: padding-box;
+}
