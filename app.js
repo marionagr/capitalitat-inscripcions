@@ -4768,3 +4768,84 @@ mostrarExperienciaCapitalitatV5 = function() {
     });
   });
 })();
+
+/* === CAPITALITAT_REMOVE_VERTICAL_OLD_KPIS === */
+
+(() => {
+  function removeVerticalOldKpis() {
+    const dashboard = document.querySelector("#cap-total-stable-dashboard");
+    if (!dashboard) return;
+
+    // Elimina qualsevol grid antic de KPI que NO sigui el nou amb cercles
+    dashboard.querySelectorAll(".cap-final-kpis").forEach(grid => {
+      if (!grid.classList.contains("cap-orb-grid-v2")) {
+        grid.remove();
+      }
+    });
+
+    // Elimina targetes antigues soltes
+    dashboard.querySelectorAll(".cap-final-kpi").forEach(card => {
+      if (!card.closest(".cap-orb-grid-v2")) {
+        card.remove();
+      }
+    });
+
+    // Si hi ha targetes antigues abans del grid bo, les esborrem
+    const goodGrid = dashboard.querySelector(".cap-orb-grid-v2");
+    if (goodGrid) {
+      let previous = goodGrid.previousElementSibling;
+      while (previous) {
+        const text = String(previous.textContent || "").toLowerCase();
+        const looksLikeOldKpi =
+          text.includes("total passis") ||
+          text.includes("autogestionades") ||
+          text.includes("finalitzades") ||
+          text.includes("pendents") ||
+          text.includes("avui");
+
+        const toRemove = previous;
+        previous = previous.previousElementSibling;
+
+        if (looksLikeOldKpi && !toRemove.matches(".cap-final-hero")) {
+          toRemove.remove();
+        }
+      }
+    }
+  }
+
+  function scheduleRemoveVerticalOldKpis() {
+    setTimeout(removeVerticalOldKpis, 100);
+    setTimeout(removeVerticalOldKpis, 500);
+    setTimeout(removeVerticalOldKpis, 1200);
+    setTimeout(removeVerticalOldKpis, 2400);
+  }
+
+  document.addEventListener("DOMContentLoaded", scheduleRemoveVerticalOldKpis);
+  window.addEventListener("load", scheduleRemoveVerticalOldKpis);
+
+  document.addEventListener("click", event => {
+    const btn = event.target.closest("button, .nav-pill, [data-view], .sidebar-item, .nav-item");
+    if (!btn) return;
+
+    const text = String(btn.textContent || "").toLowerCase();
+    const view = btn.getAttribute("data-view") || "";
+
+    if (view.includes("total") || text.includes("total") || text.includes("passis")) {
+      scheduleRemoveVerticalOldKpis();
+    }
+  });
+
+  window.addEventListener("load", () => {
+    const dashboard = document.querySelector("#cap-total-stable-dashboard");
+    if (!dashboard) return;
+
+    const observer = new MutationObserver(() => {
+      removeVerticalOldKpis();
+    });
+
+    observer.observe(dashboard, {
+      childList: true,
+      subtree: true
+    });
+  });
+})();

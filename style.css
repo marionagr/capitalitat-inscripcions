@@ -9086,3 +9086,26 @@ thead th {
     grid-template-columns: 1fr !important;
   }
 }
+
+/* === CAPITALITAT_HIDE_VERTICAL_OLD_KPIS === */
+
+/* Oculta qualsevol KPI antic que no sigui el nou grid amb cercle */
+#cap-total-stable-dashboard .cap-final-kpis:not(.cap-orb-grid-v2),
+#cap-total-stable-dashboard .cap-final-kpi {
+  display: none !important;
+}
+
+/* El grid bo sí que es mostra */
+#cap-total-stable-dashboard .cap-orb-grid-v2 {
+  display: grid !important;
+  grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+  gap: 18px !important;
+  width: 100% !important;
+  max-width: none !important;
+  margin: 0 0 30px 0 !important;
+}
+
+/* Les targetes bones sí que es mostren */
+#cap-total-stable-dashboard .cap-orb-grid-v2 .cap-orb-card-v2 {
+  display: grid !important;
+}
