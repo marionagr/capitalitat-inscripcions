@@ -4351,3 +4351,168 @@ mostrarExperienciaCapitalitatV5 = function() {
     }
   });
 })();
+
+/* === CAPITALITAT_TRANSFORM_TOP_CARDS_TO_ORBS === */
+
+(function () {
+  function normalizePercent(text) {
+    if (!text) return 0;
+    const cleaned = String(text).replace(/\s+/g, '').replace('%','').replace(',', '.');
+    const n = parseFloat(cleaned);
+    if (Number.isNaN(n)) return 0;
+    return Math.max(0, Math.min(100, n));
+  }
+
+  function formatPercentCA(value) {
+    return value.toFixed(1).replace('.', ',') + '%';
+  }
+
+  function buildOrbCard({ title, value, percent, sublabel }) {
+    const r = 34;
+    const c = 2 * Math.PI * r;
+    const dashoffset = c * (1 - percent / 100);
+
+    return `
+      <article class="cap-orb-card">
+        <div class="cap-orb-top">
+          <div class="cap-orb-meta">
+            <h3 class="cap-orb-title">${title}</h3>
+            <div class="cap-orb-value">${value}</div>
+            <div class="cap-orb-sub">${sublabel || ''}</div>
+          </div>
+
+          <div class="cap-orb-chart" aria-label="${formatPercentCA(percent)}">
+            <svg viewBox="0 0 100 100" aria-hidden="true">
+              <circle class="cap-orb-track" cx="50" cy="50" r="${r}"></circle>
+              <circle class="cap-orb-progress"
+                cx="50" cy="50" r="${r}"
+                stroke-dasharray="${c}"
+                stroke-dashoffset="${dashoffset}">
+              </circle>
+            </svg>
+            <div class="cap-orb-center">
+              <div class="cap-orb-percent">${formatPercentCA(percent)}</div>
+              <div class="cap-orb-percent-sub">del total</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="cap-orb-bottom">
+          <div class="cap-orb-bottom-left">
+            <span class="cap-orb-dot"></span>
+            <span>${sublabel || ''}</span>
+          </div>
+          <div class="cap-orb-bottom-right">${formatPercentCA(percent)}</div>
+        </div>
+      </article>
+    `;
+  }
+
+  function extractCardData(card) {
+    const text = card.innerText || "";
+
+    const titleEl = card.querySelector("h2,h3,h4,.title,.card-title,.kpi-title,.metric-title");
+    const title = titleEl ? titleEl.textContent.trim() : "";
+
+    const valueMatch = text.match(/\b\d{1,4}(?:[.,]\d{3})*\b/);
+    const value = valueMatch ? valueMatch[0].replace(/\.(?=\d{3}\b)/g, "") : "";
+
+    const percentMatches = text.match(/\d+(?:[.,]\d+)?%/g) || [];
+    const percent = percentMatches.length ? normalizePercent(percentMatches[percentMatches.length - 1]) : 0;
+
+    let sublabel = "";
+    const lines = text.split("\n").map(t => t.trim()).filter(Boolean);
+    for (const line of lines) {
+      if (line === title) continue;
+      if (line === value) continue;
+      if (/%/.test(line)) continue;
+      if (/^\d+[.,]?\d*$/.test(line)) continue;
+      if (line.length > 2) {
+        sublabel = line;
+        break;
+      }
+    }
+
+    return { title, value, percent, sublabel };
+  }
+
+  function findTopSummaryCards() {
+    const totalView = document.querySelector("#view-total");
+    if (!totalView) return [];
+
+    const selectors = [
+      ".cap-kpi-card",
+      ".kpi-card",
+      ".summary-card",
+      ".metric-card",
+      ".stat-card",
+      ".dashboard-card",
+      ".top-card"
+    ];
+
+    let candidates = [];
+    selectors.forEach(sel => {
+      totalView.querySelectorAll(sel).forEach(el => candidates.push(el));
+    });
+
+    if (!candidates.length) {
+      candidates = Array.from(totalView.querySelectorAll("section > div, .glass-card, .panel, article, .card"))
+        .filter(el => {
+          const t = (el.innerText || "").toLowerCase();
+          return ["total passis", "autogestionades", "finalitzades", "pendents", "avui"]
+            .some(k => t.includes(k));
+        });
+    }
+
+    const wantedOrder = ["total passis", "autogestionades", "finalitzades", "pendents", "avui"];
+    const picked = [];
+
+    wantedOrder.forEach(label => {
+      const found = candidates.find(el => (el.innerText || "").toLowerCase().includes(label));
+      if (found && !picked.includes(found)) picked.push(found);
+    });
+
+    return picked.slice(0, 5);
+  }
+
+  function transformTopCardsToOrbs() {
+    const totalView = document.querySelector("#view-total");
+    if (!totalView) return;
+
+    const sourceCards = findTopSummaryCards();
+    if (sourceCards.length < 5) return;
+
+    let grid = totalView.querySelector(".cap-orb-grid");
+    if (!grid) {
+      grid = document.createElement("div");
+      grid.className = "cap-orb-grid";
+      sourceCards[0].parentNode.insertBefore(grid, sourceCards[0]);
+    }
+
+    const data = sourceCards.map(extractCardData);
+
+    grid.innerHTML = data.map(buildOrbCard).join("");
+
+    sourceCards.forEach(card => {
+      card.style.display = "none";
+    });
+  }
+
+  function runOrbTransform() {
+    setTimeout(transformTopCardsToOrbs, 100);
+    setTimeout(transformTopCardsToOrbs, 700);
+    setTimeout(transformTopCardsToOrbs, 1500);
+  }
+
+  document.addEventListener("DOMContentLoaded", runOrbTransform);
+  window.addEventListener("load", runOrbTransform);
+
+  const observer = new MutationObserver(() => {
+    runOrbTransform();
+  });
+
+  window.addEventListener("load", () => {
+    const totalView = document.querySelector("#view-total");
+    if (totalView) observer.observe(totalView, { childList: true, subtree: true });
+  });
+})();
