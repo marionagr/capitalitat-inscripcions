@@ -4769,6 +4769,7 @@ mostrarExperienciaCapitalitatV5 = function() {
   });
 })();
 
+
 /* === CAPITALITAT_REMOVE_VERTICAL_OLD_KPIS === */
 
 (() => {
