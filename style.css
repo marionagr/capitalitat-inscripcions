@@ -8962,3 +8962,43 @@ thead th {
     grid-template-columns: 1fr !important;
   }
 }
+
+/* === CAPITALITAT_HIDE_BOTTOM_LEGACY_BLOCKS === */
+
+/* Tot el que aparegui després del dashboard nou queda ocult */
+#view-total > #cap-total-stable-dashboard ~ * {
+  display: none !important;
+}
+
+/* Blocs antics coneguts fora del dashboard estable */
+#view-total #cap-total-master,
+#view-total #cap-clean-year-card,
+#view-total #cap-year-final-card,
+#view-total #cap-year-chart-elegant,
+#view-total .cap-year-black-card,
+#view-total .cap-year-chart-card,
+#view-total .cap-month-chart-v3,
+#view-total .cap-month-chart-v2,
+#view-total .cap-month-chart-premium,
+#view-total .cap-month-chart,
+#view-total .capitalitat-five-charts-row,
+#view-total .cap-summary-card,
+#view-total .summary-card,
+#view-total .stat-card,
+#view-total .metric-card,
+#view-total .kpi-card {
+  display: none !important;
+}
+
+/* Però dins del dashboard nou sí que es veuen els blocs bons */
+#cap-total-stable-dashboard,
+#cap-total-stable-dashboard * {
+  visibility: visible;
+}
+
+#cap-total-stable-dashboard .cap-final-kpi,
+#cap-total-stable-dashboard .cap-final-wide-card,
+#cap-total-stable-dashboard .cap-final-stat-card,
+#cap-total-stable-dashboard .cap-orb-card-v2 {
+  display: block;
+}

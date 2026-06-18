@@ -4647,3 +4647,124 @@ mostrarExperienciaCapitalitatV5 = function() {
   document.addEventListener("DOMContentLoaded", startOrbObserver);
   window.addEventListener("load", startOrbObserver);
 })();
+
+/* === CAPITALITAT_REMOVE_BOTTOM_LEGACY_BLOCKS === */
+
+(() => {
+  function norm(value) {
+    return String(value ?? "")
+      .replace(/\u00a0/g, " ")
+      .replace(/\s+/g, " ")
+      .trim()
+      .toLowerCase();
+  }
+
+  function removeBottomLegacyBlocks() {
+    const view = document.querySelector("#view-total");
+    if (!view) return;
+
+    const dashboard = view.querySelector("#cap-total-stable-dashboard");
+    if (!dashboard) return;
+
+    // 1. Elimina qualsevol element directe que vingui DESPRÉS del dashboard nou
+    let foundDashboard = false;
+
+    Array.from(view.children).forEach(child => {
+      if (child === dashboard) {
+        foundDashboard = true;
+        return;
+      }
+
+      if (foundDashboard) {
+        child.remove();
+      }
+    });
+
+    // 2. Elimina blocs antics concrets si algun script els torna a injectar
+    const legacySelectors = [
+      "#cap-total-master",
+      "#cap-clean-year-card",
+      "#cap-year-final-card",
+      "#cap-year-chart-elegant",
+      ".cap-year-black-card",
+      ".cap-year-chart-card",
+      ".cap-month-chart-v3",
+      ".cap-month-chart-v2",
+      ".cap-month-chart-premium",
+      ".cap-month-chart",
+      ".capitalitat-five-charts-row",
+      ".cap-summary-card",
+      ".summary-card",
+      ".stat-card",
+      ".metric-card",
+      ".kpi-card"
+    ];
+
+    legacySelectors.forEach(selector => {
+      view.querySelectorAll(selector).forEach(el => {
+        if (!el.closest("#cap-total-stable-dashboard")) {
+          el.remove();
+        }
+      });
+    });
+
+    // 3. Elimina qualsevol bloc antic amb textos identificables
+    Array.from(view.querySelectorAll("section, article, div")).forEach(el => {
+      if (el.closest("#cap-total-stable-dashboard")) return;
+
+      const text = norm(el.textContent);
+
+      const isLegacy =
+        text.includes("total de passis") ||
+        text.includes("passis gestionats per nosaltres") ||
+        text.includes("modalitat") && text.includes("categoria") && text.includes("districte") ||
+        text.includes("activitats al llarg de l'any") ||
+        text.includes("activitats al llarg de l’any");
+
+      if (isLegacy) {
+        // No toquem el títol principal INSCRIPCIONS de dalt
+        if (!text.includes("inscripcions")) {
+          el.remove();
+        }
+      }
+    });
+  }
+
+  function scheduleRemoveBottomLegacyBlocks() {
+    setTimeout(removeBottomLegacyBlocks, 100);
+    setTimeout(removeBottomLegacyBlocks, 500);
+    setTimeout(removeBottomLegacyBlocks, 1200);
+    setTimeout(removeBottomLegacyBlocks, 2400);
+    setTimeout(removeBottomLegacyBlocks, 4000);
+  }
+
+  document.addEventListener("DOMContentLoaded", scheduleRemoveBottomLegacyBlocks);
+  window.addEventListener("load", scheduleRemoveBottomLegacyBlocks);
+
+  document.addEventListener("click", event => {
+    const btn = event.target.closest("button, .nav-pill, [data-view], .sidebar-item, .nav-item");
+    if (!btn) return;
+
+    const text = norm(btn.textContent);
+    const view = btn.getAttribute("data-view") || "";
+
+    if (view.includes("total") || text.includes("total") || text.includes("passis")) {
+      scheduleRemoveBottomLegacyBlocks();
+    }
+  });
+
+  // Vigilància per si algun script antic torna a crear els blocs
+  window.addEventListener("load", () => {
+    const view = document.querySelector("#view-total");
+    if (!view) return;
+
+    const observer = new MutationObserver(() => {
+      removeBottomLegacyBlocks();
+    });
+
+    observer.observe(view, {
+      childList: true,
+      subtree: true
+    });
+  });
+})();
