@@ -9002,3 +9002,87 @@ thead th {
 #cap-total-stable-dashboard .cap-orb-card-v2 {
   display: block;
 }
+
+/* === CAPITALITAT_FIX_ORB_KPI_WIDTH_FINAL === */
+
+/* Forcem que els 5 banners KPI ocupin tota l'amplada */
+#cap-total-stable-dashboard .cap-orb-grid-v2,
+#view-total #cap-total-stable-dashboard .cap-orb-grid-v2 {
+  width: 100% !important;
+  max-width: none !important;
+  display: grid !important;
+  grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+  gap: 18px !important;
+  margin: 0 0 30px 0 !important;
+  align-items: stretch !important;
+}
+
+/* Les targetes tornen a ser banners amples, no columnes estretes */
+#cap-total-stable-dashboard .cap-orb-card-v2,
+#view-total #cap-total-stable-dashboard .cap-orb-card-v2 {
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: none !important;
+  min-height: 170px !important;
+
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) 96px !important;
+  align-items: center !important;
+  gap: 18px !important;
+
+  padding: 20px !important;
+  box-sizing: border-box !important;
+}
+
+/* Textos ben col·locats */
+#cap-total-stable-dashboard .cap-orb-left-v2 {
+  min-width: 0 !important;
+}
+
+#cap-total-stable-dashboard .cap-orb-left-v2 h3 {
+  white-space: normal !important;
+  overflow: visible !important;
+  text-overflow: initial !important;
+}
+
+#cap-total-stable-dashboard .cap-orb-number-v2 {
+  white-space: nowrap !important;
+}
+
+/* Cercle a la dreta */
+#cap-total-stable-dashboard .cap-orb-ring-v2 {
+  width: 96px !important;
+  height: 96px !important;
+  flex: 0 0 96px !important;
+}
+
+#cap-total-stable-dashboard .cap-orb-ring-v2 svg {
+  width: 96px !important;
+  height: 96px !important;
+}
+
+/* Evita que una regla antiga els torni a posar estrets */
+#cap-total-stable-dashboard .cap-final-kpis,
+#cap-total-stable-dashboard .cap-kpi-grid {
+  width: 100% !important;
+  max-width: none !important;
+}
+
+/* Responsive */
+@media (max-width: 1400px) {
+  #cap-total-stable-dashboard .cap-orb-grid-v2 {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (max-width: 900px) {
+  #cap-total-stable-dashboard .cap-orb-grid-v2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (max-width: 620px) {
+  #cap-total-stable-dashboard .cap-orb-grid-v2 {
+    grid-template-columns: 1fr !important;
+  }
+}
