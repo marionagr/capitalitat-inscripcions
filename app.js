@@ -4517,3 +4517,133 @@ mostrarExperienciaCapitalitatV5 = function() {
     if (totalView) observer.observe(totalView, { childList: true, subtree: true });
   });
 })();
+
+/* === CAPITALITAT_FORCE_ORB_KPIS_EXACT === */
+
+(() => {
+  let orbObserverStarted = false;
+
+  function norm(value) {
+    return String(value ?? "")
+      .replace(/\u00a0/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+  }
+
+  function parsePercent(value) {
+    const raw = norm(value).replace("%", "").replace(",", ".");
+    const n = parseFloat(raw);
+    if (Number.isNaN(n)) return 0;
+    return Math.max(0, Math.min(100, n));
+  }
+
+  function formatPercent(value) {
+    return `${value.toFixed(1).replace(".", ",")}%`;
+  }
+
+  function buildOrbCard({ title, value, percent, meta }) {
+    const r = 35;
+    const c = 2 * Math.PI * r;
+    const offset = c * (1 - percent / 100);
+
+    return `
+      <article class="cap-orb-card-v2">
+        <div class="cap-orb-left-v2">
+          <h3>${title}</h3>
+          <div class="cap-orb-number-v2">${value}</div>
+          <p>${meta}</p>
+        </div>
+
+        <div class="cap-orb-ring-v2">
+          <svg viewBox="0 0 100 100" aria-hidden="true">
+            <circle class="cap-orb-ring-track-v2" cx="50" cy="50" r="${r}"></circle>
+            <circle
+              class="cap-orb-ring-progress-v2"
+              cx="50"
+              cy="50"
+              r="${r}"
+              stroke-dasharray="${c}"
+              stroke-dashoffset="${offset}">
+            </circle>
+          </svg>
+          <div class="cap-orb-ring-text-v2">
+            <strong>${formatPercent(percent)}</strong>
+          </div>
+        </div>
+      </article>
+    `;
+  }
+
+  function transformExactKpis() {
+    const dashboard = document.querySelector("#cap-total-stable-dashboard");
+    if (!dashboard) return;
+
+    const grid = dashboard.querySelector(".cap-final-kpis");
+    if (!grid) return;
+
+    if (grid.classList.contains("cap-orb-grid-v2") && grid.querySelectorAll(".cap-orb-card-v2").length === 5) {
+      return;
+    }
+
+    const cards = Array.from(grid.querySelectorAll(".cap-final-kpi"));
+    if (cards.length < 5) return;
+
+    const data = cards.slice(0, 5).map(card => {
+      const title = norm(card.querySelector(".cap-final-kpi-title")?.textContent);
+      const value = norm(card.querySelector(".cap-final-kpi-value")?.textContent);
+      const percentText = norm(card.querySelector(".cap-final-kpi-percent")?.textContent);
+      const meta = norm(card.querySelector(".cap-final-kpi-meta span")?.textContent).replace(/^●\s*/, "");
+
+      return {
+        title,
+        value,
+        percent: parsePercent(percentText),
+        meta
+      };
+    });
+
+    grid.className = "cap-orb-grid-v2";
+    grid.innerHTML = data.map(buildOrbCard).join("");
+  }
+
+  function scheduleOrbTransform() {
+    setTimeout(transformExactKpis, 100);
+    setTimeout(transformExactKpis, 500);
+    setTimeout(transformExactKpis, 1200);
+    setTimeout(transformExactKpis, 2200);
+  }
+
+  document.addEventListener("DOMContentLoaded", scheduleOrbTransform);
+  window.addEventListener("load", scheduleOrbTransform);
+
+  document.addEventListener("click", event => {
+    const btn = event.target.closest("button, .nav-pill, [data-view], .sidebar-item, .nav-item");
+    if (!btn) return;
+
+    const text = norm(btn.textContent).toLowerCase();
+    const view = btn.getAttribute("data-view") || "";
+
+    if (view.includes("total") || text.includes("total") || text.includes("passis")) {
+      scheduleOrbTransform();
+    }
+  });
+
+  function startOrbObserver() {
+    if (orbObserverStarted) return;
+    orbObserverStarted = true;
+
+    const target = document.querySelector("#view-total") || document.body;
+
+    const observer = new MutationObserver(() => {
+      scheduleOrbTransform();
+    });
+
+    observer.observe(target, {
+      childList: true,
+      subtree: true
+    });
+  }
+
+  document.addEventListener("DOMContentLoaded", startOrbObserver);
+  window.addEventListener("load", startOrbObserver);
+})();
