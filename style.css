@@ -9110,3 +9110,43 @@ thead th {
 #cap-total-stable-dashboard .cap-orb-grid-v2 .cap-orb-card-v2 {
   display: grid !important;
 }
+
+/* === CAPITALITAT_HIDE_OLD_NARROW_KPIS_FINAL === */
+
+/* Amaga qualsevol grid antic de KPI */
+#view-total .cap-hotfix-gauge-grid,
+#view-total #cap-hotfix-gauge-grid,
+#view-total .cap-final-kpis:not(.cap-orb-grid-v2),
+#view-total .cap-kpi-grid,
+#view-total .cap-overview-grid,
+#view-total #cap-overview-grid,
+#view-total .cap-ref-kpi-grid {
+  display: none !important;
+}
+
+/* Amaga qualsevol targeta antiga */
+#view-total .cap-hotfix-gauge-card,
+#view-total .cap-final-kpi,
+#view-total .cap-kpi-card,
+#view-total .cap-overview-card,
+#view-total .cap-ref-kpi-card,
+#view-total .cap-summary-card,
+#view-total .summary-card,
+#view-total .stat-card,
+#view-total .metric-card {
+  display: none !important;
+}
+
+/* El grid bo i les targetes bones sí que es veuen */
+#view-total .cap-orb-grid-v2 {
+  display: grid !important;
+  grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+  gap: 18px !important;
+  width: 100% !important;
+  max-width: none !important;
+  margin: 0 0 30px 0 !important;
+}
+
+#view-total .cap-orb-grid-v2 .cap-orb-card-v2 {
+  display: grid !important;
+}

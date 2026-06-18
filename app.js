@@ -4850,3 +4850,110 @@ mostrarExperienciaCapitalitatV5 = function() {
     });
   });
 })();
+
+/* === CAPITALITAT_KILL_OLD_NARROW_KPIS_FINAL === */
+
+(() => {
+  function norm(value) {
+    return String(value ?? "")
+      .replace(/\u00a0/g, " ")
+      .replace(/\s+/g, " ")
+      .trim()
+      .toLowerCase();
+  }
+
+  function killOldNarrowKpis() {
+    const view = document.querySelector("#view-total");
+    if (!view) return;
+
+    const goodGrid = view.querySelector(".cap-orb-grid-v2");
+    const goodCards = view.querySelectorAll(".cap-orb-card-v2");
+
+    if (!goodGrid || goodCards.length < 5) return;
+
+    // 1) Eliminem grids antics coneguts
+    view.querySelectorAll(
+      ".cap-hotfix-gauge-grid, #cap-hotfix-gauge-grid, .cap-final-kpis:not(.cap-orb-grid-v2), .cap-kpi-grid, .cap-overview-grid, #cap-overview-grid, .cap-ref-kpi-grid"
+    ).forEach(el => {
+      if (!el.classList.contains("cap-orb-grid-v2") && !el.closest(".cap-orb-grid-v2")) {
+        el.remove();
+      }
+    });
+
+    // 2) Eliminem targetes antigues conegudes
+    view.querySelectorAll(
+      ".cap-hotfix-gauge-card, .cap-final-kpi, .cap-kpi-card, .cap-overview-card, .cap-ref-kpi-card, .cap-summary-card, .summary-card, .stat-card, .metric-card"
+    ).forEach(el => {
+      if (!el.closest(".cap-orb-grid-v2") && !el.classList.contains("cap-orb-card-v2")) {
+        el.remove();
+      }
+    });
+
+    // 3) Eliminació quirúrgica: qualsevol targeta estreta amb textos KPI
+    Array.from(view.querySelectorAll("article, section, div")).forEach(el => {
+      if (el.closest(".cap-orb-grid-v2")) return;
+      if (el.id === "cap-total-stable-dashboard") return;
+      if (el.querySelector(".cap-orb-grid-v2")) return;
+
+      const text = norm(el.textContent);
+
+      const isKpiText =
+        text.includes("total passis") ||
+        text.includes("autogestionades") ||
+        text.includes("finalitzades") ||
+        text.includes("pendents") ||
+        text.includes("avui");
+
+      if (!isKpiText) return;
+
+      const rect = el.getBoundingClientRect();
+
+      const looksLikeNarrowOldCard =
+        rect.width > 0 &&
+        rect.width < 220 &&
+        rect.height > 80 &&
+        rect.height < 420;
+
+      if (looksLikeNarrowOldCard) {
+        el.remove();
+      }
+    });
+  }
+
+  function scheduleKillOldNarrowKpis() {
+    setTimeout(killOldNarrowKpis, 100);
+    setTimeout(killOldNarrowKpis, 400);
+    setTimeout(killOldNarrowKpis, 900);
+    setTimeout(killOldNarrowKpis, 1800);
+    setTimeout(killOldNarrowKpis, 3200);
+  }
+
+  document.addEventListener("DOMContentLoaded", scheduleKillOldNarrowKpis);
+  window.addEventListener("load", scheduleKillOldNarrowKpis);
+
+  document.addEventListener("click", event => {
+    const btn = event.target.closest("button, .nav-pill, [data-view], .sidebar-item, .nav-item");
+    if (!btn) return;
+
+    const text = norm(btn.textContent);
+    const view = btn.getAttribute("data-view") || "";
+
+    if (view.includes("total") || text.includes("total") || text.includes("passis")) {
+      scheduleKillOldNarrowKpis();
+    }
+  });
+
+  window.addEventListener("load", () => {
+    const view = document.querySelector("#view-total");
+    if (!view) return;
+
+    const observer = new MutationObserver(() => {
+      killOldNarrowKpis();
+    });
+
+    observer.observe(view, {
+      childList: true,
+      subtree: true
+    });
+  });
+})();
