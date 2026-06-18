@@ -4352,6 +4352,7 @@ mostrarExperienciaCapitalitatV5 = function() {
   });
 })();
 
+
 /* === CAPITALITAT_TRANSFORM_TOP_CARDS_TO_ORBS === */
 
 (function () {
