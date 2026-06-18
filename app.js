@@ -5152,3 +5152,453 @@ mostrarExperienciaCapitalitatV5 = function() {
     observer.observe(view, { childList: true, subtree: true });
   });
 })();
+
+/* === CAPITALITAT_TOTAL_HARD_RESET_CLEAN === */
+
+(() => {
+  if (window.__capitalitatTotalHardResetClean) return;
+  window.__capitalitatTotalHardResetClean = true;
+
+  const MONTHS = ["GEN", "FEB", "MAR", "ABR", "MAI", "JUN", "JUL", "AGO", "SET", "OCT", "NOV", "DES"];
+  const MONTHS_FULL = ["gener", "febrer", "març", "abril", "maig", "juny", "juliol", "agost", "setembre", "octubre", "novembre", "desembre"];
+
+  let dataCache = null;
+  let isRendering = false;
+  let observerStarted = false;
+  let renderTimer = null;
+
+  function norm(value) {
+    return String(value ?? "")
+      .replace(/\u00a0/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+  }
+
+  function esc(value) {
+    return String(value ?? "")
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#039;");
+  }
+
+  function parseDate(value) {
+    const raw = norm(value);
+    const m = raw.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/);
+    if (!m) return null;
+
+    const date = new Date(Number(m[3]), Number(m[2]) - 1, Number(m[1]));
+    if (Number.isNaN(date.getTime())) return null;
+
+    date.setHours(0, 0, 0, 0);
+    return date;
+  }
+
+  function isTrue(value) {
+    return String(value ?? "").trim().toUpperCase() === "TRUE";
+  }
+
+  function pct(value) {
+    return `${value.toFixed(1).replace(".", ",")}%`;
+  }
+
+  function smooth(points) {
+    if (!points.length) return "";
+
+    let d = `M ${points[0].x} ${points[0].y}`;
+
+    for (let i = 0; i < points.length - 1; i++) {
+      const p0 = points[i - 1] || points[i];
+      const p1 = points[i];
+      const p2 = points[i + 1];
+      const p3 = points[i + 2] || p2;
+
+      const cp1x = p1.x + (p2.x - p0.x) / 6;
+      const cp1y = p1.y + (p2.y - p0.y) / 6;
+      const cp2x = p2.x - (p3.x - p1.x) / 6;
+      const cp2y = p2.y - (p3.y - p1.y) / 6;
+
+      d += ` C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${p2.x} ${p2.y}`;
+    }
+
+    return d;
+  }
+
+  async function loadData() {
+    if (dataCache) return dataCache;
+
+    const response = await fetch(`data/inscripcions.json?t=${Date.now()}`);
+    if (!response.ok) throw new Error("No s'ha pogut carregar data/inscripcions.json");
+
+    dataCache = await response.json();
+    return dataCache;
+  }
+
+  function getRows(data) {
+    return Array.isArray(data.rows) ? data.rows : [];
+  }
+
+  function countBy(rows, key, fallback) {
+    const map = new Map();
+
+    rows.forEach(row => {
+      const label = norm(row[key]) || fallback;
+      map.set(label, (map.get(label) || 0) + 1);
+    });
+
+    return [...map.entries()]
+      .map(([label, value]) => ({ label, value }))
+      .sort((a, b) => b.value - a.value || a.label.localeCompare(b.label, "ca"));
+  }
+
+  function computeStats(data) {
+    const rows = getRows(data);
+    const keys = data.columnKeys || {};
+
+    const startKey = keys.dataInici || "data_inici";
+    const endKey = keys.dataFinal || "data_final";
+    const gestioKey = keys.gestio || "propies";
+
+    const modalitatKey = keys.modalitat || "modalitat";
+    const categoriaKey = keys.categoria || "categoria";
+    const districteKey = keys.districte || "districte";
+    const encarregadaKey = keys.responsable || "encarregada";
+    const entradaKey = keys.entrada || "entrada";
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const capEnd = new Date(today.getFullYear(), 11, 13);
+    capEnd.setHours(0, 0, 0, 0);
+
+    const dated = rows.map(row => {
+      const start = parseDate(row[startKey]);
+      const end = parseDate(row[endKey]) || start;
+      return { row, start, end };
+    }).filter(item => item.start);
+
+    const total = rows.length;
+    const autogestionades = rows.filter(row => isTrue(row[gestioKey])).length;
+    const finalitzades = dated.filter(item => item.end && item.end < today).length;
+    const pendents = dated.filter(item => item.start > today && item.start <= capEnd).length;
+
+    const monthCounts = Array(12).fill(0);
+    dated.forEach(item => {
+      monthCounts[item.start.getMonth()] += 1;
+    });
+
+    const currentMonth = today.getMonth();
+    const currentYear = today.getFullYear();
+    const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+    const dailyCounts = Array(daysInMonth).fill(0);
+
+    dated.forEach(item => {
+      if (item.start.getFullYear() === currentYear && item.start.getMonth() === currentMonth) {
+        dailyCounts[item.start.getDate() - 1] += 1;
+      }
+    });
+
+    const todayCount = dailyCounts[today.getDate() - 1] || 0;
+    const currentMonthTotal = dailyCounts.reduce((a, b) => a + b, 0);
+
+    const monthTotal = monthCounts.reduce((a, b) => a + b, 0);
+    const monthPeak = Math.max(...monthCounts, 0);
+    const monthPeakIndex = monthCounts.indexOf(monthPeak);
+    const monthAverage = Math.round(monthTotal / 12);
+
+    return {
+      today,
+      total,
+      autogestionades,
+      finalitzades,
+      pendents,
+      avui: todayCount,
+      avuiPercentMes: currentMonthTotal ? todayCount / currentMonthTotal * 100 : 0,
+      currentMonth,
+      currentMonthTotal,
+      daysInMonth,
+      dailyCounts,
+      monthCounts,
+      monthTotal,
+      monthPeak,
+      monthPeakIndex,
+      monthAverage,
+      internal: {
+        modalitat: countBy(rows, modalitatKey, "Sense modalitat"),
+        categoria: countBy(rows, categoriaKey, "Sense categoria"),
+        districte: countBy(rows, districteKey, "Sense districte"),
+        encarregada: countBy(rows, encarregadaKey, "Sense responsable"),
+        entrada: countBy(rows, entradaKey, "Sense informació")
+      }
+    };
+  }
+
+  function ring(percent) {
+    const r = 34;
+    const c = 2 * Math.PI * r;
+    const offset = c * (1 - Math.max(0, Math.min(100, percent)) / 100);
+
+    return `
+      <div class="ct-kpi-ring">
+        <svg viewBox="0 0 100 100" aria-hidden="true">
+          <circle class="ct-ring-track" cx="50" cy="50" r="${r}"></circle>
+          <circle class="ct-ring-progress" cx="50" cy="50" r="${r}"
+            stroke-dasharray="${c}"
+            stroke-dashoffset="${offset}">
+          </circle>
+        </svg>
+        <span>${pct(percent)}</span>
+      </div>
+    `;
+  }
+
+  function renderKpis(stats) {
+    const cards = [
+      ["Total passis", stats.total, `${stats.total} totals`, 100],
+      ["Autogestionades", stats.autogestionades, `${stats.autogestionades} pròpies`, stats.total ? stats.autogestionades / stats.total * 100 : 0],
+      ["Finalitzades", stats.finalitzades, `${stats.finalitzades} acabades`, stats.total ? stats.finalitzades / stats.total * 100 : 0],
+      ["Pendents", stats.pendents, `${stats.pendents} pendents`, stats.total ? stats.pendents / stats.total * 100 : 0],
+      ["Avui", stats.avui, `${stats.avui} passis avui`, stats.avuiPercentMes]
+    ];
+
+    return `
+      <section class="ct-kpis">
+        ${cards.map(([title, value, meta, percent]) => `
+          <article class="ct-kpi">
+            <div class="ct-kpi-text">
+              <h3>${esc(title)}</h3>
+              <strong>${value}</strong>
+              <span>${esc(meta)}</span>
+            </div>
+            ${ring(percent)}
+          </article>
+        `).join("")}
+      </section>
+    `;
+  }
+
+  function renderYearChart(stats) {
+    const width = 1160;
+    const height = 320;
+    const pad = { top: 32, right: 36, bottom: 56, left: 50 };
+    const plotW = width - pad.left - pad.right;
+    const plotH = height - pad.top - pad.bottom;
+
+    const maxValue = Math.max(50, Math.ceil(Math.max(...stats.monthCounts, 1) / 50) * 50);
+
+    const points = stats.monthCounts.map((value, index) => ({
+      value,
+      x: pad.left + (plotW / 11) * index,
+      y: pad.top + plotH - (value / maxValue) * plotH
+    }));
+
+    const line = smooth(points);
+
+    const yTicks = [];
+    for (let v = 0; v <= maxValue; v += 50) yTicks.push(v);
+
+    return `
+      <section class="ct-card ct-year">
+        <div class="ct-card-head">
+          <div>
+            <h2>Activitats al llarg de l’any</h2>
+            <p>Distribució mensual de passis segons la data d’inici.</p>
+          </div>
+          <div class="ct-head-stats">
+            <div><strong>${stats.monthTotal}</strong><span>passis totals</span></div>
+            <div><strong>${stats.monthPeak}</strong><span>pic mensual · ${MONTHS_FULL[stats.monthPeakIndex]}</span></div>
+            <div><strong>${stats.monthAverage}</strong><span>mitjana / mes</span></div>
+          </div>
+        </div>
+
+        <svg class="ct-year-svg" viewBox="0 0 ${width} ${height}">
+          ${yTicks.map(v => {
+            const y = pad.top + plotH - (v / maxValue) * plotH;
+            return `
+              <line x1="${pad.left}" y1="${y}" x2="${width - pad.right}" y2="${y}" class="ct-grid"></line>
+              <text x="${pad.left - 12}" y="${y + 4}" text-anchor="end" class="ct-axis">${v}</text>
+            `;
+          }).join("")}
+
+          <path d="${line}" class="ct-year-line"></path>
+
+          ${points.map((p, index) => `
+            <text x="${p.x}" y="${height - 18}" text-anchor="middle" class="ct-axis">${MONTHS[index]}</text>
+          `).join("")}
+        </svg>
+      </section>
+    `;
+  }
+
+  function renderInternalStats(stats) {
+    const groups = [
+      ["Modalitat", stats.internal.modalitat],
+      ["Categoria", stats.internal.categoria],
+      ["Districte", stats.internal.districte],
+      ["Encarregada", stats.internal.encarregada],
+      ["Tipus d’entrada", stats.internal.entrada]
+    ];
+
+    return `
+      <section class="ct-internal">
+        <h2>Estadístiques internes</h2>
+        <div class="ct-stat-grid">
+          ${groups.map(([title, items]) => `
+            <article class="ct-stat-card">
+              <h3>${esc(title)}</h3>
+              <div class="ct-stat-list">
+                ${items.map(item => {
+                  const p = stats.total ? item.value / stats.total * 100 : 0;
+                  return `
+                    <div class="ct-stat-item">
+                      <div class="ct-stat-row">
+                        <span>${esc(item.label)}</span>
+                        <strong>${item.value}</strong>
+                      </div>
+                      <div class="ct-stat-bar"><i style="width:${p}%"></i></div>
+                      <small>${pct(p)}</small>
+                    </div>
+                  `;
+                }).join("")}
+              </div>
+            </article>
+          `).join("")}
+        </div>
+      </section>
+    `;
+  }
+
+  function renderDailyChart(stats) {
+    const width = 1160;
+    const height = 380;
+    const pad = { top: 32, right: 36, bottom: 62, left: 50 };
+    const plotW = width - pad.left - pad.right;
+    const plotH = height - pad.top - pad.bottom;
+    const yMax = 20;
+
+    const points = stats.dailyCounts.map((value, index) => ({
+      day: index + 1,
+      value,
+      x: pad.left + (plotW / Math.max(1, stats.daysInMonth - 1)) * index,
+      y: pad.top + plotH - (Math.min(value, yMax) / yMax) * plotH
+    }));
+
+    const todayIndex = stats.today.getDate() - 1;
+    const todayPoint = points[todayIndex] || points[0];
+    const line = smooth(points);
+
+    const yTicks = Array.from({ length: yMax + 1 }, (_, i) => i);
+
+    return `
+      <section class="ct-card ct-daily">
+        <div class="ct-card-head">
+          <div>
+            <h2>Activitat diària · ${MONTHS_FULL[stats.currentMonth]}</h2>
+            <p>Passis per dia del mes vigent.</p>
+          </div>
+          <div class="ct-head-stats">
+            <div><strong>${stats.avui}</strong><span>AVUI = ${stats.avui} passis</span></div>
+            <div><strong>${pct(stats.avuiPercentMes)}</strong><span>del total de ${MONTHS_FULL[stats.currentMonth]}</span></div>
+          </div>
+        </div>
+
+        <svg class="ct-daily-svg" viewBox="0 0 ${width} ${height}">
+          ${yTicks.map(v => {
+            const y = pad.top + plotH - (v / yMax) * plotH;
+            return `
+              <line x1="${pad.left}" y1="${y}" x2="${width - pad.right}" y2="${y}" class="ct-grid light"></line>
+              <text x="${pad.left - 12}" y="${y + 4}" text-anchor="end" class="ct-axis">${v}</text>
+            `;
+          }).join("")}
+
+          <path d="${line}" class="ct-daily-line"></path>
+
+          <line x1="${todayPoint.x}" y1="${todayPoint.y}" x2="${todayPoint.x}" y2="${pad.top + plotH}" class="ct-today-guide"></line>
+          <circle cx="${todayPoint.x}" cy="${todayPoint.y}" r="4" class="ct-today-dot"></circle>
+          <text x="${todayPoint.x}" y="${todayPoint.y - 14}" text-anchor="middle" class="ct-today-label">AVUI = ${todayPoint.value} passis</text>
+
+          ${points.map(p => `
+            <text x="${p.x}" y="${height - 18}" text-anchor="middle" class="ct-axis">${p.day}</text>
+          `).join("")}
+        </svg>
+      </section>
+    `;
+  }
+
+  async function renderCleanTotal() {
+    const view = document.querySelector("#view-total");
+    if (!view || isRendering) return;
+
+    isRendering = true;
+
+    try {
+      const data = await loadData();
+      const stats = computeStats(data);
+
+      view.innerHTML = `
+        <section id="cap-total-clean">
+          <header class="ct-hero">
+            <div class="ct-eyebrow">Capitalitat Mundial de l’Arquitectura 2026</div>
+            <h1>Inscripcions</h1>
+            <p>Seguiment d’activitats, passis i espais vinculats al full d’INSCRIPCIONS.</p>
+            <small>Dades carregades correctament · passis: ${stats.total} · autogestionades: ${stats.autogestionades}</small>
+          </header>
+
+          ${renderKpis(stats)}
+          ${renderYearChart(stats)}
+          ${renderInternalStats(stats)}
+          ${renderDailyChart(stats)}
+        </section>
+      `;
+
+      startObserver(view);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      isRendering = false;
+    }
+  }
+
+  function startObserver(view) {
+    if (observerStarted) return;
+    observerStarted = true;
+
+    const observer = new MutationObserver(() => {
+      if (isRendering) return;
+
+      clearTimeout(renderTimer);
+      renderTimer = setTimeout(() => {
+        const children = Array.from(view.children);
+        const onlyClean = children.length === 1 && children[0].id === "cap-total-clean";
+
+        if (!onlyClean) {
+          renderCleanTotal();
+        }
+      }, 80);
+    });
+
+    observer.observe(view, { childList: true });
+  }
+
+  function scheduleRenderCleanTotal() {
+    setTimeout(renderCleanTotal, 100);
+    setTimeout(renderCleanTotal, 700);
+    setTimeout(renderCleanTotal, 1600);
+  }
+
+  document.addEventListener("DOMContentLoaded", scheduleRenderCleanTotal);
+  window.addEventListener("load", scheduleRenderCleanTotal);
+
+  document.addEventListener("click", event => {
+    const target = event.target.closest("button, .nav-pill, [data-view], .sidebar-item, .nav-item");
+    if (!target) return;
+
+    const text = norm(target.textContent).toLowerCase();
+    const view = target.getAttribute("data-view") || "";
+
+    if (view.includes("total") || text.includes("total") || text.includes("passis")) {
+      scheduleRenderCleanTotal();
+    }
+  });
+})();

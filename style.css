@@ -9282,3 +9282,347 @@ thead th {
     grid-template-columns: 1fr !important;
   }
 }
+
+/* === CAPITALITAT_TOTAL_HARD_RESET_CLEAN_STYLE === */
+
+/* Només es veu el dashboard net dins Total Passis */
+#view-total > :not(#cap-total-clean) {
+  display: none !important;
+}
+
+#view-total > #cap-total-clean {
+  display: grid !important;
+}
+
+#cap-total-clean {
+  width: 100%;
+  display: grid;
+  gap: 30px;
+  color: #2b2d42;
+}
+
+/* Hero */
+.ct-hero {
+  padding: 10px 0 24px;
+}
+
+.ct-eyebrow {
+  color: rgba(43,45,66,0.58);
+  font-size: 12px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  margin-bottom: 18px;
+}
+
+.ct-hero h1 {
+  margin: 0;
+  color: #2b2d42 !important;
+  font-size: clamp(64px, 8vw, 124px);
+  line-height: 0.86;
+  font-weight: 500;
+  letter-spacing: -0.075em;
+  text-transform: uppercase;
+}
+
+.ct-hero p {
+  margin: 28px 0 0;
+  color: rgba(43,45,66,0.66) !important;
+  font-size: 17px;
+  font-weight: 300;
+}
+
+.ct-hero small {
+  display: block;
+  margin-top: 26px;
+  color: rgba(43,45,66,0.52) !important;
+  font-size: 12px;
+}
+
+/* KPI amb cercle */
+.ct-kpis {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.ct-kpi,
+.ct-card,
+.ct-stat-card {
+  background: linear-gradient(180deg, rgba(255,255,255,0.22), rgba(255,255,255,0.10));
+  border: 1px solid rgba(43,45,66,0.07);
+  border-radius: 28px;
+  box-shadow:
+    0 18px 36px rgba(43,45,66,0.08),
+    inset 0 1px 0 rgba(255,255,255,0.36);
+  backdrop-filter: blur(18px) saturate(110%);
+  -webkit-backdrop-filter: blur(18px) saturate(110%);
+}
+
+.ct-kpi {
+  min-height: 170px;
+  padding: 22px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 96px;
+  align-items: center;
+  gap: 18px;
+}
+
+.ct-kpi-text h3 {
+  margin: 0;
+  color: #2b2d42 !important;
+  font-size: 15px;
+  line-height: 1.05;
+  font-weight: 600;
+  letter-spacing: -0.025em;
+}
+
+.ct-kpi-text strong {
+  display: block;
+  margin-top: 18px;
+  color: #2b2d42;
+  font-size: clamp(42px, 4vw, 58px);
+  line-height: 0.9;
+  font-weight: 300;
+  letter-spacing: -0.055em;
+}
+
+.ct-kpi-text span {
+  display: block;
+  margin-top: 8px;
+  color: rgba(43,45,66,0.58);
+  font-size: 12px;
+}
+
+.ct-kpi-ring {
+  position: relative;
+  width: 96px;
+  height: 96px;
+}
+
+.ct-kpi-ring svg {
+  width: 96px;
+  height: 96px;
+  display: block;
+  transform: rotate(-90deg);
+}
+
+.ct-ring-track {
+  fill: none;
+  stroke: rgba(43,45,66,0.12);
+  stroke-width: 8;
+}
+
+.ct-ring-progress {
+  fill: none;
+  stroke: #2b2d42;
+  stroke-width: 8;
+  stroke-linecap: round;
+}
+
+.ct-kpi-ring span {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #2b2d42;
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: -0.04em;
+}
+
+/* Cards grans */
+.ct-card {
+  padding: 24px;
+}
+
+.ct-card-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 28px;
+  margin-bottom: 18px;
+}
+
+.ct-card-head h2 {
+  margin: 0;
+  color: #2b2d42 !important;
+  font-size: 23px;
+  font-weight: 500;
+  letter-spacing: -0.03em;
+}
+
+.ct-card-head p {
+  margin: 6px 0 0;
+  color: rgba(43,45,66,0.62) !important;
+  font-size: 12px;
+}
+
+.ct-head-stats {
+  display: flex;
+  gap: 28px;
+  flex-wrap: wrap;
+}
+
+.ct-head-stats strong {
+  display: block;
+  color: #2b2d42;
+  font-size: 38px;
+  line-height: 1;
+  font-weight: 300;
+  letter-spacing: -0.05em;
+}
+
+.ct-head-stats span {
+  display: block;
+  margin-top: 5px;
+  color: rgba(43,45,66,0.58);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.ct-year-svg,
+.ct-daily-svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.ct-grid {
+  stroke: rgba(43,45,66,0.07);
+  stroke-width: 1;
+}
+
+.ct-grid.light {
+  stroke: rgba(43,45,66,0.045);
+}
+
+.ct-axis {
+  fill: rgba(43,45,66,0.48);
+  font-size: 10px;
+}
+
+.ct-year-line {
+  fill: none;
+  stroke: #2b2d42;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.ct-daily-line {
+  fill: none;
+  stroke: #2b2d42;
+  stroke-width: 1.45;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.ct-today-guide {
+  stroke: rgba(43,45,66,0.72);
+  stroke-width: 1.1;
+  stroke-dasharray: 5 5;
+}
+
+.ct-today-dot {
+  fill: #2b2d42;
+}
+
+.ct-today-label {
+  fill: #2b2d42;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+/* Estadístiques internes */
+.ct-internal h2 {
+  margin: 0 0 14px;
+  color: #2b2d42;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.ct-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.ct-stat-card {
+  min-height: 320px;
+  padding: 16px;
+}
+
+.ct-stat-card h3 {
+  margin: 0 0 12px;
+  color: #2b2d42;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.ct-stat-list {
+  display: grid;
+  gap: 10px;
+  max-height: 460px;
+  overflow: auto;
+  padding-right: 4px;
+}
+
+.ct-stat-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.ct-stat-row span {
+  color: rgba(43,45,66,0.76);
+  font-size: 12px;
+}
+
+.ct-stat-row strong {
+  color: #2b2d42;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.ct-stat-bar {
+  height: 4px;
+  margin-top: 5px;
+  background: rgba(43,45,66,0.10);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.ct-stat-bar i {
+  display: block;
+  height: 100%;
+  background: #2b2d42 !important;
+  border-radius: 999px;
+}
+
+.ct-stat-item small {
+  display: block;
+  margin-top: 4px;
+  color: rgba(43,45,66,0.48);
+  font-size: 10px;
+}
+
+@media (max-width: 1400px) {
+  .ct-kpis,
+  .ct-stat-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 900px) {
+  .ct-kpis,
+  .ct-stat-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .ct-card-head {
+    flex-direction: column;
+  }
+}
