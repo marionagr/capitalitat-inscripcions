@@ -9150,3 +9150,135 @@ thead th {
 #view-total .cap-orb-grid-v2 .cap-orb-card-v2 {
   display: grid !important;
 }
+
+/* === CAPITALITAT_FINAL_ONLY_KPI_ORBS_STYLE === */
+
+/* Amaga qualsevol KPI antic que no sigui el nou */
+#view-total .cap-orb-grid-v2,
+#view-total .cap-orb-card-v2,
+#view-total .cap-final-kpis,
+#view-total .cap-final-kpi,
+#view-total .cap-kpi-grid,
+#view-total .cap-kpi-card,
+#view-total .cap-hotfix-gauge-grid,
+#view-total #cap-hotfix-gauge-grid,
+#view-total .cap-overview-grid,
+#view-total #cap-overview-grid,
+#view-total .cap-ref-kpi-grid,
+#view-total .cap-ref-kpi-card {
+  display: none !important;
+}
+
+/* El grid bo */
+#view-total #cap-kpi-orb-final.cap-kpi-orb-final {
+  display: grid !important;
+  grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+  gap: 18px !important;
+  width: 100% !important;
+  max-width: none !important;
+  margin: 0 0 32px 0 !important;
+}
+
+/* Targetes bones */
+#view-total #cap-kpi-orb-final .cap-final-orb-card {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) 96px !important;
+  align-items: center !important;
+  gap: 18px !important;
+
+  min-height: 170px !important;
+  padding: 22px !important;
+  border-radius: 28px !important;
+
+  background: linear-gradient(180deg, rgba(255,255,255,0.22), rgba(255,255,255,0.10)) !important;
+  border: 1px solid rgba(43,45,66,0.07) !important;
+  box-shadow:
+    0 18px 36px rgba(43,45,66,0.08),
+    inset 0 1px 0 rgba(255,255,255,0.36) !important;
+  backdrop-filter: blur(18px) saturate(110%) !important;
+  -webkit-backdrop-filter: blur(18px) saturate(110%) !important;
+}
+
+#view-total #cap-kpi-orb-final .cap-final-orb-left h3 {
+  margin: 0 !important;
+  color: #2b2d42 !important;
+  font-size: 15px !important;
+  line-height: 1.05 !important;
+  font-weight: 600 !important;
+  letter-spacing: -0.025em !important;
+}
+
+#view-total #cap-kpi-orb-final .cap-final-orb-left strong {
+  display: block !important;
+  margin-top: 18px !important;
+  color: #2b2d42 !important;
+  font-size: clamp(42px, 4vw, 58px) !important;
+  line-height: 0.9 !important;
+  font-weight: 300 !important;
+  letter-spacing: -0.055em !important;
+}
+
+#view-total #cap-kpi-orb-final .cap-final-orb-left span {
+  display: block !important;
+  margin-top: 8px !important;
+  color: rgba(43,45,66,0.58) !important;
+  font-size: 12px !important;
+  line-height: 1.25 !important;
+}
+
+#view-total #cap-kpi-orb-final .cap-final-orb-ring {
+  position: relative !important;
+  width: 96px !important;
+  height: 96px !important;
+}
+
+#view-total #cap-kpi-orb-final .cap-final-orb-ring svg {
+  width: 96px !important;
+  height: 96px !important;
+  display: block !important;
+  transform: rotate(-90deg) !important;
+}
+
+#view-total #cap-kpi-orb-final .cap-final-orb-ring-track {
+  fill: none !important;
+  stroke: rgba(43,45,66,0.12) !important;
+  stroke-width: 8 !important;
+}
+
+#view-total #cap-kpi-orb-final .cap-final-orb-ring-progress {
+  fill: none !important;
+  stroke: #2b2d42 !important;
+  stroke-width: 8 !important;
+  stroke-linecap: round !important;
+}
+
+#view-total #cap-kpi-orb-final .cap-final-orb-ring-label {
+  position: absolute !important;
+  inset: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  color: #2b2d42 !important;
+  font-size: 16px !important;
+  line-height: 1 !important;
+  font-weight: 600 !important;
+  letter-spacing: -0.04em !important;
+}
+
+@media (max-width: 1400px) {
+  #view-total #cap-kpi-orb-final.cap-kpi-orb-final {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (max-width: 900px) {
+  #view-total #cap-kpi-orb-final.cap-kpi-orb-final {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (max-width: 620px) {
+  #view-total #cap-kpi-orb-final.cap-kpi-orb-final {
+    grid-template-columns: 1fr !important;
+  }
+}

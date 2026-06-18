@@ -4957,3 +4957,198 @@ mostrarExperienciaCapitalitatV5 = function() {
     });
   });
 })();
+
+/* === CAPITALITAT_FINAL_ONLY_KPI_ORBS === */
+
+(() => {
+  if (window.__capFinalOnlyKpiOrbs) return;
+  window.__capFinalOnlyKpiOrbs = true;
+
+  function norm(value) {
+    return String(value ?? "").replace(/\u00a0/g, " ").replace(/\s+/g, " ").trim();
+  }
+
+  function parseDate(value) {
+    const raw = norm(value);
+    const m = raw.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/);
+    if (!m) return null;
+    const d = new Date(Number(m[3]), Number(m[2]) - 1, Number(m[1]));
+    if (Number.isNaN(d.getTime())) return null;
+    d.setHours(0, 0, 0, 0);
+    return d;
+  }
+
+  function isTrue(value) {
+    return String(value ?? "").trim().toUpperCase() === "TRUE";
+  }
+
+  function pct(value) {
+    return `${value.toFixed(1).replace(".", ",")}%`;
+  }
+
+  function escapeHtml(value) {
+    return String(value ?? "")
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#039;");
+  }
+
+  function cleanOldKpis() {
+    const view = document.querySelector("#view-total");
+    if (!view) return;
+
+    view.querySelectorAll(
+      ".cap-orb-grid-v2, .cap-orb-card-v2, .cap-final-kpis, .cap-final-kpi, .cap-kpi-grid, .cap-kpi-card, .cap-hotfix-gauge-grid, #cap-hotfix-gauge-grid, .cap-overview-grid, #cap-overview-grid, .cap-ref-kpi-grid, .cap-ref-kpi-card"
+    ).forEach(el => {
+      if (!el.closest("#cap-kpi-orb-final")) {
+        el.remove();
+      }
+    });
+  }
+
+  function buildRing(percent) {
+    const r = 34;
+    const c = 2 * Math.PI * r;
+    const offset = c * (1 - Math.max(0, Math.min(100, percent)) / 100);
+
+    return `
+      <div class="cap-final-orb-ring">
+        <svg viewBox="0 0 100 100" aria-hidden="true">
+          <circle class="cap-final-orb-ring-track" cx="50" cy="50" r="${r}"></circle>
+          <circle class="cap-final-orb-ring-progress"
+            cx="50" cy="50" r="${r}"
+            stroke-dasharray="${c}"
+            stroke-dashoffset="${offset}">
+          </circle>
+        </svg>
+        <div class="cap-final-orb-ring-label">${pct(percent)}</div>
+      </div>
+    `;
+  }
+
+  function buildCard(title, value, meta, percent) {
+    return `
+      <article class="cap-final-orb-card">
+        <div class="cap-final-orb-left">
+          <h3>${escapeHtml(title)}</h3>
+          <strong>${escapeHtml(value)}</strong>
+          <span>${escapeHtml(meta)}</span>
+        </div>
+        ${buildRing(percent)}
+      </article>
+    `;
+  }
+
+  async function renderFinalKpis() {
+    const view = document.querySelector("#view-total");
+    if (!view) return;
+
+    const dashboard = view.querySelector("#cap-total-stable-dashboard") || view;
+    cleanOldKpis();
+
+    const response = await fetch(`data/inscripcions.json?t=${Date.now()}`);
+    if (!response.ok) return;
+
+    const data = await response.json();
+    const rows = Array.isArray(data.rows) ? data.rows : [];
+    const keys = data.columnKeys || {};
+
+    const startKey = keys.dataInici || "data_inici";
+    const endKey = keys.dataFinal || "data_final";
+    const gestioKey = keys.gestio || "propies";
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const capEnd = new Date(today.getFullYear(), 11, 13);
+    capEnd.setHours(0, 0, 0, 0);
+
+    const total = rows.length;
+    const autogestionades = rows.filter(r => isTrue(r[gestioKey])).length;
+
+    const dated = rows.map(row => {
+      const start = parseDate(row[startKey]);
+      const end = parseDate(row[endKey]) || start;
+      return { row, start, end };
+    }).filter(x => x.start);
+
+    const finalitzades = dated.filter(x => x.end && x.end < today).length;
+    const pendents = dated.filter(x => x.start > today && x.start <= capEnd).length;
+
+    const currentMonth = today.getMonth();
+    const monthRows = dated.filter(x =>
+      x.start.getFullYear() === today.getFullYear() &&
+      x.start.getMonth() === currentMonth
+    );
+
+    const avui = monthRows.filter(x => x.start.getDate() === today.getDate()).length;
+    const avuiPct = monthRows.length ? (avui / monthRows.length) * 100 : 0;
+
+    const cards = [
+      ["Total passis", total, `${total} totals`, 100],
+      ["Autogestionades", autogestionades, `${autogestionades} pròpies`, total ? autogestionades / total * 100 : 0],
+      ["Finalitzades", finalitzades, `${finalitzades} acabades`, total ? finalitzades / total * 100 : 0],
+      ["Pendents", pendents, `${pendents} pendents`, total ? pendents / total * 100 : 0],
+      ["Avui", avui, `${avui} passis avui`, avuiPct]
+    ];
+
+    let grid = dashboard.querySelector("#cap-kpi-orb-final");
+
+    if (!grid) {
+      grid = document.createElement("section");
+      grid.id = "cap-kpi-orb-final";
+      grid.className = "cap-kpi-orb-final";
+
+      const yearChart =
+        dashboard.querySelector(".cap-final-wide-card") ||
+        dashboard.querySelector(".cap-final-internal") ||
+        dashboard.firstElementChild;
+
+      if (yearChart && yearChart.parentNode) {
+        yearChart.parentNode.insertBefore(grid, yearChart);
+      } else {
+        dashboard.prepend(grid);
+      }
+    }
+
+    grid.innerHTML = cards.map(c => buildCard(c[0], c[1], c[2], c[3])).join("");
+
+    cleanOldKpis();
+  }
+
+  function scheduleRenderFinalKpis() {
+    setTimeout(renderFinalKpis, 100);
+    setTimeout(renderFinalKpis, 500);
+    setTimeout(renderFinalKpis, 1200);
+    setTimeout(renderFinalKpis, 2500);
+  }
+
+  document.addEventListener("DOMContentLoaded", scheduleRenderFinalKpis);
+  window.addEventListener("load", scheduleRenderFinalKpis);
+
+  document.addEventListener("click", event => {
+    const btn = event.target.closest("button, .nav-pill, [data-view], .sidebar-item, .nav-item");
+    if (!btn) return;
+
+    const text = norm(btn.textContent).toLowerCase();
+    const view = btn.getAttribute("data-view") || "";
+
+    if (view.includes("total") || text.includes("total") || text.includes("passis")) {
+      scheduleRenderFinalKpis();
+    }
+  });
+
+  window.addEventListener("load", () => {
+    const view = document.querySelector("#view-total");
+    if (!view) return;
+
+    const observer = new MutationObserver(() => {
+      cleanOldKpis();
+      renderFinalKpis();
+    });
+
+    observer.observe(view, { childList: true, subtree: true });
+  });
+})();
